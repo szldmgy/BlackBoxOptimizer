@@ -1,0 +1,131 @@
+{
+  "baseCommand": "Rscript Examples/try-self-cv.R iris.txt $minsplit $minbucket $cp  $maxcompete $maxsurrogate $usersurrogate $xval $surrogatestyle $maxdepth",
+  "algorithmName": "RandomSearch",
+  "iterationCounter": 0,
+  "optimizerParameters": [],
+  "iterationCount": {
+    "value": 10
+  },
+  "objectiveContainer": {
+    "objectives": [
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "accuracy",
+        "dummy": 0,
+        "target": 0
+      }
+    ]
+  },
+  "scriptParameters": [
+    {
+      "name": "minsplit",
+      "initValue": 20.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "minbucket",
+      "initValue": 6.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "cp",
+      "initValue": 0.001,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "maxcompete",
+      "initValue": 4,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "maxsurrogate",
+      "initValue": 0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "xval",
+      "initValue": 10,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "usersurrogate",
+      "initValue": 2,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "surrogatestyle",
+      "initValue": 0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 10,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "maxdepth",
+      "initValue": 30,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 50,
+            "lowerBound": 0
+          }
+        }
+      ]
+    }
+  ]
+}

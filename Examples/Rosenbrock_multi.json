@@ -1,0 +1,55 @@
+{
+  "baseCommand": " python Examples/Rosenbrock1.py $firstParam $secondParam",
+  "objectiveFileName": "obj.txt",
+  "iterationCounter": 0,
+  "landscape": [],
+  "iterationCount": {
+    "value": 100
+  },
+  "objectiveContainer": {
+    "objectives": [
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "rosen",
+        "dummy": 0.0,
+        "target": 0.0
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "rosen1",
+        "dummy": 0.0,
+        "target": 0.0
+      }
+    ]
+  },
+  "scriptParameters": [
+    {
+      "name": "firstParam",
+      "initValue": 50.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "secondParam",
+      "initValue": 12.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

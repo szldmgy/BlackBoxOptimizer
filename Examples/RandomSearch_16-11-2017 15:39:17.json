@@ -1,0 +1,89 @@
+{
+  "baseCommand": " python Examples/Rosenbrock1.py $firstParam $secondParam",
+  "algorithmName": "RandomSearch",
+  "iterationCounter": 0,
+  "optimizerParameters": [],
+  "iterationCount": {
+    "value": 10
+  },
+  "objectiveContainer": {
+    "objectives": [
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "rosen",
+        "dummy": 0,
+        "target": 0
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "rosen1",
+        "dummy": 0,
+        "target": 0
+      }
+    ]
+  },
+  "scriptParameters": [
+    {
+      "name": "firstParam",
+      "initValue": 50.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "secondParam",
+      "initValue": 12.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 100.0,
+            "lowerBound": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "param0",
+      "initValue": 0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 13,
+            "lowerBound": 0
+          },
+          "p": {
+            "name": "firstParam",
+            "initValue": 50.0,
+            "dependencies": [
+              {
+                "rangeOfThis": {
+                  "upperBound": 100.0,
+                  "lowerBound": 0.0
+                }
+              }
+            ]
+          },
+          "rangeOfOther": {
+            "upperBound": 20.0,
+            "lowerBound": 12.0
+          }
+        },
+        {
+          "rangeOfThis": {
+            "upperBound": 11,
+            "lowerBound": 11
+          }
+        }
+      ]
+    }
+  ]
+}
