@@ -1,7 +1,5 @@
 package algorithms;
 
-import main.Main;
-import org.apache.log4j.Level;
 import utils.IterationResult;
 import utils.Param;
 
@@ -32,17 +30,17 @@ public class RandomSearch extends  AlgorithmFI {
                     float r = rand.nextFloat();
                     float newVal = lb + r * (ub - lb);
                     entry.setInitValue(newVal);
-                    //Main.log(Level.INFO,newVal);
+                    //main.Main.log(Level.INFO,newVal);
                 }
                 if (entry.getValue() instanceof Integer) {
                     int newVal = (Integer) entry.getLowerBound() + rand.nextInt((Integer) entry.getUpperBound()-(Integer) entry.getLowerBound()) ;
                    entry.setInitValue(newVal);
-                    //Main.log(Level.INFO,newVal);
+                    //main.Main.log(Level.INFO,newVal);
                 }
                 if (entry.getValue() instanceof Boolean) {
                     boolean newVal = rand.nextBoolean();
                    entry.setInitValue(newVal);
-                    //Main.log(Level.INFO,newVal);
+                    //main.Main.log(Level.INFO,newVal);
                 }
                 if(entry.isEnumeration()){
                     int enumPos = rand.nextInt(entry.getActiveValueArray().length-1);

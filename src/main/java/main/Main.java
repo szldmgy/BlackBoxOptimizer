@@ -5,8 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import spark.ModelAndView;
@@ -653,7 +651,7 @@ public class Main {
                 optimizerClass = optAlg;
 
 
-        // final Class optimizerClasses = Main.class.getClassLoader().loadClass(algorithmName[0]);
+        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
         Object algorithmObj = optimizerClass.newInstance();
 
         /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
@@ -697,7 +695,7 @@ public class Main {
                 optimizerClass = optAlg;
 
 
-        // final Class optimizerClasses = Main.class.getClassLoader().loadClass(algorithmName[0]);
+        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
         Object algorithmObj = optimizerClass.newInstance();
         Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
         setConfig.invoke(algorithmObj,testConfig);

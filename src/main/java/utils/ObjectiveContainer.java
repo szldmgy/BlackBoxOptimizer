@@ -3,15 +3,11 @@ package utils;
 
 import main.Main;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by peterkiss on 01/04/17.
