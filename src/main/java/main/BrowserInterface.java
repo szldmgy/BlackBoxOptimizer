@@ -3,10 +3,6 @@ package main;
 import algorithms.AlgorithmFI;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import spark.ModelAndView;
 import spark.Request;
 import spark.template.velocity.VelocityTemplateEngine;
@@ -15,255 +11,81 @@ import utils.*;
 import javax.script.ScriptException;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.Part;
-import java.lang.reflect.*;
-
 import java.io.*;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static spark.Spark.*;
 
-
 /**
- * Created by peterkiss on 14/10/16.
- *
- *
+ * Created by peterkiss on 2018. 01. 22..
  */
-// TODO: 15/06/17 iterative run: if push optimize -> we should get back to /hello-> command "java" <alg file> <parameters> and give options to ranges,deps, obj-s...
-// TODO: 15/06/17 and should write into conf ig file... of th next level
+public class BrowserInterface {
 
 
-public class Main {
+    private final static String layout = "templates/layout.vtl";
+    private final static String resultTemplate = "templates/resultnew.vtl";
+    private final String[] algoritmhs;
+    private final Boolean[] safeMode= {false};
+    private final boolean[] recoveryMode = {false};
+    private final String[] configFileName= new String[1];
+    private final String[] saveFileName= new String[1];
+    private static String outputDir;
+    private static String experimentDir ;
+    private static String uploadDir ;
+    private static String backupDir ;
+    private static List<String> classList;
+    private static List<String> objTypes;
+    final String[] objectiveTypes = Arrays.stream(Utils.Relation.values()).map(v->v.toString()).toArray(String[]::new);
 
-    static Logger logger = Logger.getLogger(Main.class);
-    //public Appender fileHandler;
-    //Formatter plainText;
-
-    //// TODO: 27/11/17 why we need this shit?? 
-    private static Logger getLogger(){
-        if(logger == null){
-            new Main();
-        }
-        return logger;
-    }
-    public static void log(Level level, String msg){
-        getLogger().log(level, msg);
-        System.out.println(msg);
-    }
-
-    // development path
-    final static String defaultOptimizerClassLocation =  "target/classes/algorithms/";
-
-    final static String outputfile =  "BlackBoxOptimizer/target/classes/algorithms/";
-
-    //jar path
-    final static String defaultJarOptimizerClassLocation =  "lib/algorithms/";
-
-    //final static String defaultJarOptimizerClassLocation =  "/algorithms";
 
     //available algorithms
-    static Map<Class<? extends AlgorithmFI>,String> optimizerClasses = new HashMap<Class<? extends AlgorithmFI>,String>();
+    private Map<Class<? extends AlgorithmFI>,String> optimizerClasses;// = new HashMap<Class<? extends AlgorithmFI>,String>();
+
+    private  TestConfig[] config = new TestConfig[1];
+    public BrowserInterface(String initialConfigFileName,Map<Class<? extends AlgorithmFI>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir,String uploadDir,String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
 
 
-    final static String outputDir = "results";
-    final static String experimentDir = "experiments";
-    final static String backupDir = "backup";
-    final static String uploadDir = "upload";
+        this.config[0] = TestConfig.readConfigJSON(initialConfigFileName);
+        this.optimizerClasses = optimizerClasses;
+        this.algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);
+        this.saveFileName[0] = saveFileName;
 
-    //commandline usage
-    final static boolean  inmediateRun[] = new boolean[1];
-    //save state in each iteration
-    final static boolean[] safeMode = new boolean[1];
-    //use optimizer settings defined in a separated file
-    final static boolean[] customParamFile= new boolean[1];
-    //name of file storing optimiser params
-    final static String[] customParamFileName= new String[1];
-    //save in every $savingFrequence iteation
-    final static Integer[] savingFrequence = new Integer[]{-1};
-    //indicates whether we reloaded the config, if did so we should keep the landscape
-    static boolean recoveryMode = false;
-    static String[] configFileName = {"examples/Rosenbrock/Rosenbrock_multi.json"};
+        BrowserInterface.uploadDir = uploadDir;
+        BrowserInterface.outputDir = outputDir;
+        BrowserInterface.experimentDir = experimentDir;
+        BrowserInterface.backupDir = backupDir;
 
-    public static String getSaveFileName() {
-        return saveFileName[0];
+        BrowserInterface.classList=  Arrays.asList(Integer.class.getName(),Float.class.getName(),Boolean.class.getName(),"Enum","Function");
+        BrowserInterface.objTypes=  Arrays.asList(Integer.class.getName(),Float.class.getName()/*,Boolean.class.getName(),"Enum","Function"*/);
+
+
+        staticFiles.externalLocation(projectDir + staticDir);
+        staticFiles.externalLocation(uploadDir);
+        staticFileLocation("/public");
+
+        //final List<Param> p = config[0].getScriptParameters();
+        //final String command = config[0].getBaseCommand();
+        //final String[] parameternames = config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new);
+        //final List<ObjectiveContainer.Objective> objectives =  config[0].getObjectiveContainer().getObjectives();
+
+
+
     }
 
-    static String[] saveFileName = {"Rosenbrock_multi"};
-
-    public static void main(String[] args) throws IOException, CloneNotSupportedException {
-
-        System.out.println("Working Directory = " +
-                System.getProperty("user.dir"));
-
-        if(args.length==1)
-            configFileName[0] = args[0];
-        String projectDir = System.getProperty("user.dir");
-        //String staticDir = "/src/main/resources/public";
-        String staticDir = "";
-
-
-        File directory = new File(outputDir);
-        if (! directory.exists()){
-            directory.mkdir();
-            // If you require it to make the entire directory path including parents,
-            // use directory.mkdirs(); here instead.
-        }
-        directory = new File(experimentDir);
-        if (! directory.exists()){
-            directory.mkdir();
-            // If you require it to make the entire directory path including parents,
-            // use directory.mkdirs(); here instead.
-        }
-        directory = new File(backupDir);
-        if (! directory.exists()){
-            directory.mkdir();
-            // If you require it to make the entire directory path including parents,
-            // use directory.mkdirs(); here instead.
-        }
-        directory = new File(uploadDir);
-        if (! directory.exists()){
-            directory.mkdir();
-            // If you require it to make the entire directory path including parents,
-            // use directory.mkdirs(); here instead.
-        }
-
-
-
-        for(int i = 0; i< args.length;i++)
-        {
-            String s = args[i];
-            if(s.equals("-r"))
-                inmediateRun[0]=true;
-            else if(s.equals("-s"))
-                safeMode[0]=true;
-            else if(s.equals("-sp")) {
-                safeMode[0] = true;
-                savingFrequence[0] = Integer.parseInt(args[++i]);
-            }
-            else if(s.equals("-p")) {
-                customParamFile[0] = true;
-                customParamFileName[0] = args[i++];
-            }
-            else
-                configFileName[0] = s;
-        }
-
-
-        final TestConfig[] config = new TestConfig[1];
-        String[] algorithmName = new String[1];
-
-
-        // TODO: 10/08/17 CALL TO SERVER 
-        //find all availible optimizer algorithms
-        optimizerClasses = Utils.findAllMatchingTypes(AlgorithmFI.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
-
-        //load config from json file
-        if (configFileName[0].contains(".json")) {
-
-
-            if(inmediateRun[0])
-            {
-                try {
-                    // TODO: 10/08/17 CALL SERVER
-                    config[0] = TestConfig.readConfigJSON(configFileName[0]);
-                    config[0].runOptimizer(safeMode[0],saveFileName[0]);
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-            else {
-                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,saveFileName[0]);
-                bi.run();
-            }
-
-
-        }
-
-
-
-
-      /*  staticFileLocation("/public");
-        List<String> classList=  Arrays.asList(Integer.class.getName(),Float.class.getName(),Boolean.class.getName(),"Enum","Function");
-        List<String> objTypes=  Arrays.asList(Integer.class.getName(),Float.class.getName()*//*,Boolean.class.getName(),"Enum","Function"*//*);
-
-        final List<Param> p = config[0].getScriptParameters();
-        final String command = config[0].getBaseCommand();
-        final String[] parameternames = config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new);
-        final List<ObjectiveContainer.Objective> objectives =  config[0].getObjectiveContainer().getObjectives();
-
-        final String[] objectiveTypes = Arrays.stream(Utils.Relation.values()).map(v->v.toString()).toArray(String[]::new);
-
-
-
-
-        final String[] algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);*/
-    }
-/*
-        post("/loadsetup","multipart/form-data",(req,res)->{
-// TODO: 28/08/17 check if exists
-          //  Part fn = req.raw().getPart("cfn");
-
-
-            config[0] = new TestConfig();
-           // if(fn!=null&&!fn.equals("")) {
-               *//* fn = fn.replace("C:\\fakepath\\",experimentDir+"/" );
-                fn = fn.replace("C:/fakepath/",experimentDir+"/" );
-                File f= new File(fn);
-                if(!f.exists())
-                    fn = fn.replace(experimentDir,backupDir);
-                if(new File(fn).exists())
-                    config[0] =  readConfigJSON(fn);*//*
-
-
-
-            Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
-            //String s = req.queryParams("chosenfile");
-            req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-            Part filePart = req.raw().getPart("chosenfile");
-            Part fn = req.raw().getPart("cfn");
-            configFileName[0] = filePart.getSubmittedFileName();
-            //prepare base of the savefilename
-            String [] fnparts =  configFileName[0].split("/");
-            saveFileName[0] =fnparts[fnparts.length-1].replace(".json","");
-            try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
-                Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            if(tempFile.toFile().length()!=0)
-                config[0] =  TestConfig.readConfigJSON(tempFile.toFile());
-            Files.delete(tempFile);
-          //  }
-            Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
-
-
-            return new VelocityTemplateEngine().render(
-                    new ModelAndView(model, layout)
-            );
-        });*/
-
-/*
+    public void run(){
         get("/results", (req, res) ->{
             // TODO: 2018. 01. 22. why???
-            config[0] =  TestConfig.readConfigJSON("test.json");
+            //config[0] =  TestConfig.readConfigJSON("test.json");
 
-            Map<String, Object> model1 = getResultModel(objectives, "experiment.csv",saveFileName[0]);
+            Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainer().getObjectives(), "experiment.csv",saveFileName[0]);
 
 
             return new VelocityTemplateEngine().render(
@@ -276,7 +98,7 @@ public class Main {
 
             Map<String, Object> model = getGoodBye();
 
-               stop();
+            stop();
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
             );
@@ -291,28 +113,61 @@ public class Main {
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
             );
-        });*/
-
-        /*final List<Param> paramsList = config[0].getScriptParameters();
-        Type listOfTestObject = new TypeToken<List<String>>(){}.getType();
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();*/
-       /* get("/paramlist", (req, res) ->
-                gson.toJson(paramsList.stream().map(e -> e.getName()).toArray())
-        );*/
+        });
 
 
+        post("/loadsetup","multipart/form-data",(req,res)->{
+// TODO: 28/08/17 check if exists
+            //  Part fn = req.raw().getPart("cfn");
 
-        /*post("/updateconfig", (request, response) -> {
+
+            config[0] = new TestConfig();
+            // if(fn!=null&&!fn.equals("")) {
+               /* fn = fn.replace("C:\\fakepath\\",experimentDir+"/" );
+                fn = fn.replace("C:/fakepath/",experimentDir+"/" );
+                File f= new File(fn);
+                if(!f.exists())
+                    fn = fn.replace(experimentDir,backupDir);
+                if(new File(fn).exists())
+                    config[0] =  readConfigJSON(fn);*/
+
+
+            File uploadDir = new File(BrowserInterface.uploadDir);
+            Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
+            //String s = req.queryParams("chosenfile");
+            req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+            Part filePart = req.raw().getPart("chosenfile");
+            Part fn = req.raw().getPart("cfn");
+            this.configFileName[0] = filePart.getSubmittedFileName();
+            //prepare base of the savefilename
+            String [] fnparts =  configFileName[0].split("/");
+            saveFileName[0] =fnparts[fnparts.length-1].replace(".json","");
+            try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
+                Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            if(tempFile.toFile().length()!=0)
+                config[0] =  TestConfig.readConfigJSON(tempFile.toFile());
+            Files.delete(tempFile);
+            //  }
+            Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
+
+
+            return new VelocityTemplateEngine().render(
+                    new ModelAndView(model, layout)
+            );
+        });
+
+        post("/updateconfig", (request, response) -> {
             Map<String, Object> model = new HashMap<String, Object>();
             String safeModeString = request.queryParams("safe_mode");
-
             if(safeModeString != null) {
-                savingFrequence[0] = Integer.parseInt(request.queryParams("frequency"));
+                config[0].setSavingFrequence(Integer.parseInt(request.queryParams("frequency")));
                 safeMode[0] = true;
             }
 
             //todo algorithmname here it is alwaysd null, saverfilename goes with default
-            algorithmName[0] = config[0].getAlgorithmName();
+
             saveFileName[0] = request.queryParams("savefilename");
             String useIterationString = request.queryParams("use_iterations");
             String iterationCountString = request.queryParams("iterationCount");
@@ -326,15 +181,15 @@ public class Main {
 
 
             if(config[0].getLandscape().size()>0) {
-                recoveryMode = true;
+                recoveryMode[0] = true;
                 landscape = config[0].getLandscape();
                 counter = config[0].getIterationCounter();
 
             }
             else
-                recoveryMode = false;
+                recoveryMode[0] = false;
             TestConfig c = new TestConfig(); //todo we need a new one? not like it would change too much
-            c.setAlgorithmName(algorithmName[0]);
+            c.setAlgorithmName(config[0].getAlgorithmName());
             // in case we have htem in the same file
             c.setOptimizerParameters(predefinedOptimizerParams);
             c.setBaseCommand(command_input);
@@ -346,8 +201,8 @@ public class Main {
             String objFileName1 = request.queryParams("objFileName");
 // TODO: 23/07/17 what about other predefined lists??? - objectives variable might be removed, use only the tc one all this shit because of recovery could be simpler
             ObjectiveContainer objectiveContainer = readObjectives(request);
-            objectives.clear();
-            objectives.addAll(objectiveContainer.getObjectives());
+           // objectives.clear();
+           // objectives.addAll(objectiveContainer.getObjectives());
 
             c.setObjectiveContainer(objectiveContainer);
             String usefileStr = request.queryParams("use_file_output");
@@ -377,8 +232,8 @@ public class Main {
                     Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
                     setConfig.invoke(algorithmObj,config[0]);
 
-                    *//*Method setConfigFromFile= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
-                    setConfig.invoke(algorithmObj,"test.json");*//*
+                    /*Method setConfigFromFile= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
+                    setConfig.invoke(algorithmObj,"test.json");*/
 
                     Method setParams= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
                     setParams.invoke(algorithmObj,config[0].getScriptParameters());
@@ -407,12 +262,12 @@ public class Main {
             //we set up values for optimizerparam from configfile
             List<Param> pl = algParamMap.get(config[0].getAlgorithmName());
             if(pl!=null && config[0].getOptimizerParameters()!=null) // for algorithm without parameters
-            for(Param paramInMap : pl){ //for reloading values at recovery??
-                for(Param loadedParam : config[0].getOptimizerParameters())
-                    if(paramInMap.equals(loadedParam))
-                        paramInMap = loadedParam; //is this ok? it might be lost after loop
+                for(Param paramInMap : pl){ //for reloading values at recovery??
+                    for(Param loadedParam : config[0].getOptimizerParameters())
+                        if(paramInMap.equals(loadedParam))
+                            paramInMap = loadedParam; //is this ok? it might be lost after loop
 
-            }
+                }
 
 
             Map<String, Object> model1 = new HashMap<>();
@@ -425,15 +280,15 @@ public class Main {
             model1.put("parametertypes",classList);
 
             return new ModelAndView(model1, layout);
-        }, new VelocityTemplateEngine());*/
+        }, new VelocityTemplateEngine());
 
-       /* post("/updatealgorithmconfig", (request, response) -> {
+        post("/updatealgorithmconfig", (request, response) -> {
             Map<String, Object> model = new HashMap<String, Object>();
 
             request.queryParams().stream().forEach(System.out::println);
 
             String algorithmname = request.queryParams("algorithm_names");
-            algorithmName[0] = algorithmname;
+            config[0].setAlgorithmName(algorithmname);
             String useIterationString = request.queryParams("use_iterations");
 
             String iterationCountString = request.queryParams("iterationCount");
@@ -454,7 +309,7 @@ public class Main {
 
             c.setObjectiveContainer(objectiveContainer);
             c.setObjectiveFileName(objFileName1);
-            if(recoveryMode) {
+            if(recoveryMode[0]) {
                 c.setLandscape(config[0].getLandscape());
                 c.setIterationCounter(config[0].getIterationCounter());
             }
@@ -466,7 +321,7 @@ public class Main {
             }
 
 
-            // TODO: 10/08/17 send parameters to SERVER 
+            // TODO: 10/08/17 send parameters to SERVER
             c.setScriptParameters(paramList);
             try (Writer writer = new FileWriter("test_"+algorithmname+"_conf.json")) {
                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
@@ -482,8 +337,8 @@ public class Main {
                     Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
                     setConfig.invoke(algorithmObj,config[0]);
 
-                    *//*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
-                    setConfig.invoke(algorithmObj,"test.json");*//*
+                    /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
+                    setConfig.invoke(algorithmObj,"test.json");*/
 
 
                     Method setParams= optimizerClass.getMethod("setOptimizerParams",List.class);
@@ -523,7 +378,7 @@ public class Main {
 
             List<Param> lp = readParams(request,algorithmname);
 
-// TODO: 10/08/17 SEND OPT PARAMETERS TO SERVER 
+// TODO: 10/08/17 SEND OPT PARAMETERS TO SERVER
             //to save the config
 
 
@@ -533,19 +388,6 @@ public class Main {
 
 
 
-            *//*String resFileName = "experiment.csv";
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            String resFileNameNew  =  algorithmname+"_"+dateFormat.format(new Date());÷/
-            *//*File[] files = new File(outputDir+"/").listFiles();
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    System.out.println("Directory: " + file.getName());
-                   // showFiles(file.listFiles()); // Calls same method again.
-                } else {
-                    System.out.println("File: " + file.getName());
-                }
-            }*//*
-            //if(saveFileName[0].equals("default"))
             String experimentName = saveFileName[0];
             if(new File(experimentDir +"/"+experimentName+".json").exists()) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -556,42 +398,26 @@ public class Main {
             String expFileName = "experiment.json";
             expFileName = experimentDir +"/"+experimentName+".json";
 
-            File directory = new File(outputDir);
-            if (! directory.exists()){
-                directory.mkdir();
-                // If you require it to make the entire directory path including parents,
-                // use directory.mkdirs(); here instead.
-            }
-            directory = new File(experimentDir);
-            if (! directory.exists()){
-                directory.mkdir();
-                // If you require it to make the entire directory path including parents,
-                // use directory.mkdirs(); here instead.
-            }
-            directory = new File(backupDir);
-            if (! directory.exists()){
-                directory.mkdir();
-                // If you require it to make the entire directory path including parents,
-                // use directory.mkdirs(); here instead.
-            }
 // TODO: 2018. 01. 23. in the experiment setup file we dont save landscape i think it is ok, we need for  recovery only.
             try (Writer writer = new FileWriter(expFileName)) {
                 List<IterationResult> ls = config[0].getLandscape();
                 config[0].setLandscape(null);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 gson.toJson(config[0], writer);
                 config[0].setLandscape(ls);
             }
             catch (Exception e){
                 e.printStackTrace();
             }
-            String result = config[0].runOptimizer(algorithmname, lp, safeMode[0],resFileName);
-            String resultFilePath =  *//*projectDir + "/BlackBoxOptimizer"+staticDir+"/"+*//*resFileName;
+
+            String result = config[0].runOptimizer(safeMode[0],resFileName);
+            String resultFilePath =  /*projectDir + "/BlackBoxOptimizer"+staticDir+"/"+*/resFileName;
             try (Writer writer = new FileWriter(resultFilePath)) {
                 writer.write(result);
             }
 
 
-            Map<String, Object> model1 = getResultModel(objectives, resFileName,saveFileName[0]);
+            Map<String, Object> model1 = getResultModel(this.config[0].getObjectiveContainer().getObjectives(), resFileName,saveFileName[0]);
 
 
             //VelocityEngine engine = new VelocityEngine();
@@ -641,9 +467,9 @@ public class Main {
         String[] resFileList = null;
         String[] setupFileList = null;
         try {
-                resFileList =Files.list(Paths.get(outputDir))
+            resFileList = Files.list(Paths.get(outputDir))
                     .filter(Files::isRegularFile).map(f->outputDir+"/"+f.getFileName().toString()).toArray(String[]::new);
-                setupFileList = Files.list(Paths.get(experimentDir))
+            setupFileList = Files.list(Paths.get(experimentDir))
                     .filter(Files::isRegularFile).map(f->experimentDir+"/"+f.getFileName().toString()).toArray(String[]::new);
         } catch (IOException e) {
             e.printStackTrace();
@@ -655,89 +481,22 @@ public class Main {
         model1.put("objective_relations", objectiveRelationList);
         model1.put("objective_names", objectiveList);
         return model1;
-    }*/
-    // moved to TestConfig
-    /*private static String runOptimizer(TestConfig testConfig, boolean b,String resFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        Class optimizerClass = null;
-        for (Class optAlg : optimizerClasses.keySet())
-            if(optAlg.getSimpleName().equals(testConfig.getAlgorithmName()))
-                optimizerClass = optAlg;
+    }
 
+    /**
+     * param_names -> all the dependencies
+     ;;range_secondParam_div_paramdiv_dep_secondParam3
 
-        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
-        Object algorithmObj = optimizerClass.newInstance();
+     dependency_ids -> div containing a param
+     ;firstParam_div;secondParam_div;param0_div
 
-        *//*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
-        setConfig.invoke(algorithmObj,confi);*//*
-        Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
-        setConfig.invoke(algorithmObj,testConfig);
+     param_range_div_ids -> all the ranges (for any parameters)
+     ;firstParam_div_paramdiv_dep_firstParam3;secondParam_div_paramdiv_dep_secondParam3;;param0_div_paramdiv_dep_param05
 
-
-        Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
-        setOptimizerConfigMethod.invoke( algorithmObj,testConfig.getOptimizerParameters());
-
-        if(testConfig.getIterationCounter() != 0 ) {
-            Method loadInternalStateMethod = optimizerClass.getMethod("loadState", String.class);
-            loadInternalStateMethod.invoke(algorithmObj, testConfig.getOptimizerStateBackupFilename());
-        }
-
-        Method loadOptimizerparams = optimizerClass.getMethod("loadOptimizerParamsFromJsonFile",String.class);
-        loadOptimizerparams.invoke(algorithmObj,customParamFileName[0]);
-
-        if(testConfig.getLandscape().size()>0) {
-            Method setupTimedelta = optimizerClass.getMethod("seTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, testConfig.getLandscape().get(testConfig.getLandscape().size() - 1).getTimeStamp());
-        }
-
-        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
-        runMethod.invoke( algorithmObj, b,savingFrequence[0],resFileName);
-
-
-
-        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
-        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
-
-        return (String)result1;
-    }*/
-
-    // TODO: 18/10/17 redundant parameter passing, should make one "run" method instead of two
-    // moved to TestConfig
-    /*public static String runOptimizer(TestConfig testConfig,String algorithmname, List<Param> lp, boolean safeMode,String resFileName) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        Class optimizerClass = null;
-        for (Class optAlg : optimizerClasses.keySet())
-            if(optAlg.getSimpleName().equals(algorithmname))
-                optimizerClass = optAlg;
-
-
-        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
-        Object algorithmObj = optimizerClass.newInstance();
-        Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
-        setConfig.invoke(algorithmObj,testConfig);
-
-
-
-        Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
-        setOptimizerConfigMethod.invoke( algorithmObj,lp);
-
-        if(testConfig.getLandscape().size()>0) {
-            Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, testConfig.getLandscape().get(testConfig.getLandscape().size() - 1).getTimeStamp());
-        }
-
-        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
-        runMethod.invoke( algorithmObj, safeMode,savingFrequence[0],resFileName);
-
-
-
-        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
-        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
-
-        return (String)result1;
-    }*/
-
-
-
-   /* *//*
+     * @param request
+     * @param alg_name
+     * @return
+     */
 
     public static List<Param> readParams(Request request,String alg_name) {
 
@@ -995,88 +754,5 @@ public class Main {
 
         }
         return param;
-    }*/
-
-    // TODO: 16/05/17 hacked loading paths, qualified names
-    // TODO: 10/08/17 Should be run on server
-    /*public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {
-        Map<Class<? extends T>,String> foundClasses = new HashMap<Class<? extends T>, String>() ;
-
-        try(final Stream<Path> pathsStream = Files.walk(Paths.get(optimizerClassLocation))) {
-            pathsStream.forEach(filePath -> {
-                if (Files.isRegularFile(filePath)) {
-                    if (filePath.toString().contains(".class")){
-                        File f = filePath.toFile();
-
-                       // URL url = null;
-                        try {
-                            URL url = f.toURI().toURL();
-                            URL[] urls = new URL[]{url};
-                            ClassLoader cl = new URLClassLoader(urls);
-
-                            // Load in the class; MyClass.class should be located in
-                            // the directory file:/c:/myclasses/com/mycompany
-                            // TODO: 16/05/17 name this is lame... but seems like no better solution
-                            //String s1 = f.getName();
-                            //String[] s = s1.split("\\.");
-                            //Arrays.stream(s).forEach(System.out::println);
-
-                            Class optimizerClass = cl.loadClass("algorithms." + f.getName().split("\\.")[0]);
-                            //String retval = Modifier.toString(optimizerClass.getModifiers());
-                           // int i = optimizerClass.getModifiers();
-                            if(isImplementedAlgorithm( optimizerClass))
-                                foundClasses.put(optimizerClass,null);
-                        } catch (ClassNotFoundException | MalformedURLException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                }
-            });
-        }
-        findConfigFiles(foundClasses);
-
-        return foundClasses;
     }
-
-    public static boolean isImplementedAlgorithm(Class optimizerClass){
-        if(Modifier.isAbstract(optimizerClass.getModifiers()))
-           return false;
-        Class C = optimizerClass;
-        while (C != null) {
-            //System.out.println(C.getName());
-            if(C.equals(AlgorithmFI.class))
-               return true;
-            C = C.getSuperclass();
-        }
-        return false;
-    }
-
-    *//**
-     *
-     * @param foundClasses
-     * @param <T>
-     *//*
-    public static <T> void findConfigFiles(Map<Class<? extends T>, String> foundClasses) {
-        Path p = Paths.get(defaultOptimizerClassLocation);
-        System.out.println(p);
-        if(!Files.exists(p))
-            return;
-        try(final Stream<Path> pathsStream = Files.walk(p)) {
-            pathsStream.forEach( filePath -> {
-                        if (Files.isRegularFile(filePath) && filePath.toString().contains(".config")) {
-                            Optional<Class<? extends T>> cl =foundClasses.keySet().stream().filter(c -> filePath.toString().equals(c.getName())).findFirst();
-                            if(cl.isPresent()) {
-                                foundClasses.put(cl.get(), "");
-                            }
-                        }
-                    }
-            );
-
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-
-        }
-    }*/
 }

@@ -18,7 +18,7 @@ public class ObjectiveDeserializer implements JsonDeserializer<ObjectiveContaine
             JsonParseException {
             ObjectiveContainer.Objective o = new Gson().fromJson(jsonElement, ObjectiveContainer.Objective.class);
             ObjectiveContainer.Objective modified = null;
-            Double value=0.,target=0.;
+            Double value=0.,target=0.,dummy = 0.;
         if((o.getTarget() != null && o.getTarget().getClass() == Double.class) || (o.getValue()!=null && o.getValue().getClass() == Double.class)){
             if(o.getValue()!=null) {
                 value = (Double) (o.getValue());
@@ -34,7 +34,7 @@ public class ObjectiveDeserializer implements JsonDeserializer<ObjectiveContaine
             }
             else
                 target=null;
-            return new ObjectiveContainer.Objective(o.relation,o.isTerminator(),o.getName(),value==null?null:value.floatValue(),target==null?target:target.floatValue(),null,o.getWeight());
+            return new ObjectiveContainer.Objective(o.relation,o.isTerminator(),o.getName(),value==null?null:value.floatValue(),target==null?target:target.floatValue(),0.f,o.getWeight());
         }
         return o;
 

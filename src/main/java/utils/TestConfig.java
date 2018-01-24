@@ -1,10 +1,17 @@
 package utils;
 
+import algorithms.AlgorithmFI;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -36,11 +43,30 @@ public class TestConfig {
     //we store the landscape here in order to be able to reload the last state in case of interruption
     private  List<IterationResult> landscape = new LinkedList<>();
 
+    
+
     //recent state of parameterspace
     private List<Param> optimizerParameters;
 
     //optional limit for iterations
     private Optional<Integer> iterationCount;
+
+
+    public void setSavingFrequence(Integer savingFrequence) {
+        this.savingFrequence = savingFrequence;
+    }
+
+    //// TODO: 2018. 01. 22. new fields after this
+    //save in every $savingFrequence iteation
+    private Integer savingFrequence = -1;
+
+    private Map<Class<? extends AlgorithmFI>,String> optimizerClasses;
+
+    //// TODO: 2018. 01. 22. really needed?
+    //name of file storing optimiser params
+    private String  customParamFileName;
+
+
 
 
 
@@ -65,10 +91,17 @@ public class TestConfig {
     public void setIterationCount(Optional<Integer> iterationCount) {        this.iterationCount = iterationCount;    }
     public void setAlgorithmName(String algorithmName) {        this.algorithmName = algorithmName;    }
     public void setLandscape(List<IterationResult> landscape) {        this.landscape = landscape;    }
-    public void setOptimizerConfigFilename(String optimizerConfigFilename) {        this.optimizerConfigFilename = optimizerConfigFilename;    }
     public void setIterationCounter(int iterationCounter) {        this.iterationCounter = iterationCounter;    }
     public void setOptimizerStateBackupFilename(String optimizerStateBackupFilename) {        this.optimizerStateBackupFilename = optimizerStateBackupFilename;    }
+    public void setOptimizerClasses(Map<Class<? extends AlgorithmFI>, String> optimizerClasses) {
+        this.optimizerClasses = optimizerClasses;
+    }
+//// TODO: 2018. 01. 22. what are these guys? 
+    public void setOptimizerConfigFilename(String optimizerConfigFilename) {        this.optimizerConfigFilename = optimizerConfigFilename;    }
 
+    public void setCustomParamFileName(String customParamFileName) {
+        this.customParamFileName = customParamFileName;
+    }
 
 
     public String getAlgorithmName() {        return algorithmName;    }
@@ -242,8 +275,137 @@ public class TestConfig {
 
     }
 
+    public   String runOptimizer( boolean safeMode,String resFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        String algName = getAlgorithmName();
+        Class optimizerClass = getOptimizerClassBySimpleName(algName);
+
+
+        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
+        Object algorithmObj = optimizerClass.newInstance();
+
+        /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
+        setConfig.invoke(algorithmObj,confi);*/
+            Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
+            setConfig.invoke(algorithmObj,this);
+
+
+            Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
+            setOptimizerConfigMethod.invoke( algorithmObj,this.getOptimizerParameters());
+
+            if(this.getIterationCounter() != 0 ) {
+            Method loadInternalStateMethod = optimizerClass.getMethod("loadState", String.class);
+            loadInternalStateMethod.invoke(algorithmObj, this.getOptimizerStateBackupFilename());
+        }
+
+        Method loadOptimizerparams = optimizerClass.getMethod("loadOptimizerParamsFromJsonFile",String.class);
+        loadOptimizerparams.invoke(algorithmObj,this.customParamFileName);
+
+        if(this.getLandscape().size()>0) {
+            Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
+            setupTimedelta.invoke(algorithmObj, this.getLandscape().get(this.getLandscape().size() - 1).getTimeStamp());
+        }
+
+        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
+        runMethod.invoke( algorithmObj, safeMode,this.savingFrequence,resFileName);
 
 
 
+        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
+        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
+
+        return (String)result1;
+    }
+
+    public  Class getOptimizerClassBySimpleName(String algName) {
+        Class optimizerClass = null;
+        for (Class optAlg : this.optimizerClasses.keySet())
+            if(optAlg.getSimpleName().equals(algName))
+                optimizerClass = optAlg;
+        return optimizerClass;
+    }
+    @Deprecated
+    public  String runOptimizer(String algorithmname, List<Param> lp, boolean safeMode,String resFileName) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Class optimizerClass = getOptimizerClassBySimpleName(algorithmname);
+
+
+        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
+        Object algorithmObj = optimizerClass.newInstance();
+        Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
+        setConfig.invoke(algorithmObj,this);
+
+       /* Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
+        setConfig.invoke(algorithmObj,"test.json");*/
+
+        Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
+        setOptimizerConfigMethod.invoke( algorithmObj,lp);
+
+        if(this.getLandscape().size()>0) {
+            Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
+            setupTimedelta.invoke(algorithmObj, this.getLandscape().get(this.getLandscape().size() - 1).getTimeStamp());
+        }
+
+        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
+        runMethod.invoke( algorithmObj, safeMode,savingFrequence,resFileName);
+
+
+       /* Method getLAndsCapeMethod = optimizerClass.getMethod("getLandscapeString");
+        Object resultO = getLAndsCapeMethod.invoke(algorithmObj);
+*/
+        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
+        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
+
+        return (String)result1;
+    }
+
+    public static TestConfig readConfigJSON(String configFileName) throws FileNotFoundException {
+        File f = new File(configFileName);
+        return readConfigJSON(f);
+    }
+
+    public static TestConfig readConfigJSON(File f) throws FileNotFoundException {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
+        gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
+        Gson gson = gsonBuilder.create();
+        JsonReader reader = new JsonReader(new FileReader(f));
+        return gson.fromJson(reader, TestConfig.class);
+    }
+
+    public   Map<String, List<Param>> filterAlgorithms() {
+        Map<String, List<Param>> algParamMap = new HashMap<String, List<Param>>();
+        optimizerClasses.forEach((optimizerClass, configfile) -> {
+            try {
+                Object algorithmObj = optimizerClass.newInstance();
+
+                Method setConfig = optimizerClass.getMethod("setConfiguration", TestConfig.class);
+                setConfig.invoke(algorithmObj, this);
+
+                    /*Method setConfigFromFile= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
+                    setConfig.invoke(algorithmObj,"test.json");*/
+
+                Method setParams = optimizerClass.getMethod("updateConfigFromAlgorithmParams", List.class);
+                setParams.invoke(algorithmObj, this.getScriptParameters());
+
+                Method getConfig = optimizerClass.getMethod("getConfig");
+                Object o = getConfig.invoke(algorithmObj);
+                List<Param> pl = (List<Param>) o;
+
+                Method isApplyableMethod = optimizerClass.getMethod("isApplyableForParams");
+                if ((Boolean) isApplyableMethod.invoke(algorithmObj))
+                    algParamMap.put(optimizerClass.getSimpleName(), (List<Param>) o);
+
+
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        });
+        return algParamMap;
+    }
 
 }

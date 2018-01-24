@@ -38,8 +38,8 @@ public abstract class Genetic extends AlgorithmFI {
         try {
             if(is.generation == 0) {
                 for(Param p : parameterMap) {
-                    float lb = (float)(double)p.getLowerBound();
-                    float ub = (float)(double)p.getUpperBound();
+                    float lb = ((Number)p.getLowerBound()).floatValue();
+                    float ub = ((Number)p.getUpperBound()).floatValue();
                     float r = rand.nextFloat();
                     p.setInitValue(lb + r * (ub - lb));
                 }

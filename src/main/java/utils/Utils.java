@@ -1,10 +1,24 @@
 package utils;
 
 
+import algorithms.AlgorithmFI;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 
 import javax.script.ScriptContext;
@@ -16,6 +30,89 @@ import javax.script.ScriptException;
  * Created by peterkiss on 01/04/17.
  */
 public class Utils {
+
+    // TODO: 16/05/17 hacked loading paths, qualified names
+    // TODO: 10/08/17 Should be run on server
+    public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {
+        Map<Class<? extends T>,String> foundClasses = new HashMap<Class<? extends T>, String>() ;
+
+        try(final Stream<Path> pathsStream = Files.walk(Paths.get(optimizerClassLocation))) {
+            pathsStream.forEach(filePath -> {
+                if (Files.isRegularFile(filePath)) {
+                    if (filePath.toString().contains(".class")){
+                        File f = filePath.toFile();
+
+                        // URL url = null;
+                        try {
+                            URL url = f.toURI().toURL();
+                            URL[] urls = new URL[]{url};
+                            ClassLoader cl = new URLClassLoader(urls);
+
+                            // Load in the class; MyClass.class should be located in
+                            // the directory file:/c:/myclasses/com/mycompany
+                            // TODO: 16/05/17 name this is lame... but seems like no better solution
+                            //String s1 = f.getName();
+                            //String[] s = s1.split("\\.");
+                            //Arrays.stream(s).forEach(System.out::println);
+
+                            Class optimizerClass = cl.loadClass("algorithms." + f.getName().split("\\.")[0]);
+                            //String retval = Modifier.toString(optimizerClass.getModifiers());
+                            // int i = optimizerClass.getModifiers();
+                            if(isImplementedAlgorithm( optimizerClass))
+                                foundClasses.put(optimizerClass,null);
+                        } catch (ClassNotFoundException | MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+            });
+        }
+        findConfigFiles(foundClasses,optimizerClassLocation);
+
+        return foundClasses;
+    }
+
+    public static boolean isImplementedAlgorithm(Class optimizerClass){
+        if(Modifier.isAbstract(optimizerClass.getModifiers()))
+            return false;
+        Class C = optimizerClass;
+        while (C != null) {
+            //System.out.println(C.getName());
+            if(C.equals(AlgorithmFI.class))
+                return true;
+            C = C.getSuperclass();
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param foundClasses
+     * @param <T>
+     */
+    public static <T> void findConfigFiles(Map<Class<? extends T>, String> foundClasses,String optimizerClassLocation) {
+        Path p = Paths.get(optimizerClassLocation);
+        //System.out.println(p);
+        if(!Files.exists(p))
+            return;
+        try(final Stream<Path> pathsStream = Files.walk(p)) {
+            pathsStream.forEach( filePath -> {
+                        if (Files.isRegularFile(filePath) && filePath.toString().contains(".config")) {
+                            Optional<Class<? extends T>> cl =foundClasses.keySet().stream().filter(c -> filePath.toString().equals(c.getName())).findFirst();
+                            if(cl.isPresent()) {
+                                foundClasses.put(cl.get(), "");
+                            }
+                        }
+                    }
+            );
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+
+        }
+    }
     public static boolean paramConfigsAreEqual(List<Param> p1,List<Param> p2){
         if(p1.size()!=p2.size())
             return false;

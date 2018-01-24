@@ -1,5 +1,5 @@
 {
-  "baseCommand": " python Examples/Rosenbrock1.py $firstParam $secondParam",
+  "baseCommand": " python Examples/Rosenbrock/Rosenbrock1.py $firstParam $secondParam",
   "objectiveFileName": "obj.txt",
   "iterationCounter": 0,
   "landscape": [],

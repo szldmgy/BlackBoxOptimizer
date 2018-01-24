@@ -1,5 +1,5 @@
 {
-  "baseCommand": "Rscript Examples/try-self-cv.R iris.txt $minsplit $minbucket $cp  $maxcompete $maxsurrogate $usersurrogate $xval $surrogatestyle $maxdepth",
+  "baseCommand": "Rscript Examples/Decision_tree_with_R/try-self-cv.R Examples/Decision_tree_with_R/iris.txt $minsplit $minbucket $cp  $maxcompete $maxsurrogate $usersurrogate $xval $surrogatestyle $maxdepth",
   "algorithmName": "RandomSearch",
   "iterationCounter": 0,
   "optimizerParameters": [],
