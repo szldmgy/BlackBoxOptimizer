@@ -92,7 +92,7 @@ public class Main {
     final static Integer[] savingFrequence = new Integer[]{-1};
     //indicates whether we reloaded the config, if did so we should keep the landscape
     static boolean recoveryMode = false;
-    static String[] configFileName = {"examples/Rosenbrock/Rosenbrock_multi.json"};
+    static String[] configFileName = {"Examples/Rosenbrock/Rosenbrock_multi.json"};
 
     public static String getSaveFileName() {
         return saveFileName[0];
