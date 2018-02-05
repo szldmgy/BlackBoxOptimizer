@@ -13,12 +13,10 @@ print(sys.argv)
 x = np.array([float(i) for i in sys.argv[1:]]) #[float(i) for i in sys.argv[3:]]
 #x = np.array([1.1,2.2,3.3]) #[float(i) for i in sys.argv[3:]]
 
-#f = open('obj.txt', 'w')
-print('rosen '+ str(rosen(x))+"\n")
-print('rosen1 '+ str(rosen(x)+1))
-
-#f.write('rosen '+ str(rosen(x))+"\n")
-#f.write('rosen1 '+ str(rosen(x)+1))
+f = open('obj.txt', 'w')
+print('rosen '+ str(rosen(x)))
+f.write('rosen '+ str(rosen(x))+"\n")
+f.write('rosen1 '+ str(rosen(x)+1))
 
 
 

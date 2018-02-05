@@ -385,7 +385,11 @@ public class BrowserInterface {
             config[0].setAlgorithmName(algorithmname);
             config[0].setOptimizerParameters(lp);
             config[0].setOptimizerClasses(optimizerClasses);
+            if(!recoveryMode[0]) {
+                config[0].setIterationCounter(0);
+                config[0].clearLandscape();
 
+            }
 
 
             String experimentName = saveFileName[0];
@@ -464,19 +468,26 @@ public class BrowserInterface {
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/resultnew.vtl");
         //String resultFilePath =  projectDir + "/BlackBoxOptimizer"+staticDir+"/"+resFileName;
-        String[] resFileList = null;
-        String[] setupFileList = null;
+        //String resultFilePath =  projectDir + "/BlackBoxOptimizer"+staticDir+"/"+resFileName;
+        List<String>[] resFileList = new List[1];
+        List<String>[] setupFileList = new List[1];
         try {
-            resFileList = Files.list(Paths.get(outputDir))
-                    .filter(Files::isRegularFile).map(f->outputDir+"/"+f.getFileName().toString()).toArray(String[]::new);
-            setupFileList = Files.list(Paths.get(experimentDir))
-                    .filter(Files::isRegularFile).map(f->experimentDir+"/"+f.getFileName().toString()).toArray(String[]::new);
+            resFileList[0] =Files.list(Paths.get(outputDir))
+                    .filter(Files::isRegularFile).map(f->outputDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
+            setupFileList[0] = Files.list(Paths.get(experimentDir))
+                    .filter(Files::isRegularFile).map(f->experimentDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        List<String> failedExperiments = new LinkedList<>();
+        setupFileList[0].stream().filter(sfn->!resFileList[0].contains(sfn.replace(".json",".csv").replace(experimentDir+"/",outputDir+"/"))).forEach(sfn->{failedExperiments.add(sfn);});
+        failedExperiments.stream().forEach(sfn->setupFileList[0].remove(sfn));
+        Collections.sort(resFileList[0]);
+        Collections.sort(setupFileList[0]);
+        model1.put("failed",failedExperiments);
         model1.put("filename",configFileName);
-        model1.put("resfilelist",resFileList);
-        model1.put("setupfilelist",setupFileList);
+        model1.put("resfilelist",resFileList[0]);
+        model1.put("setupfilelist",setupFileList[0]);
         model1.put("resultfile",resFileName);
         model1.put("objective_relations", objectiveRelationList);
         model1.put("objective_names", objectiveList);
@@ -515,7 +526,16 @@ public class BrowserInterface {
             param_div_range_ids = Arrays.stream(param_div_range_ids)
                     .filter(pn -> pn.contains(alg_name)).toArray(String[]::new);
         }
-
+        String name_param_id_map_string = request.queryParams("name_param_id_map");
+        Map<String,String> param_id_name_map = new HashMap<>();
+        if(name_param_id_map_string!=null&&!name_param_id_map_string.isEmpty()) {
+            String entries[] = name_param_id_map_string.split(",");
+            for (String s : entries)
+                if (!s.isEmpty()) {
+                    String[] s1s = s.split(":");
+                    param_id_name_map.put(s1s[0], s1s[1]);
+                }
+        }
         //iterate over all params - paramdiv one created to describe a param
         for(String pdn : param_div_ids){
             if(!pdn.equals("")){ // skip the removed ones
@@ -574,7 +594,10 @@ public class BrowserInterface {
                                 continue;
                             foundDep = true;
                             //here we found a dependency
-                            String dependencyParamName =  request.queryParams(s1 +"_select_other_name");
+                            String dependencyParamId =  request.queryParams(s1 +"_select_other_name");
+                            String dependencyParamName =  param_id_name_map.get(dependencyParamId);
+
+
                             Param dependencyParam = null;
                             //checking out whether the founded dependeny have been added to the paramlist
                             for(Param p1 : paramList)
@@ -584,18 +607,32 @@ public class BrowserInterface {
                             if(dependencyParam==null)
                                 dependencyParam = new DummyParam(dependencyParamName);
 
-
-                            String typePostFix1 = getTypePostFix(dependencyParam.getParamGenericTypeName());
+                            //here we could find if we iterate over all the possibilities
+                            /*String typePostFix1 = getTypePostFix(dependencyParam.getParamGenericTypeName());
                             String deplowerStr = request.queryParams(s1 + "_dep_lower"+ typePostFix1);
-                            String depupperStr = request.queryParams(s1 + "_dep_upper"+ typePostFix1);
+                            String depupperStr = request.queryParams(s1 + "_dep_upper"+ typePostFix1);*/
+                            // TODO: 2018. 01. 31. move to some decent place reusable at multiple places
+                            Class<?>[] allowedClasses = {Float.class,Integer.class,String.class,Boolean.class};
+                            String deplowerStr = "";
+                            String depupperStr = "";
+                            for(Class<?> t : allowedClasses) {
+                                String typePostFix1 = getTypePostFix(t.getCanonicalName());
+                                deplowerStr = request.queryParams(s1 + "_dep_lower" + typePostFix1);
+                                depupperStr = request.queryParams(s1 + "_dep_upper" + typePostFix1);
+                                if(deplowerStr!=null)
+                                    break;
+                            }
+                            if(deplowerStr==null)
+                                throw new RuntimeException("not implemented!!");
 
                             // the examined param is not in the list-> we create it with its default range
                             if (param == null) {
                                 param = createNewParamWithoutDepencency(paramname, valStr, typeStr, enumStr, lowerStr, upperStr, funcRunningCountStr);
                             }
-                            //by now we added the param, now we can add dependency
-                            addDependencyToNotBoundedParam(param, dependencyParam, deplowerStr, depupperStr);
-                            paramList.add(param);
+                            //by now we added the param, now we can add dependency - a dummy now
+                            addDependencyToNotBoundedParam(param, dependencyParam,  depupperStr,deplowerStr);
+                            if(!paramList.contains(param))
+                                paramList.add(param);
 
                         }
                         //there is no dependency for the param so we add param to the list
@@ -608,11 +645,13 @@ public class BrowserInterface {
                                     paramList.add(param);
                             }
                             else{
-                                //we come here when we add a default range to a bounded parameter
-                                //todo we die here!!!!
-                                //String deplowerStr = request.queryParams(s1 + "_dep_lower"+ typePostFix1);
-                                //String depupperStr = request.queryParams(s1 + "_dep_upper"+ typePostFix1);
-                                param.addDependency1(lowerStr,upperStr);
+                                //we come here when we add a default range to a bounded parameter = when bounding param is not in its range specified to bound this
+
+                                try {
+                                    param.addDependency1(lowerStr,upperStr,valStr,funcRunningCountStr);
+                                } catch (ScriptException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
                         }
@@ -686,7 +725,7 @@ public class BrowserInterface {
                 break;
             case "java.lang.Boolean":
                 // TODO: 19/05/17 dummy falses
-                param.addDependencyToNodBoundedRange(dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(depupperStr) );
+                param.addDependencyToNodBoundedRange(dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(deplowerStr) );
                 break;
             case "java.lang.Float":
                 param.addDependencyToNodBoundedRange(dependencyParam,Float.parseFloat(deplowerStr),Float.parseFloat(depupperStr) );
@@ -699,8 +738,8 @@ public class BrowserInterface {
         }
     }
 
-    //needed???
-    private static void addDefaultRange(String typeStr, String lowerStr, String upperStr, String enumStr, Param<?> param) {
+    @Deprecated
+    private static void addDefaultRange(String typeStr, String lowerStr, String upperStr, String enumStr, Param<?> param) throws ScriptException {
         switch (typeStr) {
             case "Enum": {
                 String[] values = enumStr.split(",;");
@@ -743,6 +782,9 @@ public class BrowserInterface {
                 param = new Param<Float>(Float.parseFloat(valStr), Float.parseFloat(upperStr), Float.parseFloat(lowerStr), paramname);
                 break;
             case "java.lang.Integer":
+                param = new Param<Integer>(Integer.parseInt(valStr),Integer.parseInt(upperStr),Integer.parseInt(lowerStr), paramname);
+                break;
+
             case "Function":
                 try {
                     param = new FunctionParam(paramname,valStr,Integer.parseInt(funcRunningCountStr));

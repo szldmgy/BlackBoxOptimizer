@@ -2,6 +2,7 @@ package algorithms;
 
 import utils.IterationResult;
 import utils.Param;
+import utils.Utils;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ public class DifferentialEvolution extends AlgorithmFI {
     {
         this.optimizerParams = new LinkedList<>();
         this.optimizerParams.add(new Param(5,Integer.MAX_VALUE,Integer.MIN_VALUE,"population_size"));
-        this.optimizerParams.add(new Param(0.5,Float.MAX_VALUE,Float.MIN_VALUE,"phi"));
-        this.optimizerParams.add(new Param(0.5,Float.MAX_VALUE,Float.MIN_VALUE,"kappa"));
+        this.optimizerParams.add(new Param(0.5, Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE,"phi"));
+        this.optimizerParams.add(new Param(0.5,Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE,"kappa"));
     }
 
     @Override
@@ -73,7 +74,7 @@ public class DifferentialEvolution extends AlgorithmFI {
 //// TODO: 23/09/17  
             for(int i = 0; i < is.members.length && i<is.xc.size(); ++i) {
                 float r = rand.nextFloat();
-                if(r < (float)optimizerParams.get(2).getValue()) {
+                if(r < ((Number)optimizerParams.get(2).getValue()).floatValue()) {
                     is.xc.get(i).setInitValue(xm.get(i).getValue());
                 }
             }

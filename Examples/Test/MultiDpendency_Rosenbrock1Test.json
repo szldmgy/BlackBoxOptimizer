@@ -1,12 +1,13 @@
 {
   "baseCommand": " python Examples/Rosenbrock/Rosenbrock1.py $firstParam $secondParam",
-  "objectiveFileName": "obj.txt",
+  "algorithmName": "RandomSearch",
   "iterationCounter": 0,
-  "landscape": [],
   "optimizerParameters": [],
   "iterationCount": {
     "value": 10
   },
+  "savingFrequence": -1,
+  "optimizerClasses": {},
   "objectiveContainer": {
     "objectives": [
       {
@@ -22,8 +23,8 @@
         "terminator": false,
         "weight": 100.0,
         "name": "rosen1",
-        "dummy": 0.0,
-        "target": 0.0
+        "dummy": 0,
+        "target": 0
       }
     ]
   },
@@ -35,8 +36,31 @@
       "dependencies": [
         {
           "rangeOfThis": {
+            "upperBound": 200.0,
+            "lowerBound": 100.0
+          }
+        },
+        {
+          "rangeOfThis": {
             "upperBound": 100.0,
             "lowerBound": 0.0
+          },
+          "p": {
+            "name": "secondParam",
+            "typeName": "java.lang.Float",
+            "initValue": 12.0,
+            "dependencies": [
+              {
+                "rangeOfThis": {
+                  "upperBound": 100.0,
+                  "lowerBound": 0.0
+                }
+              }
+            ]
+          },
+          "rangeOfOther": {
+            "upperBound": 50.0,
+            "lowerBound": 12.0
           }
         }
       ]

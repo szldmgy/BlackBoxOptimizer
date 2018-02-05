@@ -6,6 +6,7 @@ package utils;
 
 //ßimport com.sun.org.apache.xpath.internal.operations.Number;
 
+import javax.script.ScriptException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class Param<T> implements Cloneable, Comparable<Param>{
 
     private String name;
+    private String typeName;
     private T initValue;
 
 
@@ -32,6 +34,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     public String getName() {
         return name.replace("$","");
     }
+    public String getValueTypeName(){return this.typeName;}
     public Class<?> getParamGenericType(){
         return this.initValue.getClass();
     }
@@ -44,7 +47,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @return type of param: enum, function or in general case the generic type of Param
      */
     public String getParamTypeName(){
-
+        //return typeName;
         // TODO: 18/10/17 hack -> should be solved at unmarshalling!!
         if(this.isEnumeration())
             return "Enum";
@@ -93,8 +96,9 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     public Param(T value ,T upper, T lower,String name) {
         this.name = name;
         this.dependencies = new LinkedList<>();
-        this.dependencies.add(new ParameterDependency(upper,lower));
+        this.dependencies.add(new ParameterDependency(lower,upper));
         this.initValue = value;
+        this.typeName = getParamGenericTypeName();
 
     }
 
@@ -127,10 +131,10 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         this.dependencies = new LinkedList<>();
         this.dependencies.add(new ParameterDependency(values));
         this.initValue = value;
+        this.typeName = getParamGenericTypeName();
 
     }
 
-    // TODO: 10/07/17
     public  T[] getActiveValueArray(){
         return (T[])this.getActiveRange().valueArray;
     } 
@@ -179,32 +183,39 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
-    // TODO: 22/09/17 disgusting
-    public <T2 >void addDependency(T lower,T upper ){
+    @Deprecated
+    public <T2 >void addDependency(T lower,T upper ) throws ScriptException {
         if(lower instanceof String)
-            addDependency1((String) lower,(String) upper);
+            addDependency1((String) lower,(String) upper,"","");
         else
             this.dependencies.add(new ParameterDependency(lower,upper));
 
 
     }
-    public <T2 >void addDependency1(String lower,String upper ){
+    public <T2 >void addDependency1(String lower,String upper,String funcString ,String funcRunningCountStr) throws ScriptException {
         Object lowerO=null, upperO = null;
         String typeName = this.getParamGenericTypeName();
+        ParameterDependency pd = null;
         if(typeName.equals(Integer.class.getName())){
             lowerO = Integer.parseInt(lower);
             upperO = Integer.parseInt(upper);
+            pd = new ParameterDependency(lowerO,upperO);
         }
-        if(typeName.equals(Float.class.getName())){ //crash here
+        else if(funcRunningCountStr!=null && !funcRunningCountStr.equals("")){ // if there is something it must be func
+            pd = new ParameterDependency<>(Utils.evalFunction(funcString,Integer.parseInt(funcRunningCountStr)));
+        }
+        else if(typeName.equals(Float.class.getName())){ //crash here
             lowerO = Float.parseFloat(lower);
             upperO = Float.parseFloat(upper);
+            pd = new ParameterDependency(lowerO,upperO);
         }
-        if(typeName.equals(Boolean.class.getName())){
+        else if(typeName.equals(Boolean.class.getName())){
             lowerO = Boolean.parseBoolean(lower);
             upperO = Boolean.parseBoolean(upper);
+            pd = new ParameterDependency(lowerO,upperO);
         }
 
-        this.dependencies.add(new ParameterDependency(lowerO,upperO));
+        this.dependencies.add(pd);
 
 
     }
@@ -215,12 +226,13 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     }
 
     public boolean isInRange() throws Exception {
-
+//// TODO: 2018. 01. 24. was only check for upper border
         if(this.getValue() instanceof Number)
-            return /*this.getActiveRange()!=null&&*/((Number)(this.getActiveRange().getUpperBound())).floatValue()> ((Number)this.getValue()).floatValue();
+            return /*this.getActiveRange()!=null&&*/((Number)(this.getActiveRange().getUpperBound())).floatValue()>= ((Number)this.getValue()).floatValue() && ((Number)(this.getActiveRange().getLowerBound())).floatValue()<= ((Number)this.getValue()).floatValue();
         else if (this.isEnumeration())
             return /*this.getActiveValueArray()!=null&&*/Arrays.asList(getActiveValueArray()).contains(this.getValue());
-         //   return false;
+        else if (this.getValue() instanceof Boolean)
+            return ((this.getActiveRange().getUpperBound())).equals( this.getValue()) || ((this.getActiveRange().getLowerBound())).equals( this.getValue());
         throw new Exception("not implemented!!");
 
     }
@@ -326,10 +338,13 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     //// TODO: 21/05/17 return type could be used 
     public boolean updateDependencies(Param param) {
+        List<ParameterDependency> toRemoveList = new LinkedList<>();
+        List<ParameterDependency> toAddList = new LinkedList<>();
+
         for(ParameterDependency d : this.getDependencies()){
             if(d.p == null) continue;
             if(d.p.getName().equals(param.getName())) {
-                Class<?> cl =param.getClass();
+                Class<?> cl =param.getParamGenericType();
                 Object dependencyLower = d.rangeOfOther.getLowerBound();
                 Object dependencyUpper = d.rangeOfOther.getUpperBound();
 
@@ -351,11 +366,24 @@ public class Param<T> implements Cloneable, Comparable<Param>{
                         dependencyLower = Double.parseDouble(dependencyLower.toString());
                         dependencyUpper= Double.parseDouble(dependencyUpper.toString());
                     }
+                    //if String-based no need for conversion
+                    /*else {//String????
+                        throw new RuntimeException("Not Implemented");
+                    }*/
+                //todo concurrentmodification!!!!!
+                //this.dependencies.remove(d); 
+                //this.dependencies.add(new ParameterDependency(d.getRangeOfThis().lowerBound, d.getRangeOfThis().upperBound, param,dependencyLower,dependencyUpper));
+                toRemoveList.add(d);
+                // TODO: 2018. 01. 28. quickfix for that 
+                toAddList.add(new ParameterDependency(d.getRangeOfThis().lowerBound, d.getRangeOfThis().upperBound, param,dependencyLower,dependencyUpper));
 
-                this.dependencies.remove(d);
-                this.dependencies.add(new ParameterDependency(d.getRangeOfThis().lowerBound, d.getRangeOfThis().upperBound, param,dependencyLower,dependencyUpper));
+                
             }
         }
+        for(ParameterDependency pd : toRemoveList)
+            this.dependencies.remove(pd);
+        for(ParameterDependency pd : toAddList)
+            this.dependencies.add(pd);
         return true;
     }
 
@@ -411,10 +439,29 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         }
 
         public ParameterDependency(T1 lower, T1 upper, Param<T2> p, T2 lowerBound , T2 upperBound) {
-            this.rangeOfThis = new Range<T1>(lower,upper);
+            this.rangeOfThis = new Range<T1>(upper,lower);
             this.p = p;
-            if(p!=null && lowerBound!=null && upperBound!=null)
-                this.rangeOfOther = new Range<T2>(lowerBound,upperBound);
+            if(p!=null && lowerBound!=null && upperBound!=null) {
+                if (p.isEnumeration()) {
+                    List<T2> res = new LinkedList<T2>();
+                    // TODO: 2018. 01. 25. this is a quick fix
+                    boolean afterFirst = false, beforeLast = true;
+                    for(T2 element : p.getAllValueArray()  ) {
+                        if (element.equals(lowerBound))
+                            afterFirst = true;
+                        if(element.equals(upperBound)){
+                            res.add(element);
+                            beforeLast = false;
+                        }
+                        if(afterFirst&&beforeLast)
+                            res.add(element);
+                    }
+                    this.rangeOfOther = new Range<T2>((T2[])res.toArray());
+                }
+                else
+                    this.rangeOfOther = new Range<T2>(lowerBound, upperBound);
+
+            }
         }
 
 
@@ -425,7 +472,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
             this.rangeOfOther = null;
         }
         public ParameterDependency(T1 lower, T1 upper) {
-            this.rangeOfThis = new Range<T1>(lower,upper);
+            this.rangeOfThis = new Range<T1>(upper,lower);
             this.p = null;
             this.rangeOfOther = null;
         }

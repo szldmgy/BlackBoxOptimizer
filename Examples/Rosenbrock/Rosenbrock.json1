@@ -1,5 +1,5 @@
 {
-  "baseCommand": " python Examples/Rosenbrock/Rosenbrock1.py $firstParam $secondParam",
+  "baseCommand": " python Examples/Rosenbrock/Rosenbrock.py $firstParam $secondParam",
   "objectiveFileName": "obj.txt",
   "iterationCounter": 0,
   "landscape": [],
@@ -16,21 +16,12 @@
         "name": "rosen",
         "dummy": 0.0,
         "target": 0.0
-      },
-      {
-        "relation": "MINIMIZE",
-        "terminator": false,
-        "weight": 100.0,
-        "name": "rosen1",
-        "dummy": 0.0,
-        "target": 0.0
       }
     ]
   },
   "scriptParameters": [
     {
       "name": "firstParam",
-      "typeName": "java.lang.Float",
       "initValue": 50.0,
       "dependencies": [
         {
@@ -43,7 +34,6 @@
     },
     {
       "name": "secondParam",
-      "typeName": "java.lang.Float",
       "initValue": 12.0,
       "dependencies": [
         {

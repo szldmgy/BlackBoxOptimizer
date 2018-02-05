@@ -63,6 +63,8 @@ public class ExampleTests {
                         config.setAlgorithmName(c.getSimpleName());
                         config.setOptimizerParameters(algParamMap.get(name));
                         config.setIterationCount( Optional.of(10) );
+                        config.setIterationCounter( 0);
+                        config.clearLandscape();
 
                         File f = new File("testresults/"+tn + "_"+c.getSimpleName()+".csv");
                         BufferedWriter writer = new BufferedWriter(new FileWriter(f));

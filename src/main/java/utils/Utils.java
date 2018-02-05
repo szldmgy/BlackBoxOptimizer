@@ -31,6 +31,8 @@ import javax.script.ScriptException;
  */
 public class Utils {
 
+    public static Float FLOAT_REDEFINED_MAX_VALUE = 100000f;
+
     // TODO: 16/05/17 hacked loading paths, qualified names
     // TODO: 10/08/17 Should be run on server
     public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {
@@ -140,7 +142,7 @@ public class Utils {
 //// TODO: 23/09/17 not really efficient
         for(Integer i = 0;i<arrayLength;++i ) {
             if(ret[i].equals(Float.POSITIVE_INFINITY))
-                ret[i] = Float.MAX_VALUE;
+                ret[i] = FLOAT_REDEFINED_MAX_VALUE;
             else if(ret[i].equals(Float.NEGATIVE_INFINITY))
                 ret[i] = Float.MIN_VALUE;
         }

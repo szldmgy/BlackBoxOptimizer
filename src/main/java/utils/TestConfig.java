@@ -110,12 +110,14 @@ public class TestConfig {
     public Optional<Integer> getIterationCount() {return iterationCount;}
     public List< Param> getScriptParameters() {return scriptParameters;}
     public List< Param> getOptimizerParameters() {return optimizerParameters; }
+
     public List<IterationResult> getLandscape() { return landscape; }
     public ObjectiveContainer getObjectiveContainer() {        return objectiveContainer;    }
     public String getOptimizerConfigFilename() {       return optimizerConfigFilename;    }
     public int getIterationCounter() {        return iterationCounter;    }
     public String getOptimizerStateBackupFilename() {        return optimizerStateBackupFilename;    }
 
+    public void clearLandscape(){this.landscape= new LinkedList<>();}
 
     public String getCommand()
     {
@@ -216,7 +218,6 @@ public class TestConfig {
                                     this.objectiveContainer.objectives.add( new ObjectiveContainer.Objective(Utils.Relation.valueOf(words[2]), false,name,0,Float.parseFloat(valString),0f,1));
                                 if(Utils.isBoolean(valString))
                                     this.objectiveContainer.objectives.add( new ObjectiveContainer.Objective(Utils.Relation.valueOf(words[2]), false,name,!Boolean.parseBoolean(valString),Boolean.parseBoolean(valString),false,1));
-
 
                             }
                             continue;
@@ -364,8 +365,9 @@ public class TestConfig {
 
     public static TestConfig readConfigJSON(File f) throws FileNotFoundException {
         GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
-        gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
+        //gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
+        //gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
+        gsonBuilder.registerTypeAdapter(TestConfig.class, new TestConfigDeserializer());
         Gson gson = gsonBuilder.create();
         JsonReader reader = new JsonReader(new FileReader(f));
         return gson.fromJson(reader, TestConfig.class);

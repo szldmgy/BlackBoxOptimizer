@@ -1,5 +1,5 @@
 {
-  "baseCommand": "Rscript Examples/Decision_tree_with_R/try-self-cv.R Examples/Decision_tree_with_R/iris.txt $minsplit $minbucket $cp  $maxcompete $maxsurrogate $usersurrogate $xval $surrogatestyle $maxdepth",
+  "baseCommand": "Rscript Examples/Decision_tree_with_R/try-self-cv.R Examples/Decision_tree_with_R/iris.txt $cp $minsplit $minbucket $maxdepth $usersurrogate $surrogatestyle $maxcompete $maxsurrogate $xval",
   "algorithmName": "RandomSearch",
   "iterationCounter": 0,
   "optimizerParameters": [],
@@ -21,11 +21,12 @@
   "scriptParameters": [
     {
       "name": "minsplit",
-      "initValue": 20.0,
+      "typeName": "java.lang.Integer",
+      "initValue": 4.0,
       "dependencies": [
         {
           "rangeOfThis": {
-            "upperBound": 100.0,
+            "upperBound": 30.0,
             "lowerBound": 0.0
           }
         }
@@ -33,11 +34,12 @@
     },
     {
       "name": "minbucket",
+      "typeName": "java.lang.Integer",
       "initValue": 6.0,
       "dependencies": [
         {
           "rangeOfThis": {
-            "upperBound": 100.0,
+            "upperBound": 10.0,
             "lowerBound": 0.0
           }
         }
@@ -45,11 +47,12 @@
     },
     {
       "name": "cp",
+      "typeName": "java.lang.Float",
       "initValue": 0.001,
       "dependencies": [
         {
           "rangeOfThis": {
-            "upperBound": 100.0,
+            "upperBound": 1.0,
             "lowerBound": 0.0
           }
         }
@@ -57,11 +60,12 @@
     },
     {
       "name": "maxcompete",
+      "typeName": "java.lang.Integer",
       "initValue": 4,
       "dependencies": [
         {
           "rangeOfThis": {
-            "upperBound": 100,
+            "upperBound": 10,
             "lowerBound": 0
           }
         }
@@ -69,42 +73,7 @@
     },
     {
       "name": "maxsurrogate",
-      "initValue": 0,
-      "dependencies": [
-        {
-          "rangeOfThis": {
-            "upperBound": 100,
-            "lowerBound": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "xval",
-      "initValue": 10,
-      "dependencies": [
-        {
-          "rangeOfThis": {
-            "upperBound": 100,
-            "lowerBound": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "usersurrogate",
-      "initValue": 2,
-      "dependencies": [
-        {
-          "rangeOfThis": {
-            "upperBound": 100,
-            "lowerBound": 0
-          }
-        }
-      ]
-    },
-    {
-      "name": "surrogatestyle",
+      "typeName": "java.lang.Integer",
       "initValue": 0,
       "dependencies": [
         {
@@ -116,12 +85,52 @@
       ]
     },
     {
-      "name": "maxdepth",
-      "initValue": 30,
+      "name": "xval",
+      "typeName": "java.lang.Integer",
+      "initValue": 10,
       "dependencies": [
         {
           "rangeOfThis": {
             "upperBound": 50,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "usersurrogate",
+      "typeName": "java.lang.Integer",
+      "initValue": 2,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 2,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "surrogatestyle",
+      "typeName": "java.lang.Integer",
+      "initValue": 0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 1,
+            "lowerBound": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "maxdepth",
+      "typeName": "java.lang.Integer",
+      "initValue": 5,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 30,
             "lowerBound": 0
           }
         }

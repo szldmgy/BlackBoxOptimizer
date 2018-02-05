@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import utils.IterationResult;
 import utils.Param;
+import utils.Utils;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,7 +26,7 @@ public class HitAndRun extends  AlgorithmFI {
 
     {
         this.optimizerParams = new LinkedList<>();
-        this.optimizerParams.add(new Param(1.f,Float.MAX_VALUE,Float.MIN_VALUE,"max_step_size"));
+        this.optimizerParams.add(new Param(1.f, Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE,"max_step_size"));
         this.optimizerParams.add(new Param(5,Integer.MAX_VALUE,Integer.MIN_VALUE,"max_number_of_runs"));
     }
 

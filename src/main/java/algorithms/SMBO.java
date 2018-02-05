@@ -7,6 +7,7 @@ import smile.math.kernel.GaussianKernel;
 import utils.GaussianProcessRegressionWithVariance;
 import utils.IterationResult;
 import utils.Param;
+import utils.Utils;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -27,7 +28,7 @@ public class SMBO extends AlgorithmFI{
     {
         this.optimizerParams = new LinkedList<>();
         this.optimizerParams.add(new Param(5,1000,0,"number_of_random_points"));
-        this.optimizerParams.add(new Param(1.f, Float.MAX_VALUE,0.0001f, "sigma_of_Gaussian_kernel"));
+        this.optimizerParams.add(new Param(1.f, Utils.FLOAT_REDEFINED_MAX_VALUE,0.0001f, "sigma_of_Gaussian_kernel"));
         this.optimizerParams.add(new Param(0.01, 1, 0, "lambda"));
         this.optimizerParams.add(new Param(1000, 1, 1000, "grid_size"));
     }

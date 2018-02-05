@@ -2,6 +2,7 @@ package algorithms;
 
 import utils.IterationResult;
 import utils.Param;
+import utils.Utils;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -18,9 +19,9 @@ public class ParticleSwarmOptimization extends AlgorithmFI {
     {
         this.optimizerParams = new LinkedList<>();
         this.optimizerParams.add(new Param(5,Integer.MAX_VALUE,Integer.MIN_VALUE,"swarm_size"));
-        this.optimizerParams.add(new Param(1.0, Float.MAX_VALUE,Float.MIN_VALUE, "omega"));
-        this.optimizerParams.add(new Param(1.0, Float.MAX_VALUE,Float.MIN_VALUE, "phi_p"));
-        this.optimizerParams.add(new Param(1.0, Float.MAX_VALUE,Float.MIN_VALUE, "phi_g"));
+        this.optimizerParams.add(new Param(1.0, Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE, "omega"));
+        this.optimizerParams.add(new Param(1.0, Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE, "phi_p"));
+        this.optimizerParams.add(new Param(1.0, Utils.FLOAT_REDEFINED_MAX_VALUE,Float.MIN_VALUE, "phi_g"));
     }
 
     @Override
@@ -85,9 +86,9 @@ public class ParticleSwarmOptimization extends AlgorithmFI {
                 float rg = rand.nextFloat();
 
                 is.swarm.get(is.actualParticle).velocity[d] = is.swarm.get(is.actualParticle).velocity[d]
-                        * /*(double)*/(float)optimizerParams.get(1).getValue() +
-                        /*(double)*/(float)optimizerParams.get(2).getValue() * rp * (is.swarm.get(is.actualParticle).bestKnownPosition[d] - is.swarm.get(is.actualParticle).position[d]) +
-                        /*(double)*/(float)optimizerParams.get(3).getValue() * rg * (is.swarmBestKnownPosition[d] - is.swarm.get(is.actualParticle).position[d]);
+                        * /*(double)*/((Number)optimizerParams.get(1).getValue()).floatValue() +
+                        /*(double)*/((Number)optimizerParams.get(2).getValue()).floatValue() * rp * (is.swarm.get(is.actualParticle).bestKnownPosition[d] - is.swarm.get(is.actualParticle).position[d]) +
+                        /*(double)*/((Number)optimizerParams.get(3).getValue()).floatValue() * rg * (is.swarmBestKnownPosition[d] - is.swarm.get(is.actualParticle).position[d]);
 
 
                 is.swarm.get(is.actualParticle).position[d] += is.swarm.get(is.actualParticle).velocity[d];
