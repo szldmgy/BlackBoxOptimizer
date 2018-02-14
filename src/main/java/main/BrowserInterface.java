@@ -56,7 +56,7 @@ public class BrowserInterface {
         this.config[0] = TestConfig.readConfigJSON(initialConfigFileName);
         this.optimizerClasses = optimizerClasses;
         this.algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);
-        this.saveFileName[0] = saveFileName;
+        this.saveFileName[0] =saveFileName;
 
         BrowserInterface.uploadDir = uploadDir;
         BrowserInterface.outputDir = outputDir;
@@ -82,8 +82,6 @@ public class BrowserInterface {
 
     public void run(){
         get("/results", (req, res) ->{
-            // TODO: 2018. 01. 22. why???
-            //config[0] =  TestConfig.readConfigJSON("test.json");
 
             Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainer().getObjectives(), "experiment.csv",saveFileName[0]);
 
@@ -392,33 +390,11 @@ public class BrowserInterface {
             }
 
 
-            String experimentName = saveFileName[0];
-            if(new File(experimentDir +"/"+experimentName+".json").exists()) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            String expFileName = Utils.getExperimentUniqueName(saveFileName[0],experimentDir);
+            //String expFileName = Utils.getExpJSONFileName(experimentName,experimentDir) ;
+            String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName),outputDir);
 
-                experimentName += "_" + dateFormat.format(new Date());
-            }
-            String resFileName =  outputDir+"/"+experimentName+".csv";
-            String expFileName = "experiment.json";
-            expFileName = experimentDir +"/"+experimentName+".json";
-
-// TODO: 2018. 01. 23. in the experiment setup file we dont save landscape i think it is ok, we need for  recovery only.
-            try (Writer writer = new FileWriter(expFileName)) {
-                List<IterationResult> ls = config[0].getLandscape();
-                config[0].setLandscape(null);
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                gson.toJson(config[0], writer);
-                config[0].setLandscape(ls);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-
-            String result = config[0].runOptimizer(safeMode[0],resFileName);
-            String resultFilePath =  /*projectDir + "/BlackBoxOptimizer"+staticDir+"/"+*/resFileName;
-            try (Writer writer = new FileWriter(resultFilePath)) {
-                writer.write(result);
-            }
+            config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir,backupDir);
 
 
             Map<String, Object> model1 = getResultModel(this.config[0].getObjectiveContainer().getObjectives(), resFileName,saveFileName[0]);
@@ -431,6 +407,9 @@ public class BrowserInterface {
         });
 
     }
+
+
+
 
     private static Map<String,Object> getGoodBye() {
         return new HashMap<>();

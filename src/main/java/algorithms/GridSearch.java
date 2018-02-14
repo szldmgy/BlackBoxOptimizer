@@ -135,13 +135,13 @@ public class GridSearch extends  AlgorithmFI{
         //// TODO: 21/09/17 reconsider the solution for stepsize boundaries
          for(Param p : algParams){
              if(p.isValid()) {
-                 if (p.getParamTypeName().equals("java.lang.Float") || p.getParamGenericTypeName().equals("java.lang.Double"))
+                 if (p.getParamTypeName().equals("java.lang.Float") )
                      //this.optimizerParams.add(new Param<Float>(0.0001f,((Number)p.getUpperBound()).floatValue()-((Number)p.getLowerBound()).floatValue(),0.0001f,p.getName()+"_step_size"));
                      this.optimizerParams.add(new Param<Float>(0.0001f, ((Number) p.getOuterRange().getUpperBound()).floatValue() - ((Number) p.getOuterRange().getLowerBound()).floatValue(), 0.0001f, p.getName() + "_step_size"));
                  else if (p.getParamTypeName().equals("java.lang.Integer"))
                      this.optimizerParams.add(new Param<Integer>(1, (Integer) p.getOuterRange().getUpperBound() - (Integer) p.getOuterRange().getLowerBound(), 1, p.getName() + "_step_size"));
                  //this.optimizerParams.add(new Param<Integer>(1, p.ge, 1, p.getName() + "_step_size"));
-                 else if (p.getParamTypeName().equals("Enum"))
+                 else if (p.getParamTypeName().equals("Enum") || p.getParamTypeName().equals("Function"))
                      this.optimizerParams.add(new Param<Integer>(1, p.getOuterRange().getValueArray().length - 1, 1, p.getName() + "_step_size"));
              }else
                  this.optimizerParams.add(new DummyParam(p.getName()+"_step_size")); //placeholder for the alorithm

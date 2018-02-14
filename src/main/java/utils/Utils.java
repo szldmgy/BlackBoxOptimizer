@@ -14,10 +14,8 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Stream;
 
 
@@ -31,8 +29,67 @@ import javax.script.ScriptException;
  */
 public class Utils {
 
-    public static Float FLOAT_REDEFINED_MAX_VALUE = 100000f;
+    /**
+     * checks whether the to list are exchangable, specifically for checking user defined optimizersetups
+     * @param l1
+     * @param l2
+     * @return true if there are the same parameters of same name and with the same type
+     */
+    public static boolean correspondingParameterLists(List<Param> l1,List<Param> l2){
+        if(l1 == null || l1.isEmpty()) {
+            if (l2 == null || l2.isEmpty())
+                return true;
+            else
+                return false;
+        }
+        else if(l2 == null|| l2.isEmpty())
+            return false;
+        if(l1.size()!=l2.size())
+            return false;
+        int numberOfMatches = 0;
+        for(Param<?> p: l1) {
+            for (Param<?> p2 : l2) {
+                if (p.getName().equals(p2.getName())) {
+                    // TODO: 2018. 02. 14. Double again at smbo whaaat?? 
+                    // if (p.getParamTypeName().equals(p2.getParamTypeName())) {
+                        numberOfMatches++;
+                        break;
+                    //}
+                }
+            }
+        }
+        if( numberOfMatches!=l1.size())
+            System.out.println("x");
+        return numberOfMatches==l1.size();
 
+    }
+
+
+
+    public static Float FLOAT_REDEFINED_MAX_VALUE = 100000f;
+    public static String getExpCSVFileName(String experimentName,String outputDir) {
+        return outputDir+"/"+experimentName+".csv";
+    }
+
+    public static String getExpJSONFileName(String experimentName,String experimentDir) {
+        return experimentDir +"/"+experimentName+".json";
+    }
+
+
+    public static String getExperimentName(String saveFileNameWithPath){
+        String[] fnparts = saveFileNameWithPath.split("/");
+        String[] saveFileNameParts = fnparts[fnparts.length-1].split("\\.");
+        return saveFileNameParts[0];
+    }
+    public static String getExperimentUniqueName(String saveFileName,String experimentDir) {
+        String experimentName = getExperimentName( saveFileName);
+        String experimentFileName=getExpJSONFileName(experimentName,experimentDir);
+        if(new File(experimentFileName).exists()) { //here can be a problem
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            experimentFileName.replace(".json","_" + dateFormat.format(new Date())+".json");
+        }
+        return getExpJSONFileName(getExperimentName(experimentName),experimentDir);
+    }
     // TODO: 16/05/17 hacked loading paths, qualified names
     // TODO: 10/08/17 Should be run on server
     public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {

@@ -92,13 +92,13 @@ public class Main {
     final static Integer[] savingFrequence = new Integer[]{-1};
     //indicates whether we reloaded the config, if did so we should keep the landscape
     static boolean recoveryMode = false;
-    static String[] configFileName = {"Examples/Rosenbrock/Rosenbrock_multi.json"};
+    static String[] configFileName = {"examples/Rosenbrock/Rosenbrock_multi.json"};
 
     public static String getSaveFileName() {
         return saveFileName[0];
     }
 
-    static String[] saveFileName = {"Rosenbrock_multi"};
+    static String[] saveFileName = {null};// {"experiments/Rosenbrock_multi.json"};
 
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
@@ -137,25 +137,34 @@ public class Main {
             // use directory.mkdirs(); here instead.
         }
 
-
-
+        boolean testmode=false;
         for(int i = 0; i< args.length;i++)
         {
             String s = args[i];
             if(s.equals("-r"))
                 inmediateRun[0]=true;
-            else if(s.equals("-s"))
-                safeMode[0]=true;
+            else if(s.equals("-s")) {
+                safeMode[0] = true;
+                savingFrequence[0]= 10;
+            }
             else if(s.equals("-sp")) {
                 safeMode[0] = true;
                 savingFrequence[0] = Integer.parseInt(args[++i]);
             }
+            /*else if(s.equals("-o")) {
+                saveFileName[0] = args[++i];
+            }
             else if(s.equals("-p")) {
                 customParamFile[0] = true;
                 customParamFileName[0] = args[i++];
-            }
-            else
+            }*/
+            else {
                 configFileName[0] = s;
+
+            }
+
+            if(configFileName[0].contains("test"))
+                testmode = true;
         }
 
 
@@ -167,7 +176,7 @@ public class Main {
         //find all availible optimizer algorithms
         optimizerClasses = Utils.findAllMatchingTypes(AlgorithmFI.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
 
-        //load config from json file
+        //load config from json file - this branch supposed to be the only path now
         if (configFileName[0].contains(".json")) {
 
 
@@ -175,8 +184,24 @@ public class Main {
             {
                 try {
                     // TODO: 10/08/17 CALL SERVER
-                    config[0] = TestConfig.readConfigJSON(configFileName[0]);
-                    config[0].runOptimizer(safeMode[0],saveFileName[0]);
+                    String locationModifier = testmode?"/tests":"";
+
+                    try {
+                        config[0] = TestConfig.readConfigJSON(configFileName[0]);
+                    }catch (Exception e)
+                    {
+                        System.out.println("Inproper json file! Use the GUI if you want to make sure make sure..");
+                    }
+                    config[0].setOptimizerClasses(optimizerClasses);
+                    config[0].setSavingFrequence(savingFrequence[0]);
+
+                    String experimentName = Utils.getExperimentUniqueName(configFileName[0],experimentDir+locationModifier);
+                    //String expFileName = Utils.getExpJSONFileName(experimentName,experimentDir) ;
+                    String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(experimentName),outputDir+locationModifier);
+
+
+                    config[0].runAndGetResultfiles(experimentName, resFileName,experimentDir+locationModifier, backupDir+locationModifier);
+
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
@@ -185,16 +210,19 @@ public class Main {
                     e.printStackTrace();
                 } catch (InvocationTargetException e) {
                     e.printStackTrace();
+                } catch (OptimizerException e) {
+                    System.out.println(e.getMessage());
                 }
                 return;
             }
             else {
-                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,saveFileName[0]);
+                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,Utils.getExperimentUniqueName(configFileName[0],experimentDir));
                 bi.run();
             }
 
 
         }
+
 
 
 

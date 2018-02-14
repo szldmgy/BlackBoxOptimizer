@@ -1,5 +1,5 @@
 {
-  "baseCommand": " python Examples/Rosenbrock/Rosenbrock1.py $firstParam $secondParam",
+  "baseCommand": " python src/test/resources/Test/Rosenbrock1.py $firstParam $secondParam",
   "algorithmName": "RandomSearch",
   "iterationCounter": 0,
   "optimizerParameters": [],

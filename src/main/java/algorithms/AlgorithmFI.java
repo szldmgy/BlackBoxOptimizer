@@ -16,7 +16,8 @@ import java.util.*;
 
 /**
  * Created by peterkiss on 17/10/16.
- * This is the base class of all the optimizer algorithms. If you want to write your own optimizer
+ * This is the base class of all the optimizer algorithms. If you want to write your own optimizer,
+ * extend this. If you
  *
  */
 
@@ -27,35 +28,34 @@ public abstract class AlgorithmFI {
     // these can be logically in config
     //List<IterationResult> landscape;
 
+    public List<Param> getOptimizerParams() {
+        return optimizerParams;
+    }
 
+    /**
+     * contai ns parameters of the tuning algorithm
+     */
     List<Param> optimizerParams;
+
+    /**
+     * Here you can specify what parameter types can your algorithm handle
+     */
     protected List<Class> allowedTypes = new LinkedList<>();
     {
         allowedTypes.add(Float.class);
-        allowedTypes.add(Double.class); //// TODO: 16/10/17 type hack
+        //allowedTypes.add(Double.class); //// TODO: 16/10/17 type hack
     }
 
-    //ObjectiveContainer lastObjectives;
     protected long timeDelta = 0;
     protected TestConfig config;
     protected Integer iterationCounter=0;
-    //final static Logger logger = Logger.getLogger(AlgorithmFI.class);
 
     public void setTimeDelta(long d){
         this.timeDelta = d;
     }
 
 
-    //public List<IterationResult> getLandscape() {        return landscape;    }
 
-
-    /*public String getLandscapeString(){
-        String res = "";
-        for(IterationResult ir :landscape){
-            res += ir+"\n";
-        }
-        return res;
-    }*/
     /**
      * override this if your algorithm can handle multiple types
      *
@@ -64,6 +64,10 @@ public abstract class AlgorithmFI {
         return this.allowedTypes;
     }
 
+    /**
+     * we check here whether our algorithm is declared to be able to handle a given configuration
+     * @return
+     */
     public boolean isApplyableForParams(){
         List<Param> pl = config.getScriptParameters();
         for(Param p : pl)
@@ -87,23 +91,15 @@ public abstract class AlgorithmFI {
         return sj.toString();
     }
 
-
-    @Deprecated
-    public  void run(String configFileName,String saveFileName) throws Exception {
-        loadConfigFromJsonFile(configFileName);
-        // TODO: 17/07/17 maybe enable safemode here too, but not used for now
-        run(false,0,saveFileName);
-    }
-
-
-
-
-    // TODO: 25/07/17 modify signatures int could be enough
-    public void run(boolean safeMode, int sfr,String saveFileName) throws Exception {
-        //if(config.getLandscape() == null)
-        //    config.
-        //config.getLandscape().clear();
-        //this.iterationCounter = config.getIterationCounter();
+    /**
+     * main loop of the optimization task
+     * @param sfr
+     * @param experimetDir
+     * @param backupDir
+     * @param saveFileName
+     * @throws Exception
+     */
+    public void run(int sfr,String experimetDir, String backupDir,String saveFileName) throws Exception {
         try {
             boolean terminated = false;
             long startTime = System.currentTimeMillis();
@@ -114,27 +110,17 @@ public abstract class AlgorithmFI {
 
                         BufferedReader r = null;
                         r = executeAndGetResultBufferedReader(config);
-
-
-
-
                         config.setObjectiveContainer(ObjectiveContainer.readObjectives(r, config.getObjectiveContainer()));
                     }
                     else{
                         config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue( config.getObjectiveContainer()));
 
                     }
-
                     terminated =this.terminated();
-//                    Map<String, Param> paramsToSave = new HashMap<>();
-//                    for (Param e : config.getScriptParameters())
-//                        paramsToSave.put(e.getName(), (Param) e.clone());
                     config.getLandscape().add(new IterationResult(config.getScriptParameters(), config.getObjectiveContainer(),startTime,timeDelta));
 
                     if(!terminated) {
-                        //Utils.printParameters(config.getScriptParameters());
                         Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParameters().toString());
-                        //here we pass references, the
                         try {
                             updateParameters(config.getScriptParameters(), config.getLandscape()/*, config.getOptimizerParameters()*/);
                         }  catch (Exception e){
@@ -144,25 +130,13 @@ public abstract class AlgorithmFI {
                         Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParameters().toString());
                     }
 
-                    //Utils.printParameters(config.getScriptParameters());
-
-                   // mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
-//Object to JSON in file
-                    // TODO: 17/07/17 check if we can omit this
-                    /*
-                    try (Writer writer = new FileWriter("trial.json")) {
-                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                        gson.toJson(this.config, writer);
-                    }*/
-                    if(safeMode && this.config.getIterationCounter() % sfr == 0|| terminated) {
+                    if(sfr!=-1 && this.config.getIterationCounter() % sfr == 0|| terminated) {
+                        if(terminated && config.getLandscape().size()<config.getIterationCount().get())
+                            System.out.println("para");
                         this.saveState(this.config.getOptimizerStateBackupFilename()==null?"optBackUp.json":this.config.getOptimizerStateBackupFilename());
-                        // TODO: 22/09/17 removed for get rid of garbage generation
-                        //String resultFileName = (!terminated?"backup/experiment_"+this.getAlgorithmSimpleName()+"_"+this.config.getIterationCounter():"experiment_"+this.getAlgorithmSimpleName()+new Date().toString())+".json";
                         if(!terminated) {
-                            //resultFileName = (!terminated ? resultFileName.replace("results","backup").replace(".csv","_"+this.config.getIterationCounter()+".json"): resultFileName);
-                            saveFileName = (!terminated ? saveFileName.replace("experiments","backup").replace(".json","_"+this.config.getIterationCounter()+".json"): saveFileName);
-                            writeResultFile(saveFileName);
+                            String saveFileName1 = saveFileName.replace(experimetDir,backupDir).replace(".json","_"+this.config.getIterationCounter()+".json");
+                            writeResultFile(saveFileName1);
                         }
                     }
 
@@ -171,11 +145,7 @@ public abstract class AlgorithmFI {
                 } catch (CloneNotSupportedException e) {
                     e.printStackTrace();
                 }
-
-
-                //this.config.setIterationCounter(++this.iterationCounter);
                 this.config.setIterationCounter(this.config.getIterationCounter()+1);
-                //System.out.println(this.config.toString());
                 Main.log(Level.INFO,this.config.toString());
             }
         } catch (IOException e) {
@@ -183,6 +153,13 @@ public abstract class AlgorithmFI {
         }
     }
 
+    /**
+     *
+     * @param config
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private BufferedReader executeAndGetResultBufferedReader(TestConfig config) throws IOException, InterruptedException {
         BufferedReader r;
         String command = config.getCommand();
@@ -225,6 +202,13 @@ public abstract class AlgorithmFI {
 
     }
 
+    /**
+     * the method runs the algorithm then retrievs a reads the objective values and passes them back in an @ObjectiveContainer
+     * @param command
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private ObjectiveContainer runAlgorithm(String command) throws IOException, InterruptedException {
         BufferedReader r = executeAndGetResultBufferedReader(config);
         return ObjectiveContainer.readObjectives(r, config.getObjectiveContainer());
@@ -246,7 +230,12 @@ public abstract class AlgorithmFI {
         }
     }
 
-    // TODO: 04/04/17 this.lastObjectives == null  
+    /**
+     * is the tuning terminated?
+     * if termination is due to iteration number limit, it is possible that we have more trials, since some tuning algorithms execute them in a grouped way
+     * @return Boolean whether we reached the
+     * @throws FileNotFoundException
+     */
     public  boolean terminated() throws FileNotFoundException {
         if(this.config.getIterationCount().isPresent()
                 && this.config.getIterationCounter()>= this.config.getIterationCount().get())
@@ -337,7 +326,7 @@ public abstract class AlgorithmFI {
 
     /**
      * loads the parameter configuration of the optimizer from an external json
-     * @param configFileName
+     * @param configFileName 
      * @throws FileNotFoundException
      */
     public void loadOptimizerParamsFromJsonFile(String configFileName) throws FileNotFoundException {
@@ -355,7 +344,6 @@ public abstract class AlgorithmFI {
     public String getAlgorithmSimpleName(){
         return this.getClass().getSimpleName();
     }
-    //public String getBa
 
     /**
      * update the configuration of the optimizer algorithm if it is necessary.

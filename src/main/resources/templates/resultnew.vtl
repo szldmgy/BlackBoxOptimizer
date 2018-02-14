@@ -89,6 +89,15 @@
 
                 var headers=lines[0].split(",");
 
+                //add a first point to start from 0
+                var obj = {};
+
+                for(var j=0;j<headers.length;j++){
+                    obj[headers[j]] = 0;
+                }
+
+                result.push(obj);
+
                 for(var i=1;i<lines.length;i++){
 
                     var obj = {};
@@ -246,7 +255,7 @@
                                 setup['name'] = j + ": " + exp.setup.algorithmName + " " + obj.name;
                                 setup['data'] = data;
                                 setup['color'] = color;
-                                setup['renderer'] = 'line';
+                                setup['renderer'] = 'area';
                                 setup['time_iter_map'] = time_iter_map;
 
 
@@ -254,13 +263,15 @@
                                 series.push(setup);
 
                                 data1 = JSON.parse(csvJSON(exp.data));
-                                var best = +data1[0][obj.name];
+                                var best = +data1[1][obj.name];
                                 for (k = 0; k < data1.length; ++k) {
-                                    if ((obj.relation === 'MINIMIZE' || obj.relation === 'LESS_THAN') && +data1[k][obj.name] < best) {
-                                        best = +data1[k][obj.name];
-                                    }
-                                    else if ((obj.relation === 'MAXIMIZE' || obj.relation === 'GREATER_THAN') && +data1[k][obj.name] > best) {
-                                        best = +data1[k][obj.name];
+                                    if(k != 0) {
+                                        if ((obj.relation === 'MINIMIZE' || obj.relation === 'LESS_THAN') && +data1[k][obj.name] < best) {
+                                            best = +data1[k][obj.name];
+                                        }
+                                        else if ((obj.relation === 'MAXIMIZE' || obj.relation === 'GREATER_THAN') && +data1[k][obj.name] > best) {
+                                            best = +data1[k][obj.name];
+                                        }
                                     }
                                     //iter based
                                     // data1[i]["x"] = +data1[k][headers[0]] ;

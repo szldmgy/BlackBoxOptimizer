@@ -2,16 +2,12 @@
 
 <div id = "cont" class="container-fluid text-left ">
 <div class="row content">
-    <!--<div class="col-sm-2 sidenav">
-      <p><a href="#">Link</a></p>
-      <p><a href="#">Link</a></p>
-      <p><a href="#">Link</a></p>
-    </div>-->
+
     <h1>BlackBoxOptimizer</h1>
 
 
     <form action = "/updateconfig" method="post" id = "paramform"  onload = "load();">
-        <div id = "hiddendiv" ><!--style="display:none"-->
+        <div id = "hiddendiv" style="display:none">
             <input id = "savefilename" name = "savefilename" type = "text" value = "$filename">
 
             <input id = "dependency_ids" name = "dependency_ids" type = "text" >
@@ -21,12 +17,6 @@
             <input id = "name_param_id_map" name = "name_param_id_map" type = "text" >
 
         </div>
-        <!--<div id = "algorithmdiv" name = "algorithmdiv">
-            <h2>Optimizer algorithm</h2>
-            <select id = "algorithm_names" name = "algorithm_names" type = "select" ></select>
-
-        </div>-->
-
 
 
         <div id = "commanddiv" name = "commanddiv"><h2>Command</h2></div>
@@ -149,8 +139,6 @@
             }
             load();
 
-
-
             $("#savefilenamedisp").removeClass("disabled_link");
 
             jQuery('.paramname').on('focusin', function(){
@@ -161,7 +149,3 @@
 
 </div>
 </div>
-<!--<footer class="container-fluid">
-  <p>Footer Text</p>
-</footer>-->
-<!--</body>-->

@@ -33,7 +33,9 @@ public class RandomSearch extends  AlgorithmFI {
                     //main.Main.log(Level.INFO,newVal);
                 }
                 if (entry.getValue() instanceof Integer) {
-                    int newVal = (Integer) entry.getLowerBound() + rand.nextInt((Integer) entry.getUpperBound()-(Integer) entry.getLowerBound()) ;
+                    Integer u = (Integer) entry.getUpperBound();
+                    Integer l = (Integer) entry.getLowerBound();
+                    int newVal = l + rand.nextInt(u-l) ;
                    entry.setInitValue(newVal);
                     //main.Main.log(Level.INFO,newVal);
                 }

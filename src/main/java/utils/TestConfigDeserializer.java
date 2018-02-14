@@ -17,15 +17,19 @@ public class TestConfigDeserializer  implements JsonDeserializer<TestConfig>
     @Override
     public TestConfig deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Range.class,new RangeDeserializer());
         gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
         gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
         Gson gson = gsonBuilder.create();
         TestConfig t = gson.fromJson(jsonElement, TestConfig.class);
+
         TestConfig modified = null;
         List<Param> pl = t.getScriptParameters();
+        if(t.getOptimizerParameters() == null )
+            return t;
        for(Param p : t.getOptimizerParameters()) {
            for (Object pdo : p.getDependencies()) {
-               Param.ParameterDependency pd = (Param.ParameterDependency)pdo;
+               ParameterDependency pd = (ParameterDependency)pdo;
                if(pd.getP()!=null)
                    for(Param p1: t.getOptimizerParameters())
                        if(p1.equals(pd.getP()))

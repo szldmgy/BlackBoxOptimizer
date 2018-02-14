@@ -6,13 +6,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Created by peterkiss on 14/10/16.
@@ -136,6 +134,7 @@ public class TestConfig {
         }
         return  command;
     }
+
     public String getCommand(List<Param> scriptParameters)
     {
         String command = "";
@@ -276,19 +275,30 @@ public class TestConfig {
 
     }
 
-    public   String runOptimizer( boolean safeMode,String resFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public   String runOptimizer( boolean safeMode,String experimentDir,String backupDir,String saveFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, OptimizerException {
         String algName = getAlgorithmName();
         Class optimizerClass = getOptimizerClassBySimpleName(algName);
-
+        if(algName==null ||algName.equals(""))
+            throw new OptimizerException("Algorithm is not specified");
+        if(optimizerClass==null)
+            throw new OptimizerException("Optimizer algorithm "+algName+" cannot be found");
 
         // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
         Object algorithmObj = optimizerClass.newInstance();
+
 
         /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
         setConfig.invoke(algorithmObj,confi);*/
             Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
             setConfig.invoke(algorithmObj,this);
 
+            Method updateConfigFromAlgorithmParamsMethod= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
+        updateConfigFromAlgorithmParamsMethod.invoke( algorithmObj,this.getScriptParameters());
+
+            Method getOptConfig= optimizerClass.getMethod("getOptimizerParams");
+            List<Param> ol = ( List<Param>) getOptConfig.invoke(algorithmObj);
+            if(!Utils.correspondingParameterLists(ol,this.getOptimizerParameters()))
+                throw new OptimizerException("Incorrect optimizer parameter list");
 
             Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
             setOptimizerConfigMethod.invoke( algorithmObj,this.getOptimizerParameters());
@@ -306,8 +316,8 @@ public class TestConfig {
             setupTimedelta.invoke(algorithmObj, this.getLandscape().get(this.getLandscape().size() - 1).getTimeStamp());
         }
 
-        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
-        runMethod.invoke( algorithmObj, safeMode,this.savingFrequence,resFileName);
+        Method runMethod= optimizerClass.getMethod("run",int.class,String.class,String.class,String.class);
+        runMethod.invoke( algorithmObj,this.savingFrequence,experimentDir,backupDir,saveFileName);
 
 
 
@@ -317,15 +327,26 @@ public class TestConfig {
         return (String)result1;
     }
 
+    public void runAndGetResultfiles(String expFileName, String resFileName, String experimentDir,String backupDir) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, IOException, OptimizerException {
+        this.wirteExperimentDescriptionFile(expFileName);
+
+        String result = this.runOptimizer(this.savingFrequence!=-1,experimentDir,backupDir,expFileName);
+        String resultFilePath =  /*projectDir + "/BlackBoxOptimizer"+staticDir+"/"+*/resFileName;
+        try (Writer writer = new FileWriter(resultFilePath)) {
+            writer.write(result);
+        }
+    }
+
     public  Class getOptimizerClassBySimpleName(String algName) {
+
         Class optimizerClass = null;
         for (Class optAlg : this.optimizerClasses.keySet())
             if(optAlg.getSimpleName().equals(algName))
                 optimizerClass = optAlg;
         return optimizerClass;
     }
-    @Deprecated
-    public  String runOptimizer(String algorithmname, List<Param> lp, boolean safeMode,String resFileName) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    /*@Deprecated
+    public  String runOptimizer(String algorithmname, List<Param> lp, boolean safeMode,String experimentDir,String backupDir) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Class optimizerClass = getOptimizerClassBySimpleName(algorithmname);
 
 
@@ -334,8 +355,7 @@ public class TestConfig {
         Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
         setConfig.invoke(algorithmObj,this);
 
-       /* Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
-        setConfig.invoke(algorithmObj,"test.json");*/
+
 
         Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
         setOptimizerConfigMethod.invoke( algorithmObj,lp);
@@ -346,17 +366,14 @@ public class TestConfig {
         }
 
         Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
-        runMethod.invoke( algorithmObj, safeMode,savingFrequence,resFileName);
+        runMethod.invoke( algorithmObj, safeMode,savingFrequence,experimentDir,backupDir);
 
 
-       /* Method getLAndsCapeMethod = optimizerClass.getMethod("getLandscapeString");
-        Object resultO = getLAndsCapeMethod.invoke(algorithmObj);
-*/
         Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
         Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
 
         return (String)result1;
-    }
+    }*/
 
     public static TestConfig readConfigJSON(String configFileName) throws FileNotFoundException {
         File f = new File(configFileName);
@@ -408,6 +425,19 @@ public class TestConfig {
             }
         });
         return algParamMap;
+    }
+    public void wirteExperimentDescriptionFile(String expFileName) {
+        try (Writer writer = new FileWriter(expFileName)) {
+            List<IterationResult> ls = this.getLandscape();
+            this.setLandscape(null);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(this, writer);
+            writer.close();
+            this.setLandscape(ls);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

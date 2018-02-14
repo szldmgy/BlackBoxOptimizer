@@ -9,9 +9,11 @@ MANIFEST.MF
 .idea
 *.iml
 *.jar
+*.log
 RemoteSystemsTempFiles
 bin
 backup/*
 experiments/*
 logs/*
 results/*
+upload/*
