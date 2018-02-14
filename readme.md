@@ -17,31 +17,56 @@ Install BlaBoO
 Run the software with GUI
 --------------
 
-- Start the server (this might require administrator rights): 1. simple double click on the jar 
+- Start the server (this might require administrator rights):
+    
+    1. simple double click on the jar 
                     
-                    2. from command line in the `App` folder execute `sudo java -jar BlaBoO-1.0-SNAPSHOT-shaded.jar`
+    2. from command line in the `App` folder execute `sudo java -jar BlaBoO-1.0-SNAPSHOT-shaded.jar`
 
 - go to `http://localhost:4567/hello` to access the GUI
 
-Stop GUI Application
---------------
+- the first thig you see here is a simple setup for an optimization task.
 
-- on the 
-
-Start new BBO task
---------------
-
-- push OK at the top of first page to clear the setup
-
-Command
+GUI menu
 -
+
+##Start new BBO task
+
+- the first thig you see here is a simple setup for an optimization task, whose setup file is stored in the examples folder.
+
+- when you want to start a task from scratch you can chose `Start task` menu
+
+##Load already existing task
+
+
+- you can browse and load in already done configuration using `Load task` menu 
+
+- here can you load backups from former experiments and resume the work
+
+##Results
+
+
+- the results of the optimization tasks will be storesdin the `results` folder, while the setups of the task are saved in the `experiments` folder
+
+- When the computations have been finished, the values of the objectives in function of the parameter setup will be stored in the 'results' folder in a csv file of a name constructed from the name of the optimizer algorithm and the time the computation have been started at.
+
+- in the browser as soon as the work finished the results will appear too in a chart, that displays the the objectives of the last couple computations. In this chart thediagrams visualize the results stored in the csv files located at in the results folder recently. To get rid of non interesting results, you should remove the unineresting files. if you want the visualization of one single algorithm you can click on the description in the legend, what temporally removes the other charts.
+
+- to display the recent results, if the server is running you can use the `http://localhost:4567/results` url as well.
+
+
+Setup an experiment
+-
+
+##Command
+
 
 - specify the terminal command using '$<paramname>' at the params to be optimized
 
 	- example: 'python Rosenbrock1.py $firstParam $secondParam'
 
-Params
--
+##Params
+
 - the params annotated with '$' must be deefined in the 'Params' section.
 
 	- to add a **numeric** new param :
@@ -76,8 +101,8 @@ Params
 
 		- the next input defines how long the generated series should be.
 
-Params depending on other params (beta)
--
+##Params depending on other params (beta)
+
 
 - the ranges the parameters move in can depend on the value of other parameters, or it is possible that setting a parameter only makes sense if an other parameter has in a specified range. (think on SVM parametrization in machine learning where some parameters have meaning only in case of uding given kernels )
 
@@ -85,8 +110,8 @@ Params depending on other params (beta)
 
 - If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases, If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies comlies.
 
-Objectives
--
+##Objectives
+
 - to evaluate the quality of the parameter setup the software needs to know value of the objective function. Now we expect the blackbox function to write this value(s) on standard output, or in a specified file from where we can read it. The format of this file is: '<name of objective> <value>'.
 
 - here we need to specify the file contains the values
@@ -97,26 +122,15 @@ Objectives
 
 - if the algorithm does not submit the expected objective measurements, the value will be set to `0`/`false`.
 
-Safe mode and restart tasks
--
+##Safe mode and restart tasks
+
 - if check the 'Safe mode' option at the bottom of the page the software will save the state of the optimization at a frequency given in the next input(per iterations)
 
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
 
-The optimizer algorithms
--
+#The optimizer algorithms
 
 - on the next page we can chose what algorithm we want to use to optimize the parameters. After choosing the algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
-
-Results
--
-
-- When the computations have been finished, the values of the objectives in function of the parameter setup will be stored in the 'results' folder in a csv file of a name constructed from the name of the optimizer algorithm and the time the computation have been started at.
-
-- in the browser as soon as the work finished the results will appear too in a chart, that displays the the objectives of the last couple computations. In this chart thediagrams visualize the results stored in the csv files located at in the results folder recently. To get rid of non interesting results, you should remove the unineresting files. if you want the visualization of one single algorithm you can click on the description in the legend, what temporally removes the other charts.
-
-- to display the recent results, if the server is running you can use the `http://localhost:4567/results` url as well.
-
 
 
 Command Line Use

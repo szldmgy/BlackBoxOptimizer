@@ -216,7 +216,8 @@ public class Main {
                 return;
             }
             else {
-                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,Utils.getExperimentUniqueName(configFileName[0],experimentDir));
+                saveFileName[0] = Utils.getExperimentUniqueName(configFileName[0],experimentDir);
+                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,saveFileName[0]);
                 bi.run();
             }
 

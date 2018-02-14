@@ -417,7 +417,7 @@ public class BrowserInterface {
 
     private static Map<String, Object> getBBSetupModel(String file,TestConfig[] config, List<String> classList, String[] objectiveTypes, String[] algoritmhs,List<String> objtypes) throws CloneNotSupportedException {
         Map<String, Object> model = new HashMap<>();
-        model.put("filename",file);
+        model.put("filename",file.replace("experiments/",""));
         model.put("parametertypes",classList);
         model.put("template","templates/param.vtl");
         model.put("paramlist",config[0].getScriptParameters());
