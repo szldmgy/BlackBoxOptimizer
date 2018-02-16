@@ -1,4 +1,6 @@
 import algorithms.AlgorithmFI;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import main.Main;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -190,15 +192,19 @@ public class ExampleTests {
             System.out.println("============================");
             System.out.println(file.getName() +" ==> recovery");
             System.out.println("============================");
-           //String clFileName = file.getAbsolutePath().replace(".json","_rec.json");
-            /*try {
+
+            //avoid looping
+            try {
                 TestConfig tc = TestConfig.readConfigJSON(file.getAbsolutePath());
-                tc.wirteExperimentDescriptionFile(clFileName);
+                tc.setSavingFrequence(-1);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String s = gson.toJson(tc, TestConfig.class);
+                FileWriter w = new FileWriter(file.getAbsolutePath().toString());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-            }*/
-
-
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             String[] args = new String[]{"-r","-sp","3", file.getAbsolutePath()};
             try {
                 cllogFileW.write(String.join(" ",args));

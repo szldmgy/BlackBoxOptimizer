@@ -14,7 +14,8 @@
         "weight": 100.0,
         "name": "accuracy",
         "dummy": 0,
-        "target": 0
+        "target": 0,
+        "typeName": "java.lang.Float"
       }
     ]
   },

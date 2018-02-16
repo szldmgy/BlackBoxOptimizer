@@ -103,17 +103,18 @@ public class ObjectiveContainer implements Cloneable {
         private T value;
         private T target;
         private T lastvalue;
+        private String typeName;
         public void setValue(T value){
             this.value = value;
         }
         public boolean met(){
             return  Utils.comply(relation,value,target);
         }
-        //// TODO: 28/08/17 same as getTypeName? 
+
         public Class<?> getType(){
             return dummy.getClass(); //before first load value
         }
-        public String getTypeName(){ return target!=null?target.getClass().getName():dummy.getClass().getTypeName();}
+        public String getTypeName(){ return this.typeName;}
 
         public Objective(Utils.Relation relation, boolean terminator, String name, T value, T target, T dummynull, float weight) {
             this.relation = relation;
@@ -123,6 +124,8 @@ public class ObjectiveContainer implements Cloneable {
             this.value = value;
             this.target = target;
             this.weight = weight;
+            this.typeName = dummy.getClass().getCanonicalName();
+
         }
 
         public Objective() {
@@ -192,7 +195,7 @@ public class ObjectiveContainer implements Cloneable {
 
     }
     // TODO: 02/04/17 Typecheck, hacking due to missing MAIN - no obj name handling not really efficient collect names all the time
-    public static ObjectiveContainer
+    public static synchronized ObjectiveContainer
     readObjectives(BufferedReader resultBufferedReader, ObjectiveContainer lastObjectiveContainer) throws IOException {
 
 

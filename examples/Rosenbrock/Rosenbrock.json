@@ -15,6 +15,7 @@
         "weight": 100.0,
         "name": "rosen",
         "dummy": 0.0,
+        "typeName": "java.lang.Float",
         "target": 0.0
       }
     ]

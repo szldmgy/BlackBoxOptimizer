@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import javafx.concurrent.Task;
 import org.apache.log4j.Level;
 import main.Main;
 import utils.*;
@@ -23,6 +24,7 @@ import java.util.*;
 
 
 public abstract class AlgorithmFI {
+    //private boolean parallelizable;
 
     // references in config to these for saving state
     // these can be logically in config
@@ -106,17 +108,24 @@ public abstract class AlgorithmFI {
             while (!terminated ) {
 
                 try {
-                    if(configAllowed(config.getScriptParameters())) {
+                    /*if(this.parallelizable){
+                        Thread t = new Thread(new Task<>(config.getScriptParameters()) {
+                        })
+                    }*/
+                    //else {
+                        if (configAllowed(config.getScriptParameters())) {
 
-                        BufferedReader r = null;
-                        r = executeAndGetResultBufferedReader(config);
-                        config.setObjectiveContainer(ObjectiveContainer.readObjectives(r, config.getObjectiveContainer()));
-                    }
-                    else{
-                        config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue( config.getObjectiveContainer()));
+                            BufferedReader r = null;
+                            r = executeAndGetResultBufferedReader(config);
+                            config.setObjectiveContainer(ObjectiveContainer.readObjectives(r, config.getObjectiveContainer()));
+                        } else {
+                            config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
 
-                    }
+                        }
+                    //}
                     terminated =this.terminated();
+
+                    //ls adding should be sysnchronized -
                     config.getLandscape().add(new IterationResult(config.getScriptParameters(), config.getObjectiveContainer(),startTime,timeDelta));
 
                     if(!terminated) {
@@ -177,6 +186,8 @@ public abstract class AlgorithmFI {
             r= new BufferedReader(new InputStreamReader(pr.getInputStream()));
         return r;
     }
+
+
 
     //if one of the param is not active at a given place we say no..
     private boolean configAllowed(List<Param> scriptParameters) throws Exception {

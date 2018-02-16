@@ -98,7 +98,7 @@ public class Main {
         return saveFileName[0];
     }
 
-    static String[] saveFileName = {null};// {"experiments/Rosenbrock_multi.json"};
+    static String[] saveFileName = {null};// {"experiments/Wormhole_tuning.json"};
 
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
@@ -191,6 +191,7 @@ public class Main {
                     }catch (Exception e)
                     {
                         System.out.println("Inproper json file! Use the GUI if you want to make sure make sure..");
+                        return;
                     }
                     config[0].setOptimizerClasses(optimizerClasses);
                     config[0].setSavingFrequence(savingFrequence[0]);

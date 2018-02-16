@@ -144,7 +144,7 @@
                         <button>OK</button>
                     </form>
                 </li>
-                <li ><a id="savefilenamedisp" href="#" class="disabled_link" onclick="askForName('savefilenamedisp')">Save as: experiments/${filename}.json</a></li>
+                <li ><a id="savefilenamedisp" href="#" class="disabled_link" onclick="askForName('savefilenamedisp')">Save as: experiments/${filename}</a></li>
 
 
                 <!--<li> <button type="button" onclick="navbar-toggle" data-toggle="collapse" data-target="#myNavbar"></li>-->
@@ -198,12 +198,12 @@
             return;
         }
         var x;
-        var x=prompt("Enter file name","Harry Potter");
+        var x=prompt("Enter file name",$("#savefilename").val());
         if (x!=null && x!=""){
             x = x.trim();
             if(!x.endsWith(".json"))
                 x +=  ".json";
-            $("#savefilename").val(x.replace(".json",""));
+            $("#savefilename").val(x/*.replace(".json","")*/);
             $("#savefilenamedisp").text("Save as: experiments/"+x);
         }
 

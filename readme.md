@@ -2,6 +2,9 @@
 BlaBoO
 =======
 
+Weclome to BlaBoO!
+
+BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize 
 
 Install BlaBoO
 --------------
@@ -75,7 +78,7 @@ Setup an experiment
 
 		- specify its name and type
 
-		- the default value	and its boundaries
+		- specify the default value	and its boundaries
 
 	- to add an **emumerated** param
 
@@ -89,13 +92,13 @@ Setup an experiment
 
 		- choose type 'Boolean'
 
-		- check the checkboy for set default value to true
+		- choose the starting value
 
 	- to add an function param
 
 		- choose type 'Function'
 
-		- specify the formule generating the series of values (in js style). For now the system handles one variable in the formula, that should be marked with '$'. That means that any string starting with an '$' will be replaced by a natural value at evaluation ('$foo' and '$bar' will. be handled as one variable). Formula type now generates a series of numbers computed from '[0,1,2,..]' using the formula.
+		- specify the formula generating the series of values (in js style). For now the system handles one variable in the formula, that should be marked with '$'. That means that any string starting with an '$' will be replaced by a natural value at evaluation ('$foo' and '$bar' will. be handled as one variable). Formula type now generates a series of numbers computed from '[0,1,2,..]' using the formula.
 
 			example: 	'1/$alma' will generate a series of '[INFINITY ,1 ,1/2 ,1/3 , ... ]'
 

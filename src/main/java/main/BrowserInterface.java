@@ -139,7 +139,7 @@ public class BrowserInterface {
             this.configFileName[0] = filePart.getSubmittedFileName();
             //prepare base of the savefilename
             String [] fnparts =  configFileName[0].split("/");
-            saveFileName[0] =fnparts[fnparts.length-1].replace(".json","");
+            saveFileName[0] =fnparts[fnparts.length-1];
             try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
                 Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -215,6 +215,7 @@ public class BrowserInterface {
                 paramList = readParams(request,null);
             }catch(Exception e){
                 e.printStackTrace();
+                //todo error page
             }
 
 

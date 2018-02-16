@@ -798,6 +798,11 @@ function addParamDiv(parentNode,paramdivid, paramname,param_type, enum_values, m
 
 function deleteParam(parentNode, paramdivid, remove_btn_id,paramname){
     $("#dependency_ids").val($("#dependency_ids").val().replace(paramdivid,''));
+    var x = $("#param_range_div_ids").val();
+    for(var z  of x.split(";"))
+        if(z.includes(paramdivid))
+            $("#param_range_div_ids").val($("#param_range_div_ids").val().replace(z,""))
+
     name_type_map.delete(getParamNameFromId(paramname));
     name_param_id_map.delete(getParamNameFromId(paramname))
     //$("#"+parentNode).remove("#"+paramdivid);
