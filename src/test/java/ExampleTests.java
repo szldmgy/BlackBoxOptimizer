@@ -25,81 +25,8 @@ import static org.junit.Assert.fail;
 /**
  * Created by peterkiss on 2018. 01. 22..
  */
-public class ExampleTests {
-    //available algorithms
-    // development path
-    final static String defaultOptimizerClassLocation =  "target/classes/algorithms/";
+public class ExampleTests extends StessTestBase{
 
-    final static String outputfile =  "BlackBoxOptimizer/target/classes/algorithms/";
-
-    //jar path
-    final static String defaultJarOptimizerClassLocation =  "lib/algorithms/";
-
-
-    //path for result files
-    static String resultsPath = "results";
-    //path for experiment descriptors
-    static String expPath = "experiments";
-    //path for backup files
-    static String backupPath = "backup";
-
-    //path for test result files
-    static String testResultsPath = "results/tests";
-    //path for test experiment descriptors
-    static String testExpPath = "experiments/tests";
-    //path for test backup files
-    static String testBackupPath = "backup/tests";
-    //path for hardcore setup files
-    static String testResourcesPath = "src/test/resources/";
-
-    static FileWriter cllogFileW;
-
-
-    static Map<Class<? extends AlgorithmFI>,String> optimizerClasses = new HashMap<Class<? extends AlgorithmFI>,String>();
-    @BeforeClass
-    public static void setup() throws IOException {
-
-         cllogFileW = new FileWriter(new File("Cllog.log"));
-        File directory = new File(resultsPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-        directory = new File(expPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-        directory = new File(backupPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-
-         directory = new File(testResultsPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-         directory = new File(testExpPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-         directory = new File(testBackupPath);
-        if (! directory.exists()){
-            directory.mkdir();
-
-        }
-
-    }
-    @AfterClass
-    public static void cleanup() throws IOException {
-        cllogFileW.close();
-        deleteDirectory(new File(testBackupPath));
-        deleteDirectory(new File(testResultsPath));
-        deleteDirectory(new File(testExpPath));
-    }
     //testing all the example setups with all  applicable algorithms
     @Test
     public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException {
@@ -183,45 +110,23 @@ public class ExampleTests {
 
     private void testRecovery(File[] files) {
 
-        Arrays.stream(files).filter(file -> file.getName().contains(".json")).forEach(file -> {
-           /* File directory = new File(testResultsPath+"/"+ file.getName().replace(".json",""));
-            if (! directory.exists()){
-                directory.mkdir();
+           for(File file : files) {
+               System.out.println("============================");
+               System.out.println(file.getName() + " ==> recovery");
+               System.out.println("============================");
 
-            }*/
-            System.out.println("============================");
-            System.out.println(file.getName() +" ==> recovery");
-            System.out.println("============================");
 
-            //avoid looping
-            try {
-                TestConfig tc = TestConfig.readConfigJSON(file.getAbsolutePath());
-                tc.setSavingFrequence(-1);
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                String s = gson.toJson(tc, TestConfig.class);
-                FileWriter w = new FileWriter(file.getAbsolutePath().toString());
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String[] args = new String[]{"-r","-sp","3", file.getAbsolutePath()};
-            try {
-                cllogFileW.write(String.join(" ",args));
-                Main.main(args);
-            } catch (IOException e) {
-                fail(e.getMessage());
-            } catch (CloneNotSupportedException e) {
-                fail(e.getMessage());            }
-            try {
-                // not working because bad configurations are not written in csv
-                // assertTrue(TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCount().get()<=Files.lines(Paths.get(file.getAbsolutePath().replace(testBackupPath, testResultsPath).replace(".json", ".csv"))).count()-1);
-                assertTrue(TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCounter()<=TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCount().get());
-            } catch (IOException e) {
-                fail(e.getMessage());
-            }
+               String[] args = new String[]{"-r", "-sp", "3", file.getAbsolutePath()};
+               executeCL(args);
+               try {
+                   // not working because bad configurations are not written in csv
+                   // assertTrue(TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCount().get()<=Files.lines(Paths.get(file.getAbsolutePath().replace(testBackupPath, testResultsPath).replace(".json", ".csv"))).count()-1);
+                   assertTrue(TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCounter() <= TestConfig.readConfigJSON(file.getAbsolutePath().replace(testBackupPath, testExpPath)).getIterationCount().get());
+               } catch (IOException e) {
+                   fail(e.getMessage());
+               }
+           }
 
-        });
     }
 
     //helper method for runall2
@@ -246,27 +151,23 @@ public class ExampleTests {
 
 
             String[] args = new String[]{"-r","-sp","3",testExpPath+"/"+ new File(clFileName).getName()};
-            try {
-                cllogFileW.write(String.join(" ",args));
-                Main.main(args);
-            } catch (IOException e) {
-                fail(e.getMessage());
-            } catch (CloneNotSupportedException e) {
-                fail(e.getMessage());
-            }
+            executeCL(args);
 
         });
 
 
     }
 
-    static boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
+    private void executeCL(String[] args) {
+        try {
+            cllogFileW.write(String.join(" ",args));
+            Main.main(args);
+        } catch (IOException e) {
+            fail(e.getMessage());
+        } catch (CloneNotSupportedException e) {
+            fail(e.getMessage());
         }
-        return directoryToBeDeleted.delete();
     }
+
+
 }

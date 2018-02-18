@@ -19,8 +19,8 @@ public class GridSearch extends  AlgorithmFI{
     InternalState is = new InternalState();
 
     {
+        this.parallelizable = true;
         this.optimizerParams = new LinkedList<>();
-
         this.allowedTypes.add(Integer.class);
         this.allowedTypes.add(Boolean.class);
         this.allowedTypes.add(String.class);
@@ -33,28 +33,31 @@ public class GridSearch extends  AlgorithmFI{
     public void updateParameters(List< Param> parameterMap, List<IterationResult> landscape/*, List<Param > optimizerParams*/) {
         List<Param> lastConfiguration = null;
         try {
-            lastConfiguration = landscape.get(landscape.size()-1).getConfiguration();
+            if(landscape.isEmpty())
+                lastConfiguration = parameterMap;
+            else
+                lastConfiguration = landscape.get(landscape.size()-1).getConfiguration();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
         int i = lastConfiguration.size()-1;
         while(i >= 0) {
-            if(this.config.getScriptParameters().get(i).isActive()) {
-                if(this.config.getScriptParameters().get(i).isNumeric())
+            if(this.config.getScriptParametersReference().get(i).isActive()) {
+                if(this.config.getScriptParametersReference().get(i).isNumeric())
                 {
                         if(((Number)lastConfiguration.get(i).getValue()).doubleValue() + ((Number)optimizerParams.get(i).getValue()).doubleValue() <=
                             ((Number)lastConfiguration.get(i).getUpperBound()).doubleValue()) {
-                        this.config.getScriptParameters().get(i).add(optimizerParams.get(i).getValue());
+                        this.config.getScriptParametersReference().get(i).add(optimizerParams.get(i).getValue());
                         break;
                     }
                     else
-                        this.config.getScriptParameters().get(i).setInitValue(lastConfiguration.get(i).getLowerBound());
+                        this.config.getScriptParametersReference().get(i).setInitValue(lastConfiguration.get(i).getLowerBound());
                 }
                 else if(lastConfiguration.get(i).isBoolean()) {
                     if ((Boolean) lastConfiguration.get(i).getValue()) {
-                        this.config.getScriptParameters().get(i).setInitValue(false);
+                        this.config.getScriptParametersReference().get(i).setInitValue(false);
                     } else {
-                        this.config.getScriptParameters().get(i).setInitValue(true);
+                        this.config.getScriptParametersReference().get(i).setInitValue(true);
                         break;
                     }
                 }
@@ -64,9 +67,9 @@ public class GridSearch extends  AlgorithmFI{
                         if(lastConfiguration.get(i).getActiveValueArray()[j].equals(lastConfiguration.get(i).getValue()))
                             actInd=j;
                     if(actInd+(int)optimizerParams.get(i).getValue()<lastConfiguration.get(i).getActiveValueArray().length)
-                        this.config.getScriptParameters().get(i).setInitValue(lastConfiguration.get(i).getActiveValueArray()[actInd+(int)optimizerParams.get(i).getValue()]);
+                        this.config.getScriptParametersReference().get(i).setInitValue(lastConfiguration.get(i).getActiveValueArray()[actInd+(int)optimizerParams.get(i).getValue()]);
                     else
-                        this.config.getScriptParameters().get(i).setInitValue(lastConfiguration.get(i).getActiveValueArray()[actInd+(int)optimizerParams.get(i).getValue()-lastConfiguration.get(i).getActiveValueArray().length]);
+                        this.config.getScriptParametersReference().get(i).setInitValue(lastConfiguration.get(i).getActiveValueArray()[actInd+(int)optimizerParams.get(i).getValue()-lastConfiguration.get(i).getActiveValueArray().length]);
 
 
                 }

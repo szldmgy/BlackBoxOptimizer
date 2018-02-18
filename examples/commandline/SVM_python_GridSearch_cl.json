@@ -55,6 +55,7 @@
         "terminator": false,
         "weight": 100.0,
         "name": "accuracy",
+        "typeName": "java.lang.Float",
         "dummy": 0.0,
         "value": 0.6450205,
         "target": 0.0

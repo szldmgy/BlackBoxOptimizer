@@ -43,6 +43,7 @@
         "terminator": false,
         "weight": 100.0,
         "name": "rosen",
+        "typeName": "java.lang.Float",
         "dummy": 0.0,
         "value": 5.7513568E8,
         "target": 0.0
@@ -52,6 +53,7 @@
         "terminator": false,
         "weight": 100.0,
         "name": "rosen1",
+        "typeName": "java.lang.Float",
         "dummy": 0.0,
         "value": 0.0,
         "target": 0.0

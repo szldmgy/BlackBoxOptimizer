@@ -12,6 +12,7 @@ import java.util.Random;
 public class RandomSearch extends  AlgorithmFI {
 
     {
+        this.parallelizable = true;
         this.allowedTypes.add(Integer.class);
         this.allowedTypes.add(Boolean.class);
         this.allowedTypes.add(String.class);
@@ -24,7 +25,7 @@ public class RandomSearch extends  AlgorithmFI {
         for(Param entry : parameterMap)
         {
             if(entry.isActive()) {
-                if (entry.getValue() instanceof Float || entry.getValue() instanceof Double) {
+                if (entry.getValue() instanceof Float ) {
                     float lb = ((Number)entry.getLowerBound()).floatValue();
                     float ub = ((Number)entry.getUpperBound()).floatValue();
                     float r = rand.nextFloat();

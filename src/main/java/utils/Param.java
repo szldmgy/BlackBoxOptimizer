@@ -398,6 +398,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
             orig.add((Param) p.clone());
     }
 
+    public static List<Param> cloneParamList( List<Param> orig) throws CloneNotSupportedException {
+        List<Param> list =  new LinkedList<Param>();
+        for(Param p : orig)
+            list.add((Param) p.clone());
+        return list;
+
+    }
+
 
     @Override
     public Object clone() throws CloneNotSupportedException {

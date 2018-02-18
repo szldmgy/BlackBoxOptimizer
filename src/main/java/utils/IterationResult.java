@@ -46,7 +46,7 @@ public class IterationResult {
     }
 
     public boolean badConfig() throws CloneNotSupportedException {
-        for(ObjectiveContainer.Objective o : this.objectives.getObjectives()) {
+        for(Objective o : this.objectives.getObjectives()) {
 
             if ((o.getRelation().equals(Utils.Relation.LESS_THEN) || (o.getRelation().equals(Utils.Relation.MINIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MAX_VALUE)
                 return true;
@@ -67,7 +67,7 @@ public class IterationResult {
 
     public double getFitness() throws CloneNotSupportedException {
         double d = 0;
-        for(ObjectiveContainer.Objective o : objectives.getObjectives()) {
+        for(Objective o : objectives.getObjectives()) {
             if(o.getValue() instanceof Number) {
                 double val = ((Number)o.getValue()).doubleValue();
                 double tar = ((Number)o.getTarget()).doubleValue();
@@ -99,7 +99,7 @@ public class IterationResult {
         sj.add(String.valueOf(this.timeStamp));
         for(Param p:configuration)
             sj.add(p.getValue().toString());
-        for(ObjectiveContainer.Objective o : objectives.getObjectives())
+        for(Objective o : objectives.getObjectives())
             sj.add(o.getValue()!=null?o.getValue().toString():"0");
         return  sj.toString();
     }
@@ -110,7 +110,7 @@ public class IterationResult {
         sj.add("timestamp");
         for(Param p:configuration)
             sj.add(p.getName());
-        for(ObjectiveContainer.Objective o : objectives.getObjectives())
+        for(Objective o : objectives.getObjectives())
             sj.add(o.getName());
         return  sj.toString();
     }

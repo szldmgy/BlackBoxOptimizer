@@ -10,7 +10,6 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Created by peterkiss on 14/10/16.
@@ -106,10 +105,10 @@ public class TestConfig {
     public String getBaseCommand() { return baseCommand; }
     public String getObjectiveFileName() { return objectiveFileName; }
     public Optional<Integer> getIterationCount() {return iterationCount;}
-    public List< Param> getScriptParameters() {return scriptParameters;}
+    public List< Param> getScriptParametersReference() {return scriptParameters;}
     public List< Param> getOptimizerParameters() {return optimizerParameters; }
 
-    public List<IterationResult> getLandscape() { return landscape; }
+    public List<IterationResult> getLandscapeReference() { return landscape; }
     public ObjectiveContainer getObjectiveContainer() {        return objectiveContainer;    }
     public String getOptimizerConfigFilename() {       return optimizerConfigFilename;    }
     public int getIterationCounter() {        return iterationCounter;    }
@@ -135,12 +134,12 @@ public class TestConfig {
         return  command;
     }
 
-    public String getCommand(List<Param> scriptParameters)
+    public static String getCommand(List<Param> scriptParameters,String basecommand)
     {
         String command = "";
         List<String> s =new LinkedList<>();
         s.add(null);
-        Scanner sc = new Scanner(this.getBaseCommand());
+        Scanner sc = new Scanner(basecommand);
         while (sc.hasNext()) {
             s.set(0,sc.next());
             if(s.get(0).charAt(0) == '$') {
@@ -212,11 +211,11 @@ public class TestConfig {
                                 // TODO: 04/04/17 default value init
 
                                 if(Utils.isInteger(valString))
-                                    this.objectiveContainer.objectives.add( new ObjectiveContainer.Objective(Utils.Relation.valueOf(words[2]), false,name,0,Integer.parseInt(valString),0,1));
+                                    this.objectiveContainer.objectives.add( new Objective(Utils.Relation.valueOf(words[2]), false,name,0,Integer.parseInt(valString),0,1));
                                 if(Utils.isFloat(valString))
-                                    this.objectiveContainer.objectives.add( new ObjectiveContainer.Objective(Utils.Relation.valueOf(words[2]), false,name,0,Float.parseFloat(valString),0f,1));
+                                    this.objectiveContainer.objectives.add( new Objective(Utils.Relation.valueOf(words[2]), false,name,0,Float.parseFloat(valString),0f,1));
                                 if(Utils.isBoolean(valString))
-                                    this.objectiveContainer.objectives.add( new ObjectiveContainer.Objective(Utils.Relation.valueOf(words[2]), false,name,!Boolean.parseBoolean(valString),Boolean.parseBoolean(valString),false,1));
+                                    this.objectiveContainer.objectives.add( new Objective(Utils.Relation.valueOf(words[2]), false,name,!Boolean.parseBoolean(valString),Boolean.parseBoolean(valString),false,1));
 
                             }
                             continue;
@@ -293,7 +292,7 @@ public class TestConfig {
             setConfig.invoke(algorithmObj,this);
 
             Method updateConfigFromAlgorithmParamsMethod= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
-        updateConfigFromAlgorithmParamsMethod.invoke( algorithmObj,this.getScriptParameters());
+        updateConfigFromAlgorithmParamsMethod.invoke( algorithmObj,this.getScriptParametersReference());
 
             Method getOptConfig= optimizerClass.getMethod("getOptimizerParams");
             List<Param> ol = ( List<Param>) getOptConfig.invoke(algorithmObj);
@@ -311,9 +310,9 @@ public class TestConfig {
         Method loadOptimizerparams = optimizerClass.getMethod("loadOptimizerParamsFromJsonFile",String.class);
         loadOptimizerparams.invoke(algorithmObj,this.customParamFileName);
 
-        if(this.getLandscape().size()>0) {
+        if(this.getLandscapeReference().size()>0) {
             Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, this.getLandscape().get(this.getLandscape().size() - 1).getTimeStamp());
+            setupTimedelta.invoke(algorithmObj, this.getLandscapeReference().get(this.getLandscapeReference().size() - 1).getTimeStamp());
         }
 
         Method runMethod= optimizerClass.getMethod("run",int.class,String.class,String.class,String.class);
@@ -360,9 +359,9 @@ public class TestConfig {
         Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
         setOptimizerConfigMethod.invoke( algorithmObj,lp);
 
-        if(this.getLandscape().size()>0) {
+        if(this.getLandscapeReference().size()>0) {
             Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, this.getLandscape().get(this.getLandscape().size() - 1).getTimeStamp());
+            setupTimedelta.invoke(algorithmObj, this.getLandscapeReference().get(this.getLandscapeReference().size() - 1).getTimeStamp());
         }
 
         Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
@@ -403,7 +402,7 @@ public class TestConfig {
                     setConfig.invoke(algorithmObj,"test.json");*/
 
                 Method setParams = optimizerClass.getMethod("updateConfigFromAlgorithmParams", List.class);
-                setParams.invoke(algorithmObj, this.getScriptParameters());
+                setParams.invoke(algorithmObj, this.getScriptParametersReference());
 
                 Method getConfig = optimizerClass.getMethod("getConfig");
                 Object o = getConfig.invoke(algorithmObj);
@@ -428,7 +427,7 @@ public class TestConfig {
     }
     public void wirteExperimentDescriptionFile(String expFileName) {
         try (Writer writer = new FileWriter(expFileName)) {
-            List<IterationResult> ls = this.getLandscape();
+            List<IterationResult> ls = this.getLandscapeReference();
             this.setLandscape(null);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(this, writer);

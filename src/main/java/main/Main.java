@@ -98,7 +98,7 @@ public class Main {
         return saveFileName[0];
     }
 
-    static String[] saveFileName = {null};// {"experiments/Wormhole_tuning.json"};
+    static String[] saveFileName = {null};// {"experiments/Wormhole_tuning_1.json1"};
 
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
@@ -233,9 +233,9 @@ public class Main {
         List<String> classList=  Arrays.asList(Integer.class.getName(),Float.class.getName(),Boolean.class.getName(),"Enum","Function");
         List<String> objTypes=  Arrays.asList(Integer.class.getName(),Float.class.getName()*//*,Boolean.class.getName(),"Enum","Function"*//*);
 
-        final List<Param> p = config[0].getScriptParameters();
+        final List<Param> p = config[0].getScriptParametersReference();
         final String command = config[0].getBaseCommand();
-        final String[] parameternames = config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new);
+        final String[] parameternames = config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new);
         final List<ObjectiveContainer.Objective> objectives =  config[0].getObjectiveContainer().getObjectives();
 
         final String[] objectiveTypes = Arrays.stream(Utils.Relation.values()).map(v->v.toString()).toArray(String[]::new);
@@ -323,7 +323,7 @@ public class Main {
             );
         });*/
 
-        /*final List<Param> paramsList = config[0].getScriptParameters();
+        /*final List<Param> paramsList = config[0].getScriptParametersReference();
         Type listOfTestObject = new TypeToken<List<String>>(){}.getType();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();*/
        /* get("/paramlist", (req, res) ->
@@ -355,9 +355,9 @@ public class Main {
             List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
 
 
-            if(config[0].getLandscape().size()>0) {
+            if(config[0].getLandscapeReference().size()>0) {
                 recoveryMode = true;
-                landscape = config[0].getLandscape();
+                landscape = config[0].getLandscapeReference();
                 counter = config[0].getIterationCounter();
 
             }
@@ -411,7 +411,7 @@ public class Main {
                     setConfig.invoke(algorithmObj,"test.json");*//*
 
                     Method setParams= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParameters());
+                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
 
                     Method getConfig= optimizerClass.getMethod("getConfig");
                     Object o = getConfig.invoke(algorithmObj);
@@ -485,7 +485,7 @@ public class Main {
             c.setObjectiveContainer(objectiveContainer);
             c.setObjectiveFileName(objFileName1);
             if(recoveryMode) {
-                c.setLandscape(config[0].getLandscape());
+                c.setLandscape(config[0].getLandscapeReference());
                 c.setIterationCounter(config[0].getIterationCounter());
             }
             List<Param> paramList = null;
@@ -517,7 +517,7 @@ public class Main {
 
 
                     Method setParams= optimizerClass.getMethod("setOptimizerParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParameters());
+                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
 
                     Method getConfig= optimizerClass.getMethod("getConfig");
                     Object o = getConfig.invoke(algorithmObj);
@@ -606,7 +606,7 @@ public class Main {
             }
 // TODO: 2018. 01. 23. in the experiment setup file we dont save landscape i think it is ok, we need for  recovery only.
             try (Writer writer = new FileWriter(expFileName)) {
-                List<IterationResult> ls = config[0].getLandscape();
+                List<IterationResult> ls = config[0].getLandscapeReference();
                 config[0].setLandscape(null);
                 gson.toJson(config[0], writer);
                 config[0].setLandscape(ls);
@@ -641,11 +641,11 @@ public class Main {
         model.put("filename",file);
         model.put("parametertypes",classList);
         model.put("template","templates/param.vtl");
-        model.put("paramlist",config[0].getScriptParameters());
+        model.put("paramlist",config[0].getScriptParametersReference());
         model.put("command",config[0].getBaseCommand());
         model.put("objlist",config[0].getObjectiveContainer().getObjectives());
         model.put("objectivetypes", objectiveTypes);
-        model.put("parameternames",config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new));
+        model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
         model.put("algorithms",algoritmhs);
         model.put("objtypes",objtypes);
         model.put("obj_filename", config[0].getObjectiveFileName());
@@ -714,9 +714,9 @@ public class Main {
         Method loadOptimizerparams = optimizerClass.getMethod("loadOptimizerParamsFromJsonFile",String.class);
         loadOptimizerparams.invoke(algorithmObj,customParamFileName[0]);
 
-        if(testConfig.getLandscape().size()>0) {
+        if(testConfig.getLandscapeReference().size()>0) {
             Method setupTimedelta = optimizerClass.getMethod("seTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, testConfig.getLandscape().get(testConfig.getLandscape().size() - 1).getTimeStamp());
+            setupTimedelta.invoke(algorithmObj, testConfig.getLandscapeReference().get(testConfig.getLandscapeReference().size() - 1).getTimeStamp());
         }
 
         Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
@@ -749,9 +749,9 @@ public class Main {
         Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
         setOptimizerConfigMethod.invoke( algorithmObj,lp);
 
-        if(testConfig.getLandscape().size()>0) {
+        if(testConfig.getLandscapeReference().size()>0) {
             Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, testConfig.getLandscape().get(testConfig.getLandscape().size() - 1).getTimeStamp());
+            setupTimedelta.invoke(algorithmObj, testConfig.getLandscapeReference().get(testConfig.getLandscapeReference().size() - 1).getTimeStamp());
         }
 
         Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);

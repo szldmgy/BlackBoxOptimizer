@@ -13,7 +13,6 @@ public class ParamTest {
     @Test
     public void someTest() throws FileNotFoundException {
         TestConfig tc = TestConfig.readConfigJSON("src/test/resources/Rosenbrock_multi_SimulatedAnnealing.json");
-        //System.out.println(tc.getOptimizerParameters().get(2).getAllValueArray().getClass().getComponentType());
         assertTrue(tc.getOptimizerParameters().get(2).getAllValueArray().getClass().getComponentType()==Float.class);
     }
 }

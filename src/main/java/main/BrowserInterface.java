@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,9 +70,9 @@ public class BrowserInterface {
         staticFiles.externalLocation(uploadDir);
         staticFileLocation("/public");
 
-        //final List<Param> p = config[0].getScriptParameters();
+        //final List<Param> p = config[0].getScriptParametersReference();
         //final String command = config[0].getBaseCommand();
-        //final String[] parameternames = config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new);
+        //final String[] parameternames = config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new);
         //final List<ObjectiveContainer.Objective> objectives =  config[0].getObjectiveContainer().getObjectives();
 
 
@@ -178,9 +177,9 @@ public class BrowserInterface {
             List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
 
 
-            if(config[0].getLandscape().size()>0) {
+            if(config[0].getLandscapeReference().size()>0) {
                 recoveryMode[0] = true;
-                landscape = config[0].getLandscape();
+                landscape = config[0].getLandscapeReference();
                 counter = config[0].getIterationCounter();
 
             }
@@ -235,7 +234,7 @@ public class BrowserInterface {
                     setConfig.invoke(algorithmObj,"test.json");*/
 
                     Method setParams= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParameters());
+                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
 
                     Method getConfig= optimizerClass.getMethod("getConfig");
                     Object o = getConfig.invoke(algorithmObj);
@@ -309,7 +308,7 @@ public class BrowserInterface {
             c.setObjectiveContainer(objectiveContainer);
             c.setObjectiveFileName(objFileName1);
             if(recoveryMode[0]) {
-                c.setLandscape(config[0].getLandscape());
+                c.setLandscape(config[0].getLandscapeReference());
                 c.setIterationCounter(config[0].getIterationCounter());
             }
             List<Param> paramList = null;
@@ -341,7 +340,7 @@ public class BrowserInterface {
 
 
                     Method setParams= optimizerClass.getMethod("setOptimizerParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParameters());
+                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
 
                     Method getConfig= optimizerClass.getMethod("getConfig");
                     Object o = getConfig.invoke(algorithmObj);
@@ -421,11 +420,11 @@ public class BrowserInterface {
         model.put("filename",file.replace("experiments/",""));
         model.put("parametertypes",classList);
         model.put("template","templates/param.vtl");
-        model.put("paramlist",config[0].getScriptParameters());
+        model.put("paramlist",config[0].getScriptParametersReference());
         model.put("command",config[0].getBaseCommand());
         model.put("objlist",config[0].getObjectiveContainer().getObjectives());
         model.put("objectivetypes", objectiveTypes);
-        model.put("parameternames",config[0].getScriptParameters().stream().map(par->par.getName()).toArray(String[]::new));
+        model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
         model.put("algorithms",algoritmhs);
         model.put("objtypes",objtypes);
         model.put("obj_filename", config[0].getObjectiveFileName());
@@ -435,7 +434,7 @@ public class BrowserInterface {
 
 
 
-    private static Map<String, Object> getResultModel(List<ObjectiveContainer.Objective> objectives, String resFileName, String configFileName) {
+    private static Map<String, Object> getResultModel(List<Objective> objectives, String resFileName, String configFileName) {
         final List<String> objectiveList = new LinkedList<String>();
         objectives.forEach(o->objectiveList.add(o.getName()));
 
@@ -644,7 +643,7 @@ public class BrowserInterface {
     }
 
     public static ObjectiveContainer readObjectives(Request request) {
-        List<ObjectiveContainer.Objective> olist = new LinkedList<ObjectiveContainer.Objective>();
+        List<Objective> olist = new LinkedList<Objective>();
         String object_names = request.queryParams("object_names");
         String[] obj_div_names = object_names.split(";");
         for(String obj_div_name : obj_div_names){
@@ -657,13 +656,13 @@ public class BrowserInterface {
             String obj_type = request.queryParams(obj_div_name + "_type");
             //Class<?> clazz = Class.forName("com.bla.TestActivity");
 
-            ObjectiveContainer.Objective objective = null;
+            Objective objective = null;
             Utils.Relation rel = Utils.Relation.valueOf(obj_relation);
             boolean targetMakesSense = rel != Utils.Relation.MAXIMIZE && rel != Utils.Relation.MINIMIZE;
             if (obj_type.equals("java.lang.Integer"))
-                objective = new ObjectiveContainer.Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0:new Float(Float.parseFloat(obj_value)).intValue(),0,Float.parseFloat(obj_weight));
+                objective = new Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0:new Float(Float.parseFloat(obj_value)).intValue(),0,Float.parseFloat(obj_weight));
             else if (obj_type.equals("java.lang.Float"))
-                objective = new ObjectiveContainer.Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0.0:Float.parseFloat(obj_value ),0.0,Float.parseFloat(obj_weight));
+                objective = new Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0.0:Float.parseFloat(obj_value ),0.0,Float.parseFloat(obj_weight));
             //else if (obj_type.equals("java.lang.Boolean "))
 
             if(!olist.contains(objective))

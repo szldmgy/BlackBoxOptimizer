@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import javafx.concurrent.Task;
 import org.apache.log4j.Level;
 import main.Main;
 import utils.*;
@@ -13,6 +12,9 @@ import utils.*;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 /**
@@ -24,7 +26,7 @@ import java.util.*;
 
 
 public abstract class AlgorithmFI {
-    //private boolean parallelizable;
+    protected boolean parallelizable = false;
 
     // references in config to these for saving state
     // these can be logically in config
@@ -45,7 +47,6 @@ public abstract class AlgorithmFI {
     protected List<Class> allowedTypes = new LinkedList<>();
     {
         allowedTypes.add(Float.class);
-        //allowedTypes.add(Double.class); //// TODO: 16/10/17 type hack
     }
 
     protected long timeDelta = 0;
@@ -71,18 +72,23 @@ public abstract class AlgorithmFI {
      * @return
      */
     public boolean isApplyableForParams(){
-        List<Param> pl = config.getScriptParameters();
+        List<Param> pl = config.getScriptParametersReference();
         for(Param p : pl)
             if(!getAllowedTypes().contains(p.getParamGenericType()))
                 return false;
         return true;
     }
 
+    /**
+     *
+     * @return
+     * @throws CloneNotSupportedException
+     */
     public String getLandscapeCSVString() throws CloneNotSupportedException {
         StringJoiner sj = new StringJoiner("\n");
-        sj.add("iteration,"+this.config.getLandscape().get(0).getCSVHeaderString());
+        sj.add("iteration,"+this.config.getLandscapeReference().get(0).getCSVHeaderString());
         int i =0;
-        for(IterationResult ir :this.config.getLandscape()){
+        for(IterationResult ir :this.config.getLandscapeReference()){
             try {
                 if(!ir.badConfig())
                     sj.add(i++ +","+ir.getCSVString());
@@ -103,44 +109,61 @@ public abstract class AlgorithmFI {
      */
     public void run(int sfr,String experimetDir, String backupDir,String saveFileName) throws Exception {
         try {
+            //this.parallelizable = false;
             boolean terminated = false;
             long startTime = System.currentTimeMillis();
             while (!terminated ) {
 
                 try {
-                    /*if(this.parallelizable){
-                        Thread t = new Thread(new Task<>(config.getScriptParameters()) {
-                        })
-                    }*/
-                    //else {
-                        if (configAllowed(config.getScriptParameters())) {
+                    if(this.parallelizable){
+                        ExecutorService pool = Executors.newFixedThreadPool(5);
+                        Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
+                        for(int i = 0;i < this.config.getIterationCount().get();++i) {
+                            if(!configAllowed(config.getScriptParametersReference())) {
+                                config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
+                                config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(),startTime,timeDelta));
+                            }
+                            set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainer(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
+                            updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
+                            Main.log(Level.INFO,"PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
+                        }
+                        for (Future<IterationResult> future : set) {
+                           this.config.getLandscapeReference().add(future.get());
+                        }
+                        config.setIterationCounter(config.getIterationCount().get());
+                        terminated = true;
+
+                    }
+                    else {
+                        if (configAllowed(config.getScriptParametersReference())) {
 
                             BufferedReader r = null;
                             r = executeAndGetResultBufferedReader(config);
-                            config.setObjectiveContainer(ObjectiveContainer.readObjectives(r, config.getObjectiveContainer()));
+                            ObjectiveContainer oc = ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainer());
+                            config.setObjectiveContainer(oc);
                         } else {
                             config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
 
                         }
-                    //}
-                    terminated =this.terminated();
+                        terminated =this.terminated();
+                        config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(),startTime,timeDelta));
+                    }
 
-                    //ls adding should be sysnchronized -
-                    config.getLandscape().add(new IterationResult(config.getScriptParameters(), config.getObjectiveContainer(),startTime,timeDelta));
+
 
                     if(!terminated) {
-                        Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParameters().toString());
+                        Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParametersReference().toString());
                         try {
-                            updateParameters(config.getScriptParameters(), config.getLandscape()/*, config.getOptimizerParameters()*/);
+                            updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
                         }  catch (Exception e){
                             System.out.println("=============Algorithm error!===========");
                             e.printStackTrace();
                         }
-                        Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParameters().toString());
+                        Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParametersReference().toString());
                     }
 
                     if(sfr!=-1 && this.config.getIterationCounter() % sfr == 0|| terminated) {
-                        if(terminated && config.getLandscape().size()<config.getIterationCount().get())
+                        if(terminated && config.getLandscapeReference().size()<config.getIterationCount().get())
                             System.out.println("para");
                         this.saveState(this.config.getOptimizerStateBackupFilename()==null?"optBackUp.json":this.config.getOptimizerStateBackupFilename());
                         if(!terminated) {
@@ -169,11 +192,13 @@ public abstract class AlgorithmFI {
      * @throws IOException
      * @throws InterruptedException
      */
+    @Deprecated
     private BufferedReader executeAndGetResultBufferedReader(TestConfig config) throws IOException, InterruptedException {
         BufferedReader r;
         String command = config.getCommand();
         Runtime rt = Runtime.getRuntime();
         Main.log(Level.INFO,"Executing : " + command);
+
 
         Process pr = rt.exec(command);
         pr.waitFor();
@@ -185,6 +210,7 @@ public abstract class AlgorithmFI {
         else
             r= new BufferedReader(new InputStreamReader(pr.getInputStream()));
         return r;
+
     }
 
 
@@ -201,14 +227,15 @@ public abstract class AlgorithmFI {
         return true;
     }
 
+    //later
     public ObjectiveContainer lookup(List<Param> configuration,long startTime,long delay) throws InterruptedException, IOException, CloneNotSupportedException {
-        for(IterationResult ir : config.getLandscape())
+        for(IterationResult ir : config.getLandscapeReference())
             if(Utils.paramConfigsAreEqual(ir.getConfiguration(),configuration))
                 return ir.getObjectives();
-        String command = config.getCommand(configuration);
+        String command = config.getCommand(configuration,config.getBaseCommand());
         ObjectiveContainer oc = runAlgorithm(command);
 
-        config.getLandscape().add(new IterationResult(configuration,oc,startTime,delay));
+        config.getLandscapeReference().add(new IterationResult(configuration,oc,startTime,delay));
         return oc;
 
     }
@@ -222,7 +249,7 @@ public abstract class AlgorithmFI {
      */
     private ObjectiveContainer runAlgorithm(String command) throws IOException, InterruptedException {
         BufferedReader r = executeAndGetResultBufferedReader(config);
-        return ObjectiveContainer.readObjectives(r, config.getObjectiveContainer());
+        return ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainer());
     }
 
 
@@ -254,18 +281,11 @@ public abstract class AlgorithmFI {
         return this.config.getObjectiveContainer() == null ? false : this.config.getObjectiveContainer().terminated();
 
     }
-    /*
-    public void readParams(String jsonName) throws FileNotFoundException {
-        Type listType = new TypeToken<LinkedList<Param>>(){}.getType();
-        Gson gson = new Gson();
-        JsonReader reader = new JsonReader(new FileReader(jsonName));
-        this.optimizerParams = gson.fromJson(reader, TestConfig.class);
 
-    }*/
 
     /**
      * returns the parameters of the optimizer algorithm
-     * @return
+     * @return a cloned loist of parameters
      * @throws CloneNotSupportedException
      */
     public List<Param> getConfig() throws CloneNotSupportedException {
@@ -277,13 +297,14 @@ public abstract class AlgorithmFI {
 
     /**
      * set the parameters of the optimizer. This is called to set up the parameters wen we use the html interface
-     * @param paramList
+     * @param paramList List of parameters
      */
     public void setOptimizerParams(List<Param> paramList){
         this.optimizerParams = paramList;
     }
+
+    @Deprecated
     public void writeOptimizerParamsToJsonFile(String jsonName) throws FileNotFoundException {
-        // TODO: 22/09/17 removed for get rid of garbage generation
         if(false) {
             Type listType = new TypeToken<LinkedList<Param>>() {
             }.getType();
@@ -311,7 +332,7 @@ public abstract class AlgorithmFI {
     }
 
     /**
-     * loads the entire test-configuration from a json
+     * loads the entire test-configuration from a json file
      * @param configFileName
      */
     public void loadConfigFromJsonFile(String configFileName){
@@ -340,6 +361,7 @@ public abstract class AlgorithmFI {
      * @param configFileName 
      * @throws FileNotFoundException
      */
+    @Deprecated
     public void loadOptimizerParamsFromJsonFile(String configFileName) throws FileNotFoundException {
         if(configFileName == null)
             return;

@@ -19,12 +19,12 @@ public class TestConfigDeserializer  implements JsonDeserializer<TestConfig>
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Range.class,new RangeDeserializer());
         gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
-        gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
+        gsonBuilder.registerTypeAdapter(Objective.class, new ObjectiveDeserializer());
         Gson gson = gsonBuilder.create();
         TestConfig t = gson.fromJson(jsonElement, TestConfig.class);
 
         TestConfig modified = null;
-        List<Param> pl = t.getScriptParameters();
+        List<Param> pl = t.getScriptParametersReference();
         if(t.getOptimizerParameters() == null )
             return t;
        for(Param p : t.getOptimizerParameters()) {

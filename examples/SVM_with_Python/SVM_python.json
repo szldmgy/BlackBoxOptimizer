@@ -14,6 +14,8 @@
       {
         "relation": "MAXIMIZE",
         "terminator": false,
+        "typeName": "java.lang.Float",
+
         "weight": 100.0,
         "name": "accuracy",
         "dummy": 0.0,
