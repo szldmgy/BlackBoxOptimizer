@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * Created by david on 2017. 08. 12..
  */
-public class DifferentialEvolution extends AlgorithmFI {
+public class DifferentialEvolution extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
     {

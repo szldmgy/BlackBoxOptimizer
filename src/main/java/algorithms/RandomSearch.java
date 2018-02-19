@@ -9,7 +9,7 @@ import java.util.Random;
 /**
  * Created by peterkiss on 17/10/16.
  */
-public class RandomSearch extends  AlgorithmFI {
+public class RandomSearch extends AbstractAlgorithm {
 
     {
         this.parallelizable = true;

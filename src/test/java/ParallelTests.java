@@ -1,4 +1,4 @@
-import algorithms.AlgorithmFI;
+import algorithms.AbstractAlgorithm;
 import org.junit.Test;
 import utils.OptimizerException;
 import utils.Param;
@@ -17,18 +17,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ParallelTests extends StessTestBase{
-    static Map<Class<? extends AlgorithmFI>,String> optimizerClasses = new HashMap<Class<? extends AlgorithmFI>,String>();
+public class ParallelTests extends StressTestBase {
+    static Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses = new HashMap<Class<? extends AbstractAlgorithm>,String>();
 
     @Test
-    public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException {
-        optimizerClasses = Utils.findAllMatchingTypes(AlgorithmFI.class, Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
+    public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException, CloneNotSupportedException {
+        optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class, Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
         File[] files = new File("Examples/").listFiles();
         testFiles(files);
     }
 
     // helper method:
-    public  void testFiles(File[] files) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, OptimizerException {
+    public  void testFiles(File[] files) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, OptimizerException, CloneNotSupportedException {
         int counter = 0;
         for (File file : files) {
             if (file.isDirectory()) {
@@ -42,7 +42,7 @@ public class ParallelTests extends StessTestBase{
                     config.setOptimizerClasses(optimizerClasses);
                     Map<String, List<Param>> algParamMap = config.filterAlgorithms();
                     for(String name: new String[]{"RandomSearch","GridSearch"} ) {
-                        Class<? extends AlgorithmFI> c = config.getOptimizerClassBySimpleName(name);
+                        Class<? extends AbstractAlgorithm> c = config.getOptimizerClassBySimpleName(name);
 
                         System.out.println("============================");
                         System.out.println(file.getName()+" ==> "+c.getSimpleName());
@@ -57,7 +57,7 @@ public class ParallelTests extends StessTestBase{
                         File f = new File(testResultsPath+"/"+tn + "_"+c.getSimpleName()+".csv");
                         BufferedWriter writer = new BufferedWriter(new FileWriter(f));
 
-                        writer.write(config.runOptimizer(false, testExpPath,testBackupPath,testExpPath+"/"+tn + "_"+c.getSimpleName()+".json"));
+                        writer.write(config.runOptimizer( testExpPath,testBackupPath,testExpPath+"/"+tn + "_"+c.getSimpleName()+".json"));
                         writer.close();
                         String fn = testExpPath+"/"+tn + "_"+c.getSimpleName()+".json";
                         config.wirteExperimentDescriptionFile(fn);

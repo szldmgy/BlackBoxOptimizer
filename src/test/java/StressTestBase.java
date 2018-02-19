@@ -1,4 +1,4 @@
-import algorithms.AlgorithmFI;
+import algorithms.AbstractAlgorithm;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StessTestBase {
+public class StressTestBase {
     //available algorithms
     // development path
     final static String defaultOptimizerClassLocation =  "target/classes/algorithms/";
@@ -38,7 +38,7 @@ public class StessTestBase {
     static FileWriter cllogFileW;
 
 
-    static Map<Class<? extends AlgorithmFI>,String> optimizerClasses = new HashMap<Class<? extends AlgorithmFI>,String>();
+    static Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses = new HashMap<Class<? extends AbstractAlgorithm>,String>();
     @BeforeClass
     public static void setup() throws IOException {
 

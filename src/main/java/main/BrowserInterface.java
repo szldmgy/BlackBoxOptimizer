@@ -1,6 +1,6 @@
 package main;
 
-import algorithms.AlgorithmFI;
+import algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import spark.ModelAndView;
@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import static spark.Spark.*;
 
 /**
+ * This class serves as the backend of the web browser GUI.
  * Created by peterkiss on 2018. 01. 22..
  */
 public class BrowserInterface {
@@ -46,10 +47,10 @@ public class BrowserInterface {
 
 
     //available algorithms
-    private Map<Class<? extends AlgorithmFI>,String> optimizerClasses;// = new HashMap<Class<? extends AlgorithmFI>,String>();
+    private Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses;// = new HashMap<Class<? extends AbstractAlgorithm>,String>();
 
     private  TestConfig[] config = new TestConfig[1];
-    public BrowserInterface(String initialConfigFileName,Map<Class<? extends AlgorithmFI>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir,String uploadDir,String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
+    public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
 
 
         this.config[0] = TestConfig.readConfigJSON(initialConfigFileName);
@@ -70,31 +71,20 @@ public class BrowserInterface {
         staticFiles.externalLocation(uploadDir);
         staticFileLocation("/public");
 
-        //final List<Param> p = config[0].getScriptParametersReference();
-        //final String command = config[0].getBaseCommand();
-        //final String[] parameternames = config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new);
-        //final List<ObjectiveContainer.Objective> objectives =  config[0].getObjectiveContainer().getObjectives();
-
-
 
     }
 
     public void run(){
+
         get("/results", (req, res) ->{
-
             Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainer().getObjectives(), "experiment.csv",saveFileName[0]);
-
-
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model1, layout)
             );
         });
 
         get("/stop", (req, res) ->{
-
-
-            Map<String, Object> model = getGoodBye();
-
+           Map<String, Object> model = getGoodBye();
             stop();
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
@@ -102,11 +92,7 @@ public class BrowserInterface {
         });
 
         get("/hello", (req, res) ->{
-
-
             Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
-
-
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
             );
@@ -114,27 +100,13 @@ public class BrowserInterface {
 
 
         post("/loadsetup","multipart/form-data",(req,res)->{
-// TODO: 28/08/17 check if exists
-            //  Part fn = req.raw().getPart("cfn");
-
-
-            config[0] = new TestConfig();
-            // if(fn!=null&&!fn.equals("")) {
-               /* fn = fn.replace("C:\\fakepath\\",experimentDir+"/" );
-                fn = fn.replace("C:/fakepath/",experimentDir+"/" );
-                File f= new File(fn);
-                if(!f.exists())
-                    fn = fn.replace(experimentDir,backupDir);
-                if(new File(fn).exists())
-                    config[0] =  readConfigJSON(fn);*/
-
+        // TODO: 28/08/17 check if exists
+                config[0] = new TestConfig();
 
             File uploadDir = new File(BrowserInterface.uploadDir);
             Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
-            //String s = req.queryParams("chosenfile");
             req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
             Part filePart = req.raw().getPart("chosenfile");
-            Part fn = req.raw().getPart("cfn");
             this.configFileName[0] = filePart.getSubmittedFileName();
             //prepare base of the savefilename
             String [] fnparts =  configFileName[0].split("/");
@@ -163,7 +135,6 @@ public class BrowserInterface {
                 safeMode[0] = true;
             }
 
-            //todo algorithmname here it is alwaysd null, saverfilename goes with default
 
             saveFileName[0] = request.queryParams("savefilename");
             String useIterationString = request.queryParams("use_iterations");
@@ -185,7 +156,7 @@ public class BrowserInterface {
             }
             else
                 recoveryMode[0] = false;
-            TestConfig c = new TestConfig(); //todo we need a new one? not like it would change too much
+            TestConfig c = new TestConfig();
             c.setAlgorithmName(config[0].getAlgorithmName());
             // in case we have htem in the same file
             c.setOptimizerParameters(predefinedOptimizerParams);
@@ -196,15 +167,10 @@ public class BrowserInterface {
 
 
             String objFileName1 = request.queryParams("objFileName");
-// TODO: 23/07/17 what about other predefined lists??? - objectives variable might be removed, use only the tc one all this shit because of recovery could be simpler
             ObjectiveContainer objectiveContainer = readObjectives(request);
-           // objectives.clear();
-           // objectives.addAll(objectiveContainer.getObjectives());
-
             c.setObjectiveContainer(objectiveContainer);
             String usefileStr = request.queryParams("use_file_output");
             if(usefileStr!=null)
-                //String objFileName = request.queryParams("objFileBrowser");
                 c.setObjectiveFileName(objFileName1);
             c.setLandscape(landscape);
             c.setIterationCounter(counter);
@@ -254,7 +220,8 @@ public class BrowserInterface {
                 } catch (InvocationTargetException e) {
                     e.printStackTrace();
                 }
-            }); //recovery mode if there is any predefined algorithm, otherwise the first in the list
+            });
+            //recovery mode if there is any predefined algorithm, otherwise the first in the list
             if(!algParamMap.keySet().contains(config[0].getAlgorithmName()))
                 config[0].setAlgorithmName(algParamMap.keySet().iterator().next());
             //we set up values for optimizerparam from configfile
@@ -319,7 +286,6 @@ public class BrowserInterface {
             }
 
 
-            // TODO: 10/08/17 send parameters to SERVER
             c.setScriptParameters(paramList);
             try (Writer writer = new FileWriter("test_"+algorithmname+"_conf.json")) {
                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
@@ -327,7 +293,6 @@ public class BrowserInterface {
             }
             config[0]= c;
             Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
-            // TODO: 10/08/17 SERVER SENDS BACK  algorithm configs
             optimizerClasses.forEach( (optimizerClass, configfile ) ->{
                 try {
                     Object algorithmObj = optimizerClass.newInstance();
@@ -370,16 +335,9 @@ public class BrowserInterface {
 
         post("/run", (request, response) ->{
 
-
-
             String algorithmname = request.queryParams("algorithm_names");
-
             List<Param> lp = readParams(request,algorithmname);
-
-// TODO: 10/08/17 SEND OPT PARAMETERS TO SERVER
-            //to save the config
-
-
+            //save only the setup = without landscape
             config[0].setAlgorithmName(algorithmname);
             config[0].setOptimizerParameters(lp);
             config[0].setOptimizerClasses(optimizerClasses);
@@ -391,25 +349,17 @@ public class BrowserInterface {
 
 
             String expFileName = Utils.getExperimentUniqueName(saveFileName[0],experimentDir);
-            //String expFileName = Utils.getExpJSONFileName(experimentName,experimentDir) ;
             String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName),outputDir);
 
             config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir,backupDir);
-
-
             Map<String, Object> model1 = getResultModel(this.config[0].getObjectiveContainer().getObjectives(), resFileName,saveFileName[0]);
 
-
-            //VelocityEngine engine = new VelocityEngine();
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model1, layout)
             );
         });
 
     }
-
-
-
 
     private static Map<String,Object> getGoodBye() {
         return new HashMap<>();
@@ -441,14 +391,10 @@ public class BrowserInterface {
         final List<String> objectiveRelationList = new LinkedList<String>();
         objectives.forEach(o->objectiveRelationList.add(o.getRelation().equals(Utils.Relation.GREATER_THEN)||o.getRelation().equals(Utils.Relation.MAXIMIZE)?"increase":"decrease"));
 
-        // TODO: 10/08/17 landscape arrived from server
-
-
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/resultnew.vtl");
-        //String resultFilePath =  projectDir + "/BlackBoxOptimizer"+staticDir+"/"+resFileName;
-        //String resultFilePath =  projectDir + "/BlackBoxOptimizer"+staticDir+"/"+resFileName;
-        List<String>[] resFileList = new List[1];
+
+         List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
             resFileList[0] =Files.list(Paths.get(outputDir))
@@ -591,10 +537,9 @@ public class BrowserInterface {
                             String deplowerStr = request.queryParams(s1 + "_dep_lower"+ typePostFix1);
                             String depupperStr = request.queryParams(s1 + "_dep_upper"+ typePostFix1);*/
                             // TODO: 2018. 01. 31. move to some decent place reusable at multiple places
-                            Class<?>[] allowedClasses = {Float.class,Integer.class,String.class,Boolean.class};
                             String deplowerStr = "";
                             String depupperStr = "";
-                            for(Class<?> t : allowedClasses) {
+                            for(Class<?> t : Param.allowedClasses) {
                                 String typePostFix1 = getTypePostFix(t.getCanonicalName());
                                 deplowerStr = request.queryParams(s1 + "_dep_lower" + typePostFix1);
                                 depupperStr = request.queryParams(s1 + "_dep_upper" + typePostFix1);
@@ -688,7 +633,7 @@ public class BrowserInterface {
     // we defined the param properly, so if there is any depending on this, we bound it to this
     private static void updateDependencies(List<Param> paramList, Param<?> param) {
         for(Param<?> p : paramList)
-            if(p.updateDependencies(param));
+           p.updateDependencies(param);
 
 
     }
@@ -700,17 +645,17 @@ public class BrowserInterface {
             case "java.lang.String":
                 //String[] values = enumStr.split(",;");
                 //this is dummy most probably!!!
-                param.addDependencyToNodBoundedRange(dependencyParam,deplowerStr,depupperStr);
+                param.addDependencyToNotBoundedRange(dependencyParam,deplowerStr,depupperStr);
                 break;
             case "java.lang.Boolean":
                 // TODO: 19/05/17 dummy falses
-                param.addDependencyToNodBoundedRange(dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(deplowerStr) );
+                param.addDependencyToNotBoundedRange(dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(deplowerStr) );
                 break;
             case "java.lang.Float":
-                param.addDependencyToNodBoundedRange(dependencyParam,Float.parseFloat(deplowerStr),Float.parseFloat(depupperStr) );
+                param.addDependencyToNotBoundedRange(dependencyParam,Float.parseFloat(deplowerStr),Float.parseFloat(depupperStr) );
                 break;
             case "java.lang.Integer":
-                param.addDependencyToNodBoundedRange(dependencyParam,Integer.parseInt(deplowerStr),Integer.parseInt(depupperStr) );
+                param.addDependencyToNotBoundedRange(dependencyParam,Integer.parseInt(deplowerStr),Integer.parseInt(depupperStr) );
 
                 break;
 

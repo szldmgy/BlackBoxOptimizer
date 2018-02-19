@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * Created by david on 2017. 08. 13..
  */
-public class FishSchool extends AlgorithmFI {
+public class FishSchool extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
     {

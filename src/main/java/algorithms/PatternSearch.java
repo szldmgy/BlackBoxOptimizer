@@ -1,14 +1,8 @@
 package algorithms;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
 import utils.*;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +16,7 @@ import java.util.List;
 
 //TODO : Handle inactive parameters
 
-public class PatternSearch extends  AlgorithmFI {
+public class PatternSearch extends AbstractAlgorithm {
     // TODO: 31/07/17 set algorithmparams 
     InternalState is = new InternalState();
 

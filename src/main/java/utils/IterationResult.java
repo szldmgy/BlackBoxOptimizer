@@ -5,24 +5,41 @@ import java.util.List;
 import java.util.StringJoiner;
 
 /**
+ * This class represents the important data regarding to a single run of the black box function:
+ * the parameter setup and the corresponding objective values stored in a {@link java.util.List<Param>} and an {@link utils.ObjectiveContainer}
  * Created by peterkiss on 20/04/17.
  */
 public class IterationResult {
 
-    //values of parameters
+    /**
+     * Recent parametrization of the BBF .
+     */
     private List<Param> configuration;
+    /**
+     * Results of the run given the {@code configuration}.
+     */
     private ObjectiveContainer objectives;
+    /**
+     * Start time of the optimization task.
+     */
     private long timeStamp;
 
-    //fitness value(s) atb given parameters
-    //private ObjectiveContainer fitness;
-
-
+    /**
+     * Getter for {@link #timeStamp}.
+     * @return
+     */
     public long getTimeStamp() {
         return timeStamp;
     }
 
-    //creating a new IterationResult object by cloning Params and the ObjectiveContainer
+    /**
+     * Constructor:  creating a new IterationResult object by cloning Params and the ObjectiveContainer
+     * @param scriptParameters
+     * @param objectiveContainer
+     * @param startime
+     * @param delta
+     * @throws CloneNotSupportedException
+     */
     public IterationResult(List<Param> scriptParameters, ObjectiveContainer objectiveContainer,long startime, long delta) throws CloneNotSupportedException {
         this.setConfiguration(scriptParameters);
         this.setObjectives(objectiveContainer);

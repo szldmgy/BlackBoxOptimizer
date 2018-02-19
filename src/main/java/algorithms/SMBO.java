@@ -13,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -22,7 +21,7 @@ import java.util.Random;
 /**
  * Created by david on 2017. 08. 14..
  */
-public class SMBO extends AlgorithmFI{
+public class SMBO extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
     {

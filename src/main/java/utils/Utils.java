@@ -1,7 +1,7 @@
 package utils;
 
 
-import algorithms.AlgorithmFI;
+import algorithms.AbstractAlgorithm;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import javax.script.ScriptException;
 public class Utils {
 
     /**
-     * checks whether the to list are exchangable, specifically for checking user defined optimizersetups
+     * checks whether the to list are exchangeable, specifically for checking user defined optimizersetups
      * @param l1
      * @param l2
      * @return true if there are the same parameters of same name and with the same type
@@ -65,22 +65,48 @@ public class Utils {
     }
 
 
-
+    /**
+     * Due to the limits of some Browsers, we set an upper bound on float values going to the GUI.
+     */
     public static Float FLOAT_REDEFINED_MAX_VALUE = 100000f;
+
+    /**
+     * Creates the relative path for the CSV result file of the optimization.
+     * @param experimentName The name of the experiment
+     * @param outputDir The path for a folder to store the results
+     * @return The created relative path to the file
+     */
     public static String getExpCSVFileName(String experimentName,String outputDir) {
         return outputDir+"/"+experimentName+".csv";
     }
 
+    /**
+     * Creates the relative path for the JSON experiment file of the optimization.
+     * @param experimentName The name of the experiment
+     * @param experimentDir The path for a folder to store the experiment setups
+     * @return The created relative path to the file
+     */
     public static String getExpJSONFileName(String experimentName,String experimentDir) {
         return experimentDir +"/"+experimentName+".json";
     }
 
-
+    /**
+     * Returns the user defined  name of the experiment from the given save file name.
+     * @param saveFileNameWithPath User defined experiment filename
+     * @return The inferred name of the experiment
+     */
     public static String getExperimentName(String saveFileNameWithPath){
         String[] fnparts = saveFileNameWithPath.split("/");
         String[] saveFileNameParts = fnparts[fnparts.length-1].split("\\.");
         return saveFileNameParts[0];
     }
+
+    /**
+     * Checks whether there is an experiment file in the experiment directory, and if so modifies and returnes the user defined name by adding a timestamp.
+     * @param saveFileName User defined experiment filename.
+     * @param experimentDir The path for a folder to store the experiment setups.
+     * @return Unique name for an experiment.
+     */
     public static String getExperimentUniqueName(String saveFileName,String experimentDir) {
         String experimentName = getExperimentName( saveFileName);
         String experimentFileName=getExpJSONFileName(experimentName,experimentDir);
@@ -92,6 +118,17 @@ public class Utils {
     }
     // TODO: 16/05/17 hacked loading paths, qualified names
     // TODO: 10/08/17 Should be run on server
+
+    /**
+     * Finds the available  subclasses of parameter of type {{@link java.lang.Class}}, tghen collect them in a {@link java.util.Map},
+     * key:  {@link java.lang.Class } that  extends {@code toFind},
+     * value: setup files for the given class with the same name - to be removed.
+     * @param toFind {@link java.lang.Class }, whose subclasses we want to find .
+     * @param optimizerClassLocation the location where we want to search for the subclasses.
+     * @param <T> {@link java.lang.Class } the super class ehose descendant we are curious of.
+     * @return
+     * @throws IOException
+     */
     public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {
         Map<Class<? extends T>,String> foundClasses = new HashMap<Class<? extends T>, String>() ;
 
@@ -100,23 +137,11 @@ public class Utils {
                 if (Files.isRegularFile(filePath)) {
                     if (filePath.toString().contains(".class")){
                         File f = filePath.toFile();
-
-                        // URL url = null;
                         try {
                             URL url = f.toURI().toURL();
                             URL[] urls = new URL[]{url};
                             ClassLoader cl = new URLClassLoader(urls);
-
-                            // Load in the class; MyClass.class should be located in
-                            // the directory file:/c:/myclasses/com/mycompany
-                            // TODO: 16/05/17 name this is lame... but seems like no better solution
-                            //String s1 = f.getName();
-                            //String[] s = s1.split("\\.");
-                            //Arrays.stream(s).forEach(System.out::println);
-
                             Class optimizerClass = cl.loadClass("algorithms." + f.getName().split("\\.")[0]);
-                            //String retval = Modifier.toString(optimizerClass.getModifiers());
-                            // int i = optimizerClass.getModifiers();
                             if(isImplementedAlgorithm( optimizerClass))
                                 foundClasses.put(optimizerClass,null);
                         } catch (ClassNotFoundException | MalformedURLException e) {
@@ -128,17 +153,20 @@ public class Utils {
             });
         }
         findConfigFiles(foundClasses,optimizerClassLocation);
-
         return foundClasses;
     }
 
+    /**
+     * Checks the modifiers and super classes of a given reflected class, returns true if we found an instantiable subclass of {@link AbstractAlgorithm}
+     * @param optimizerClass the {@link java.lang.Class} we want to examione
+     * @return
+     */
     public static boolean isImplementedAlgorithm(Class optimizerClass){
         if(Modifier.isAbstract(optimizerClass.getModifiers()))
             return false;
         Class C = optimizerClass;
         while (C != null) {
-            //System.out.println(C.getName());
-            if(C.equals(AlgorithmFI.class))
+            if(C.equals(AbstractAlgorithm.class))
                 return true;
             C = C.getSuperclass();
         }
@@ -184,6 +212,13 @@ public class Utils {
 
     }
 
+    /**
+     *
+     * @param function
+     * @param arrayLength
+     * @return
+     * @throws ScriptException
+     */
     public static Float[] evalFunction(String function, int arrayLength) throws ScriptException {
         Float[] ret = new Float[arrayLength];
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("javascript");
@@ -263,11 +298,19 @@ public class Utils {
         }
         return false;
     }
+
+    /**
+     * Enum class describing the possible {@link utils.Objective} types.
+     */
     public  enum Relation{
         LESS_THEN, GREATER_THEN, /*EQUALS,*/ MINIMIZE,MAXIMIZE,MINIMIZE_TO_CONVERGENCE,MAXIMIZE_TO_CONVERGENCE,;
     }
 
-
+    /**
+     * Decides,whether a String corresponds to an integer value.
+     * @param  str {@link java.lang.String} to examine.
+     * @return
+     */
     public static boolean isInteger(String str) {
         if (str == null) {
             return false;
@@ -291,6 +334,11 @@ public class Utils {
         }
         return true;
     }
+    /**
+     * Decides,whether a String corresponds to a float value.
+     * @param  s Input {@link java.lang.String} to examine.
+     * @return
+     */
     public static boolean isFloat(String s)
     {
         try{
@@ -301,19 +349,25 @@ public class Utils {
         }
         return true;
     }
+
+    /**
+     * Decides,whether a String corresponds to a logical value.
+     * @param  s Input {@link java.lang.String} to examine.
+     * @return
+     */
     public static boolean isBoolean(String s)
     {
         if(s.toUpperCase().trim().equals("FALSE")||s.toUpperCase().trim().equals("TRUE"))
             return true;
         return false;
     }
+    @Deprecated
     public static void printParameters(Map<String,Param> params){
         for(Map.Entry<String,Param> entry : params.entrySet())
             System.out.println(entry.toString());
 
     }
-
-
+    @Deprecated
     public static String printLandScape(List<IterationResult> landscape){
         String res = "";
         for(IterationResult ir :landscape){

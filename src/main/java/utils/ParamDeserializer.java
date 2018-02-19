@@ -35,10 +35,7 @@ public class ParamDeserializer implements JsonDeserializer<Param> {
 
         Param p = new Gson().fromJson(jsonElement,Param.class);
         Param modified = p;
-       // try {
-            //supposed to happen only in case of numeric values
-            if(p.getValueTypeName()!=null&&!p.getValueTypeName().equals(p.getParamGenericTypeName())) {
-                //Class<?> c = Class.forName(p.getValueTypeName());
+             if(p.getValueTypeName()!=null&&!p.getValueTypeName().equals(p.getParamGenericTypeName())) {
                 if(p.getValueTypeName().equals(Integer.class.getCanonicalName()))
                     modified = new Param(((Number) p.getValue()).intValue(), ((Number) p.getUpperBound()).intValue(), ((Number) p.getLowerBound()).intValue(), p.getName());
                 else
@@ -53,42 +50,9 @@ public class ParamDeserializer implements JsonDeserializer<Param> {
                         newPd = new ParameterDependency(((Number)pd.getRangeOfThis().getLowerBound()).floatValue(),((Number)pd.getRangeOfThis().getUpperBound()).floatValue(),pd.getP(),pd.getP()==null?null:pd.getRangeOfOther().getLowerBound(),pd.getP()==null?null:pd.getRangeOfOther().getUpperBound());
                     modified.getDependencies().add(newPd);
                 }
-                //p = modified;
 
             }
-           /* List<Param.ParameterDependency> pdl = new LinkedList<>();
-            for(Object pdo : p.getDependencies()) {
-                Param.ParameterDependency pd = (Param.ParameterDependency) pdo;
-                Param.ParameterDependency newPd = pd;
-                if (pd.getP()!=null&&pd.getP().getValueTypeName() != null && !pd.getP().getValueTypeName().equals(pd.getP().getParamGenericTypeName())) {
-                    if (pd.getP().getValueTypeName().equals(Integer.class.getCanonicalName()))
-                        newPd = new Param.ParameterDependency((pd.getRangeOfThis().getLowerBound()), (pd.getRangeOfThis().getUpperBound()), pd.getP(), pd.getP() == null ? null : ((Number) pd.getRangeOfOther().getLowerBound()).intValue(), pd.getP() == null ? null : ((Number) pd.getRangeOfOther().getUpperBound()).intValue());
-                    else
-                        newPd = new Param.ParameterDependency((pd.getRangeOfThis().getLowerBound()), (pd.getRangeOfThis().getUpperBound()), pd.getP(), pd.getP() == null ? null : ((Number) pd.getRangeOfOther().getLowerBound()).floatValue(), pd.getP() == null ? null : ((Number) pd.getRangeOfOther().getUpperBound()).floatValue());
-                }
-                pdl.add(newPd);
-            }
 
-                p.dependencies =  pdl;
-     //       }
-     //   catch (ClassNotFoundException e) {
-     //       e.printStackTrace();
-     //   }
-
-        if(p.getParamGenericType() == Double.class){
-            if(paramValuesFitInFloat(p)) {
-                modified = new Param(((Double) p.getValue()).floatValue(), ((Double) p.getUpperBound()).floatValue(), ((Double) p.getLowerBound()).floatValue(), p.getName());
-                modified.dependencies = new LinkedList();
-                for(Object pdo : p.getDependencies()){
-                    Param.ParameterDependency pd = (Param.ParameterDependency)pdo;
-                    Param.ParameterDependency newPd = new Param.ParameterDependency(((Double)pd.getRangeOfThis().getLowerBound()).floatValue(),((Double)pd.getRangeOfThis().getUpperBound()).floatValue(),pd.getP(),pd.getP()==null?null:pd.getRangeOfOther().getLowerBound(),pd.getP()==null?null:pd.getRangeOfOther().getUpperBound());
-                    modified.getDependencies().add(newPd);
-                }
-            }
-
-        }
-
-        return modified==null?p:modified;*/
         return modified;
     }
     public boolean paramValuesFitInFloat(Param p){

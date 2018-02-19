@@ -13,7 +13,7 @@ import java.util.List;
 
 // optimizerParams[i] : stepsize for the i-th parameter
 
-public class GridSearch extends  AlgorithmFI{
+public class GridSearch extends AbstractAlgorithm {
 
 
     InternalState is = new InternalState();

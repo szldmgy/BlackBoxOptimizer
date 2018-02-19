@@ -19,17 +19,8 @@ public class FunctionParam extends Param<Float> {
         return "Function";
     }
     @Override
-    public String getAdditionalInfo(){return this.functionString;};
-    /*
-    @Override
-    public  Float[] getActiveValueArray(){
-        return (T[])this.getActiveRange().getValueArray();
-    }
+    public String getAdditionalInfo(){return this.functionString;}
 
-    @Override
-    public  Float[] getAllValueArray(){
-        return Arrays.copyOf(this.dependencies.get(0).rangeOfThis.getValueArray(),this.dependencies.get(0).rangeOfThis.getValueArray();
-    }*/
 
 
 }

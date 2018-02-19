@@ -21,7 +21,7 @@ import java.util.Random;
 // optimizerParams[0] : population size
 // optimizerParams[1] : number of populations
 
-public abstract class Genetic extends AlgorithmFI {
+public abstract class Genetic extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
     {

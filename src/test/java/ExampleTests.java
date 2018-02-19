@@ -1,9 +1,5 @@
-import algorithms.AlgorithmFI;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import algorithms.AbstractAlgorithm;
 import main.Main;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import utils.OptimizerException;
 import utils.Param;
@@ -13,7 +9,6 @@ import utils.Utils;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -25,18 +20,18 @@ import static org.junit.Assert.fail;
 /**
  * Created by peterkiss on 2018. 01. 22..
  */
-public class ExampleTests extends StessTestBase{
+public class ExampleTests extends StressTestBase {
 
     //testing all the example setups with all  applicable algorithms
     @Test
-    public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException {
-        optimizerClasses = Utils.findAllMatchingTypes(AlgorithmFI.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
+    public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException, CloneNotSupportedException {
+        optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
         File[] files = new File("Examples/").listFiles();
         testFiles(files);
     }
 
     // helper method:
-    public  void testFiles(File[] files) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, OptimizerException {
+    public  void testFiles(File[] files) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, OptimizerException, CloneNotSupportedException {
         int counter = 0;
         for (File file : files) {
             if (file.isDirectory()) {
@@ -50,7 +45,7 @@ public class ExampleTests extends StessTestBase{
                     config.setOptimizerClasses(optimizerClasses);
                     Map<String, List<Param>> algParamMap = config.filterAlgorithms();
                     for(String name: algParamMap.keySet() ) {
-                        Class<? extends AlgorithmFI> c = config.getOptimizerClassBySimpleName(name);
+                        Class<? extends AbstractAlgorithm> c = config.getOptimizerClassBySimpleName(name);
 
                         System.out.println("============================");
                         System.out.println(file.getName()+" ==> "+c.getSimpleName());
@@ -65,7 +60,7 @@ public class ExampleTests extends StessTestBase{
                         File f = new File(testResultsPath+"/"+tn + "_"+c.getSimpleName()+".csv");
                         BufferedWriter writer = new BufferedWriter(new FileWriter(f));
 
-                        writer.write(config.runOptimizer(false, testExpPath,testBackupPath,testExpPath+"/"+tn + "_"+c.getSimpleName()+".json"));
+                        writer.write(config.runOptimizer( testExpPath,testBackupPath,testExpPath+"/"+tn + "_"+c.getSimpleName()+".json"));
                         writer.close();
                         String fn = testExpPath+"/"+tn + "_"+c.getSimpleName()+".json";
                         config.wirteExperimentDescriptionFile(fn);
@@ -83,10 +78,10 @@ public class ExampleTests extends StessTestBase{
     }
 
     @Test
-    public void complicatedTest() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException {
+    public void complicatedTest() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException, CloneNotSupportedException {
 
 
-        optimizerClasses = Utils.findAllMatchingTypes(AlgorithmFI.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
+        optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
         File[] files = new File(testResourcesPath+"/Test/").listFiles();
         testFiles(files);
     }

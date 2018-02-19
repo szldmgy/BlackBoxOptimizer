@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * Created by david on 2017. 08. 12..
  */
-public class ParticleSwarmOptimization extends AlgorithmFI {
+public class ParticleSwarmOptimization extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
     {

@@ -4,6 +4,13 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Class representing the boundaries of a {@link Param}. The boundaries can be numeric  upperBound and lowerBound in case of numeric wrapper {@link Param}s,
+ * or it can be an enumeration of values (valueArray) for {@link Param} with finite finite values: {@link FunctionParam}
+ * and {@link EnumParam}.
+ * In latter case  lowerBound and upperBound will be the first and last element of the valueArray
+ * @param <T>
+ */
 public class Range<T> implements Cloneable{
     private  T upperBound;
     private T lowerBound;
@@ -12,6 +19,9 @@ public class Range<T> implements Cloneable{
         return valueArray;
     }
 
+    /**
+     * Array of possible value in case of finite value set.
+     */
     private T[] valueArray;
 
     public T getUpperBound() {
@@ -30,10 +40,22 @@ public class Range<T> implements Cloneable{
                 '}';
     }
 
+    /**
+     * Constructor for numerical {@link Range}
+     * @param upperBound
+     * @param lowerBound
+     */
     public Range(T upperBound, T lowerBound) {
         this.upperBound = upperBound;
         this.lowerBound = lowerBound;
     }
+
+    /**
+     * Constructor for discrete range, where the possible values are given in an array, and the values will be members of the arrays that are between from and to parameters.
+     * @param array All the possible values.
+     * @param from Boundaries on the possible values.
+     * @param to  Boundaries on the possible values.
+     */
     public Range(T[] array, T from, T to) {
 
         List<T> arr1 = Arrays.asList(array);
@@ -45,16 +67,34 @@ public class Range<T> implements Cloneable{
         this.upperBound = arr[arr.length-1];
         this.valueArray = arr;
     }
+
+    /**
+     * Constructor for discrete {@link Range} that will correspond to the array parameter.
+     * @param array Array of the possible values.
+     */
     public Range(T[] array) {
         this.lowerBound = array[0];
         this.upperBound = array[array.length-1];
         this.valueArray = Arrays.copyOf(array,array.length);
     }
+
+    /**
+     * Creates a clone of the {@link Range} by copying member by member.
+     * @return
+     * @throws CloneNotSupportedException
+     */
     @Override
     public Object clone() throws CloneNotSupportedException {
         return (Range)super.clone();
     }
 
+    /**
+     * Method to specify the intersection of {@link Range}s.
+     * @param r1 First {@link Range}.
+     * @param r2 Second {@link Range}
+     * @param <T> Generic parameter of the two {@link Range}s.
+     * @return The intersection of the two {@link Range}.
+     */
     public static <T> Range<T> intersection(Range<T> r1, Range<T> r2){
         if(r1==null)
             return r2;
@@ -124,7 +164,11 @@ public class Range<T> implements Cloneable{
         return null;
     }
 
-
+    /**
+     * Two {@link Range} is regarded ad equals when the boundaries agree.
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -137,6 +181,10 @@ public class Range<T> implements Cloneable{
 
     }
 
+    /**
+     * Generated using the boundaries.
+     * @return
+     */
     @Override
     public int hashCode() {
         int result = upperBound.hashCode();
@@ -144,6 +192,11 @@ public class Range<T> implements Cloneable{
         return result;
     }
 
+    /**
+     * Methog to query whether the value is in the {@link Range}.
+     * @param value
+     * @return
+     */
     public   boolean comply (T value){
         return  Utils.comply(value,lowerBound,upperBound);
     }

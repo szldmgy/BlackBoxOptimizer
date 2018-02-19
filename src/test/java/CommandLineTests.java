@@ -1,16 +1,3 @@
-import algorithms.AlgorithmFI;
-import main.Main;
-import org.junit.Test;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.notification.RunListener;
-import utils.Utils;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-
 public class CommandLineTests {
 
     //for(int i = 0; i< args.length;i++)

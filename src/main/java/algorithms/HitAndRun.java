@@ -11,7 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -20,7 +19,7 @@ import java.util.Random;
  * Created by david on 2017. 07. 10..
  */
 
-public class HitAndRun extends  AlgorithmFI {
+public class HitAndRun extends AbstractAlgorithm {
 
     InternalState is = new InternalState();
 

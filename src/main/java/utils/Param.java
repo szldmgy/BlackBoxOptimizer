@@ -11,13 +11,31 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
+ * Represents parameter class that ids used all over the BlaBoO, in the configuration of the BBF, as well as at the that of the optimizer algorithms.
+ * Generic type represents the basic java type wrapped in the Param object.
  * Created by peterkiss on 15/10/16.
  */
 public class Param<T> implements Cloneable, Comparable<Param>{
+    public static final Class<?>[] allowedClasses = {Float.class,Integer.class,String.class,Boolean.class};
 
+
+    /**
+     * name of the objectives, along with the T type parameter identifies the param.
+     */
     private String name;
+    /**
+     * String representation of Type parameter T ({@link Class#getCanonicalName()}) for correct deserialization.
+     */
     private String typeName;
+    /**
+     * Recent value of the parameter
+     */
     private T initValue;
+    /**
+     * List of boundaries({@link ParameterDependency}) of a given Param. That specifies the upper and lower bound possibly depending on the {@code initValue} of another Parameter.
+     */
+    List<ParameterDependency> dependencies;
+
 
 
     public List<ParameterDependency> getDependencies() {
@@ -28,12 +46,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         this.dependencies = dependencies;
     }
 
-    List<ParameterDependency> dependencies;
-
     public T getValue() {
         return initValue;
     }
-//valuetypename -
+
+    /**
+     * Returns the name of the parameter, if it has been instantiated with a name containing `$` indicator, that will be removed.
+     * @return
+     */
     public String getName() {
         return name.replace("$","");
     }
@@ -50,14 +70,22 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @return type of param: enum, function or in general case the generic type of Param
      */
     public String getParamTypeName(){
-        //return typeName;
-        // TODO: 18/10/17 hack -> should be solved at unmarshalling!!
         if(this.isEnumeration())
             return "Enum";
         return getParamGenericTypeName();
     }
-    public String getAdditionalInfo(){return "";};
 
+    /**
+     * Possible future feature to give a description of the parameter rather in case of configuring {@link algorithms.AbstractAlgorithm}
+     * @return
+     */
+    public String getAdditionalInfo(){return "";}
+
+    /**
+     * We regard two parameters as equal, if the name and generic type are the same.
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -71,6 +99,10 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
+    /**
+     * Returns hash of the {@code name}
+     * @return
+     */
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
@@ -80,22 +112,33 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         this.initValue = initValue;
     }
 
-    //// TODO: 22/09/17 hack 
+
+    /**
+     * Returns the recent upper bound on the param, that possibly depends on {@code initValue} of a bounding {@link Param}.
+     * @return
+     * todo: usage of {@code getOuterRange} is not very consistent
+     */
     public T getUpperBound() {
         return this.getActiveRange()!=null?(T)this.getActiveRange().getUpperBound():(T)this.getOuterRange().getUpperBound();
-        //return (T)this.getActiveRange().upperBound;
     }
 
-    // TODO: 22/09/17 hack 
-    public T getLowerBound() {
+    /**
+     * Returns the recent lower bound on the param, that possibly depends on {@code initValue} of a bounding {@link Param}.
+     * @return
+     * todo: usage of {@code getOuterRange} is not very consistent
+     */    public T getLowerBound() {
         return this.getActiveRange()!=null?(T)this.getActiveRange().getLowerBound():(T)this.getOuterRange().getLowerBound();
         //return (T)this.getActiveRange().lowerBound;
     }
 
 
-
-
-
+    /**
+     * Constructor for creating a Param without dependence on another.
+     * @param value Initial value
+     * @param upper Upper bound on {@code initValue}.
+     * @param lower Lower bound on {@code initValue}.
+     * @param name Name of the {@link Param}.
+     */
     public Param(T value ,T upper, T lower,String name) {
         this.name = name;
         this.dependencies = new LinkedList<>();
@@ -105,9 +148,15 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
+    /**
+     * Adds a dependency to the param, we should only get here if we knew that there will be another bounding param on which this will depend.
+     * @param p the other param on which the current range will depend.
+     * @param lower The lower bound of the bounding param.
+     * @param upper The lower bound of the bounding param.
+     * @param <T2> Gneric type of the bounding param.
+     */
     //we added the dependency param before and now we add its range
-    //needed?
-    public <T2>void addDependencyToNodBoundedRange(Param<T2> p,T2 lower,T2 upper ){
+    public <T2>void addDependencyToNotBoundedRange(Param<T2> p, T2 lower, T2 upper ){
         ParameterDependency freePd = null;
         for(ParameterDependency dep : this.dependencies ){
             if(dep.rangeOfOther == null)
@@ -123,7 +172,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     }
     //todo hack
     //if inactive at a given start value it will be null!!
-   // public boolean isEnumeration(){return this.getActiveRange().valueArray != null;}
+    // public boolean isEnumeration(){return this.getActiveRange().valueArray != null;}
     //actually can be good
     public boolean isEnumeration(){return this.dependencies.get(0).rangeOfThis.getValueArray()!= null;}
 
@@ -132,20 +181,29 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     public Param(T value ,T[] values,String name) {
         this.name = name;
         this.dependencies = new LinkedList<>();
-        this.dependencies.add(new ParameterDependency<T,T>(values));//fisrt T could be Object, there is no boundary on it
+        this.dependencies.add(new ParameterDependency<T,T>(values));//first T could be Object, there is no boundary on it
         this.initValue = value;
         this.typeName = getParamGenericTypeName();
 
     }
 
+    /**
+     * In case of finite value set returns the active set of values.
+     * @return
+     */
     public  T[] getActiveValueArray(){
         return (T[])this.getActiveRange().getValueArray();
-    } 
-    
-    //// TODO: 22/09/17 ouch... 0 indexed one should contain  all value -> see the constructor
+    }
+
+    /**
+     * In case of finite value set returns the set of all values.
+     * @return
+     */
     public  T[] getAllValueArray(){
+        //0 indexed one should contain  all value -> see the constructor
         return (T[])this.dependencies.get(0).rangeOfThis.getValueArray();
     }
+    @Deprecated
     public  String getAllValueString(){
         T[] a = getAllValueArray();
         if(a == null)
@@ -156,14 +214,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         return sj.toString();
     }
 
-    // TODO: 18/10/17 most probably this is incorrect 
+    @Deprecated
     public  String getAllPossibleValueArrayString(){
         Set<T> ret = new HashSet<T>();
         for(ParameterDependency pd : this.dependencies)
         {
             ret.addAll(
                     pd.getRangeOfOther()==null?new ArrayList<T>():
-                    Arrays.asList(pd.getRangeOfOther().getValueArray()==null?null:(T[])(pd.getRangeOfOther().getValueArray()) )
+                            Arrays.asList(pd.getRangeOfOther().getValueArray()==null?null:(T[])(pd.getRangeOfOther().getValueArray()) )
             );
         }
         StringJoiner sj = new StringJoiner(";");
@@ -172,14 +230,27 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         return sj.toString();
     }
 
-    
 
+    /**
+     * Adds a {@link ParameterDependency} to {@code dependencies}.
+     * @param lower The lower bound of the parameter if the value of the bounding param is between {@code dependencyLower} and {@code dependencyUpper}
+     * @param upper The upper bound of the parameter if the value of the bounding param is between {@code dependencyLower} and {@code dependencyUpper}
+     * @param p The bounding parameter.
+     * @param dependencyLower The lower bound of value of {@code p}, when the {@code lower} - {@code upper } bound will be valid.
+     * @param dependencyUpper The upper bound of value of {@code p}, when the {@code lower} - {@code upper } bound will be valid.
+     * @param <T2> The generic type of the bounding parameter.
+     */
     public <T2 >void addDependency(T lower,T upper ,Param<T2> p, T2 dependencyLower, T2 dependencyUpper){
         this.dependencies.add(new ParameterDependency(lower,upper,p,dependencyLower,dependencyLower));
 
 
     }
 
+    /**
+     * Adds a not bounded range to finite value set parameter.
+     * @param range The set in which the value can move.
+     * @param <T2> The generic type of the parameter, now it can be String and Float.
+     */
     public <T2 >void addDependency(T[] range){
         this.dependencies.add(new ParameterDependency(range));
 
@@ -195,7 +266,18 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
 
     }
-    public <T2 >void addDependency1(String lower,String upper,String funcString ,String funcRunningCountStr) throws ScriptException {
+
+    /**
+     * Adds a not bounded range to parameter. This can be the range for values of an independent parameter,
+     * or can be a default range for values in case non of the bounding parameters are in the range which would have an impact on
+     * this one.
+     * @param lower The default lower range.
+     * @param upper The default upper range.
+     * @param funcString The optional javascript function for generating series of values, for enabling {@link FunctionParam }
+     * @param funcRunningCountStr If this is {@link FunctionParam}, it specifies the number of element to generate using the {@code funcString}.
+     * @throws ScriptException
+     */
+    public void addDependency1(String lower,String upper,String funcString ,String funcRunningCountStr) throws ScriptException {
         Object lowerO=null, upperO = null;
         String typeName = this.getParamGenericTypeName();
         ParameterDependency pd = null;
@@ -207,7 +289,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         else if(funcRunningCountStr!=null && !funcRunningCountStr.equals("")){ // if there is something it must be func
             pd = new ParameterDependency<>(Utils.evalFunction(funcString,Integer.parseInt(funcRunningCountStr)));
         }
-        else if(typeName.equals(Float.class.getName())){ //crash here
+        else if(typeName.equals(Float.class.getName())){
             lowerO = Float.parseFloat(lower);
             upperO = Float.parseFloat(upper);
             pd = new ParameterDependency(lowerO,upperO);
@@ -223,13 +305,20 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
-    // TODO: 14/04/17 is that correct ????
+    /**
+     * Method to query whether the parameter is active. Being active is equivalent to having a range in which the value can move.
+     * @return Whether this active range exists.
+     */
     public boolean isActive(){
-       return getActiveRange() != null;
+        return getActiveRange() != null;
     }
 
+    /**
+     * Method to query whether the recent value of the parameter is within the actual boundaries.
+     * @return
+     * @throws Exception
+     */
     public boolean isInRange() throws Exception {
-//// TODO: 2018. 01. 24. was only check for upper border
         if(this.getValue() instanceof Number)
             return /*this.getActiveRange()!=null&&*/((Number)(this.getActiveRange().getUpperBound())).floatValue()>= ((Number)this.getValue()).floatValue() && ((Number)(this.getActiveRange().getLowerBound())).floatValue()<= ((Number)this.getValue()).floatValue();
         else if (this.isEnumeration())
@@ -240,9 +329,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
-/**
- * returns null if dependency conditions not met*/
+    /**
+     * Method to query the range that is active due to the value of bounding parameters.
+     * @param <T> The generic type of the parameter and the {@link Range} object that will be returned.
+     * @param <T2> Second generic type of the {@link Range} object, not used here.
+     * @return
+     */
     public <T,T2> Range<T>  getActiveRange(){
+        //list only for sake of lambda
         LinkedList<Range<T>> l = new LinkedList<Range<T>>();
         l.add(null);
         dependencies.stream().filter(d -> d.comply()).forEach(new Consumer<ParameterDependency>() {
@@ -253,9 +347,10 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         });
         return l.get(0);
     }
-    //// TODO: 21/09/17 should use availible ranges graph
+    // TODO: 21/09/17 should use availible ranges graph
+    @Deprecated
     public <T> List<Range<T>>  getAllRanges(){
-       return this.dependencies.stream().map(d->(Range<T>)d.getRangeOfThis()).collect(Collectors.toList());
+        return this.dependencies.stream().map(d->(Range<T>)d.getRangeOfThis()).collect(Collectors.toList());
     }
     //something like parameter is reacheable at all
     public <T1,T2> boolean isValid(){
@@ -272,14 +367,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     }
 
 
-
+    /**
+     * Method to query the absolute boundaries of the param in a {@link Range} object. That is that the values of Param should be any time within this range.
+     * @return
+     */
     public Range<T> getOuterRange(){
-
-        //// TODO: 21/09/17 check this!!
-        T[] lower =(T[]) new Object[]{Float.MAX_VALUE};
-        T[] upper = (T[]) new Object[]{Float.MIN_VALUE};
-
         if(!this.isEnumeration()) {
+            T[] lower =(T[]) new Object[]{Float.MAX_VALUE};
+            T[] upper = (T[]) new Object[]{Float.MIN_VALUE};
             this.dependencies.stream().forEach(d ->
             {
                 if ((d.getRangeOfThis().getLowerBound() instanceof Number) && 0 > Utils.compareNumbers((Number) d.getRangeOfThis().getLowerBound(), (Number) lower[0])) {
@@ -301,16 +396,27 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         }
     }
 
+    /**
+     * Helper method to decide whether the Param wraps a numeric value.
+     * @return
+     */
     public boolean isNumeric() {
         if(this instanceof FunctionParam)
             return false;
         return initValue instanceof Integer || initValue instanceof Float || initValue instanceof Double;
     }
 
+    /**
+     * Helper method to decide whether the Param wraps a boolean value.
+     * @return
+     */
     public boolean isBoolean() {
         return initValue instanceof Boolean;
     }
 
+    /**
+     * Method to increase or decrease the value of numeric wrapper Params(see {@code isNumeric})
+     */
     public void add(T b) {
 
         if(b instanceof Number) {
@@ -341,8 +447,13 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         return 0;
     }
 
-    //// TODO: 21/05/17 return type could be used 
-    public boolean updateDependencies(Param param) {
+    /**
+     * Helper method for building up Parameter structure from the GUI. If the bounding Parameter is not initialized yet, we
+     * ass a dummy one as bounding param. Then every time we create a
+     * new Parameter look through the params and substitute the dummy with the actual one if their name agree.
+     * @param param The newly created Param we want check.
+     */
+    public void updateDependencies(Param param) {
         List<ParameterDependency> toRemoveList = new LinkedList<>();
         List<ParameterDependency> toAddList = new LinkedList<>();
 
@@ -354,50 +465,54 @@ public class Param<T> implements Cloneable, Comparable<Param>{
                 Object dependencyUpper = d.rangeOfOther.getUpperBound();
 
 
+                if(Integer.class.getName().equals(cl.getName())){
+                    dependencyLower = Integer.parseInt(dependencyLower.toString());
+                    dependencyUpper= Integer.parseInt(dependencyUpper.toString());
+                }
+                else if(Float.class.getName().equals(cl.getName())){
+                    dependencyLower = Float.parseFloat(dependencyLower.toString());
+                    dependencyUpper= Float.parseFloat(dependencyUpper.toString());
+                }
+                else if(Boolean.class.getName().equals(cl.getName())){
+                    dependencyLower = Boolean.parseBoolean(dependencyLower.toString());
+                    dependencyUpper= Boolean.parseBoolean(dependencyUpper.toString());
+                }
+                else if(Double.class.getName().equals(cl.getName())){
+                    dependencyLower = Double.parseDouble(dependencyLower.toString());
+                    dependencyUpper= Double.parseDouble(dependencyUpper.toString());
+                }
 
-                    if(Integer.class.getName().equals(cl.getName())){
-                        dependencyLower = Integer.parseInt(dependencyLower.toString());
-                        dependencyUpper= Integer.parseInt(dependencyUpper.toString());
-                    }
-                    else if(Float.class.getName().equals(cl.getName())){
-                        dependencyLower = Float.parseFloat(dependencyLower.toString());
-                        dependencyUpper= Float.parseFloat(dependencyUpper.toString());
-                    }
-                    else if(Boolean.class.getName().equals(cl.getName())){
-                        dependencyLower = Boolean.parseBoolean(dependencyLower.toString());
-                        dependencyUpper= Boolean.parseBoolean(dependencyUpper.toString());
-                    }
-                    else if(Double.class.getName().equals(cl.getName())){
-                        dependencyLower = Double.parseDouble(dependencyLower.toString());
-                        dependencyUpper= Double.parseDouble(dependencyUpper.toString());
-                    }
-                    //if String-based no need for conversion
-                    /*else {//String????
-                        throw new RuntimeException("Not Implemented");
-                    }*/
-                //todo concurrentmodification!!!!!
-                //this.dependencies.remove(d); 
-                //this.dependencies.add(new ParameterDependency(d.getRangeOfThis().lowerBound, d.getRangeOfThis().upperBound, param,dependencyLower,dependencyUpper));
                 toRemoveList.add(d);
-                // TODO: 2018. 01. 28. quickfix for that 
                 toAddList.add(new ParameterDependency(d.getRangeOfThis().getLowerBound(), d.getRangeOfThis().getUpperBound(), param,dependencyLower,dependencyUpper));
 
-                
+
             }
         }
         for(ParameterDependency pd : toRemoveList)
             this.dependencies.remove(pd);
         for(ParameterDependency pd : toAddList)
             this.dependencies.add(pd);
-        return true;
+
     }
 
+    /**
+     * Copies the clones of a list {@code newList} to another list {@code orig}
+     * @param orig The overwritten/refilled list.
+     * @param newList The list containing Params to be copied.
+     * @throws CloneNotSupportedException
+     */
     public static void refillList(List<Param> orig, List<Param> newList) throws CloneNotSupportedException {
         orig.clear();
         for(Param p : newList)
             orig.add((Param) p.clone());
     }
 
+    /**
+     * Clones of a list {@code orig} to another list {@code list}
+     * @param orig The list to be cloned.
+     * @return The new cloned {@code list}.
+     * @throws CloneNotSupportedException
+     */
     public static List<Param> cloneParamList( List<Param> orig) throws CloneNotSupportedException {
         List<Param> list =  new LinkedList<Param>();
         for(Param p : orig)
@@ -406,7 +521,11 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
-
+    /**
+     * Clones the Parameter, calling the {@link ParameterDependency#clone()} method for the dependencies.
+     * @return The cloned Param.
+     * @throws CloneNotSupportedException
+     */
     @Override
     public Object clone() throws CloneNotSupportedException {
         Param p =   (Param)super.clone();
@@ -417,6 +536,10 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
+    /**
+     * default String representation of the Param object.
+     * @return
+     */
     @Override
     public String toString() {
         return "Param{" +

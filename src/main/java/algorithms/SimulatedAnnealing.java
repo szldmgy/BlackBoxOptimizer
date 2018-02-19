@@ -6,14 +6,12 @@ import com.google.gson.stream.JsonReader;
 import utils.FunctionParam;
 import utils.IterationResult;
 import utils.Param;
-import utils.Utils;
 
 import javax.script.ScriptException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -26,7 +24,7 @@ import java.util.Random;
 // optimizerParams[1] : max number of runs
 // optimizerParams[i] : T_{i-2}
 
-public class SimulatedAnnealing extends  AlgorithmFI {
+public class SimulatedAnnealing extends AbstractAlgorithm {
 
     InternalState is = new InternalState();
 

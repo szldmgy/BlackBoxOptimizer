@@ -1,6 +1,6 @@
 package utils;
 
-import algorithms.AlgorithmFI;
+import algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
@@ -12,54 +12,57 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * This class represents the entire optimization task, that can be either build using the GUI, or manually following samples
  * Created by peterkiss on 14/10/16.
- *
- * read settings file
- * command to run the script
- * PARAMETERS
- * intial values, constraints
- * place of object-function's value
- * acceptance threshold on object function
  */
 public class TestConfig {
-    //input from html or config file, to be modified by new parameter values, should not be modified
+    /**input from html or config file, to be modified by new parameter values, should not be modified*/
     private String baseCommand;
-    //path to file
+
+    /**path to outputfile of the BB function this feature is intended to be removed*/
+
     private String objectiveFileName;
-    //simple name of the class implementing AlgorithmFI
+
+    /**wsimple name of the class implementing AbstractAlgorithm*/
     private String algorithmName;
-    //for saving the actual state of optimization task we save what iteration we are in
+
+    /**for saving the actual state of optimization task we save what iteration we are in*/
     private int iterationCounter;
 
-    //if we have to save the optimizer algorithm's inner state we do that in this file
+    /**if we have to save the optimizer algorithm's inner state we do that in this file - will be removed*/
     private String optimizerStateBackupFilename;
 
-    //stores the optimizer algorithm's parameter-setup
+    /**stores the optimizer algorithm's parameter-setup - will be removed*/
     private String optimizerConfigFilename;
 
-    //we store the landscape here in order to be able to reload the last state in case of interruption
+    /**we store the landscape here in order to be able to reload the last state in case of interruption*/
     private  List<IterationResult> landscape = new LinkedList<>();
 
-    
 
-    //recent state of parameterspace
+    /**
+     *  Stores recent state of parameterspace.
+     */
     private List<Param> optimizerParameters;
 
-    //optional limit for iterations
+    /**
+     *  Stores optional limit for iterations
+     */
     private Optional<Integer> iterationCount;
 
 
-    public void setSavingFrequence(Integer savingFrequence) {
-        this.savingFrequence = savingFrequence;
-    }
+
 
     //// TODO: 2018. 01. 22. new fields after this
     //save in every $savingFrequence iteation
+
+
+    /**we store the landscape here in order to be able to reload the last state in case of interruption*/
     private Integer savingFrequence = -1;
 
-    private Map<Class<? extends AlgorithmFI>,String> optimizerClasses;
+    /**we store the landscape here in order to be able to reload the last state in case of interruption*/
+    private Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses;
 
-    //// TODO: 2018. 01. 22. really needed?
+    /**we store the landscape here in order to be able to reload the last state in case of interruption*/
     //name of file storing optimiser params
     private String  customParamFileName;
 
@@ -69,12 +72,6 @@ public class TestConfig {
 
     final static Logger logger = Logger.getLogger(TestConfig.class);
 
-
-   /* public static TestConfig copySetUp(TestConfig tc){
-        TestConfig tcn = new TestConfig();
-        tcn.setIterationCount(tc.getIterationCount());
-        tcn.setLandscape();
-    }*/
 
     public void setBaseCommand(String baseCommand) {
         this.baseCommand = baseCommand;
@@ -90,12 +87,15 @@ public class TestConfig {
     public void setLandscape(List<IterationResult> landscape) {        this.landscape = landscape;    }
     public void setIterationCounter(int iterationCounter) {        this.iterationCounter = iterationCounter;    }
     public void setOptimizerStateBackupFilename(String optimizerStateBackupFilename) {        this.optimizerStateBackupFilename = optimizerStateBackupFilename;    }
-    public void setOptimizerClasses(Map<Class<? extends AlgorithmFI>, String> optimizerClasses) {
+    public void setOptimizerClasses(Map<Class<? extends AbstractAlgorithm>, String> optimizerClasses) {
         this.optimizerClasses = optimizerClasses;
     }
-//// TODO: 2018. 01. 22. what are these guys? 
+    public void setSavingFrequence(Integer savingFrequence) {
+        this.savingFrequence = savingFrequence;
+    }
+    @Deprecated
     public void setOptimizerConfigFilename(String optimizerConfigFilename) {        this.optimizerConfigFilename = optimizerConfigFilename;    }
-
+    @Deprecated
     public void setCustomParamFileName(String customParamFileName) {
         this.customParamFileName = customParamFileName;
     }
@@ -114,8 +114,17 @@ public class TestConfig {
     public int getIterationCounter() {        return iterationCounter;    }
     public String getOptimizerStateBackupFilename() {        return optimizerStateBackupFilename;    }
 
+    public Integer getSavingFrequence() {        return savingFrequence;    }
+
+    /**
+     * Resets to {@link #landscape} to an empty list to restart optimization.
+     */
     public void clearLandscape(){this.landscape= new LinkedList<>();}
 
+    /**
+     * Assembles the commans to be executed to run the black box function. That is it insterts tha actual parameter values into the terminal command that will be called.
+     * @return command to be executed in the terminal.
+     */
     public String getCommand()
     {
         String command = "";
@@ -134,6 +143,11 @@ public class TestConfig {
         return  command;
     }
 
+    /**
+     *
+     * Static version of {@link #getCommand()}, expects the base string representing the terminal command, and a setup to be applied.
+     * @return command to be executed in the terminal.
+     */
     public static String getCommand(List<Param> scriptParameters,String basecommand)
     {
         String command = "";
@@ -152,7 +166,30 @@ public class TestConfig {
         return  command;
     }
 
+    /**
+     * Returns the CSV formatted {@link java.lang.String} that containsth erunned setups and the corresponding {@link utils.Objective#value}.
+     * @return String representation of the results of the Optimization task({@link #landscape})
+     * @throws CloneNotSupportedException
+     */
+    public String getLandscapeCSVString() throws CloneNotSupportedException {
+        StringJoiner sj = new StringJoiner("\n");
+        sj.add("iteration,"+this.getLandscapeReference().get(0).getCSVHeaderString());
+        int i =0;
+        for(IterationResult ir :this.getLandscapeReference()){
+            try {
+                if(!ir.badConfig())
+                    sj.add(i++ +","+ir.getCSVString());
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        }
+        return sj.toString();
+    }
+
     @Override
+    /**
+     * Basic string representation of {@link TestConfig}
+     */
     public String toString() {
         return "TestConfig{" +
                 "baseCommand='" + baseCommand + '\'' +
@@ -163,24 +200,47 @@ public class TestConfig {
                 ", iterationCount=" + iterationCount +
                 '}';
     }
+
+    /**
+     * Default contructor to create an empty setup.
+     */
     public TestConfig() {
         objectiveContainer = new ObjectiveContainer();
         scriptParameters = new LinkedList<>();
         iterationCount = Optional.empty();
     }
 
-
+    /**
+     * Setter for {@link #objectiveContainer} field
+     * @param objectiveContainer
+     */
     public void setObjectiveContainer(ObjectiveContainer objectiveContainer) {
         this.objectiveContainer = objectiveContainer;
     }
 
+    /**
+     * Stores the latest results of black box function
+     */
     private ObjectiveContainer objectiveContainer;
+
+    /**
+     * Stores the recent  configuration of parameters
+     */
     private List < Param> scriptParameters;
 
+    /**
+     * Setter for {@link #optimizerParameters}
+     * @param optimizerParameters
+     */
     public void setOptimizerParameters(List<Param> optimizerParameters) {
         this.optimizerParameters = optimizerParameters;
     }
 
+    /**
+     * A deprecated method for loading a {@link TestConfig} from a textfile
+     * @param configFileName
+     * @throws FileNotFoundException
+     */
     @Deprecated
     public TestConfig(String configFileName) throws FileNotFoundException {
         scriptParameters = new LinkedList<>();
@@ -208,7 +268,6 @@ public class TestConfig {
                                 String name = words[1];
                                 String relString = words[2];
                                 String valString = words[3];
-                                // TODO: 04/04/17 default value init
 
                                 if(Utils.isInteger(valString))
                                     this.objectiveContainer.objectives.add( new Objective(Utils.Relation.valueOf(words[2]), false,name,0,Integer.parseInt(valString),0,1));
@@ -228,7 +287,6 @@ public class TestConfig {
 
                             continue;
                         }
-                        // TODO: 04/04/17 itertions as objective 
 //                        if(line.trim().toUpperCase().equals("ITERATION")){
 //                            System.out.println("iteration");
 //                            Integer i = Integer.parseInt(s.next());
@@ -237,7 +295,6 @@ public class TestConfig {
 //                          //  this.objectiveContainer.objectives.put("iteration",Utils.Relation.EQUALS,i,)
 //                                continue;
 //                        }
-                        // TODO: 04/04/17 handle wrong line
                         if(line.contains("ITERATION")){
 
                             System.out.println("iteration");
@@ -269,12 +326,24 @@ public class TestConfig {
 
               //  }
             }
-        // TODO: 21/07/17 what is this?? 
             Collections.sort(scriptParameters);
 
     }
 
-    public   String runOptimizer( boolean safeMode,String experimentDir,String backupDir,String saveFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, OptimizerException {
+    /**
+     * Finds the specified algorithm by its name, sets up its parameters, safety preferences, the location of backup files
+     * @param experimentDir Folder to save setup of the experiment
+     * @param backupDir Folder to store the optional backup files
+     * @param saveFileName name of the setup file that will be stored in {@code experimentDir}
+     * @return CSV description of the experiment calling {@link #getLandscapeCSVString()}
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws OptimizerException
+     * @throws CloneNotSupportedException
+     */
+    public   String runOptimizer(String experimentDir,String backupDir,String saveFileName) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, OptimizerException, CloneNotSupportedException {
         String algName = getAlgorithmName();
         Class optimizerClass = getOptimizerClassBySimpleName(algName);
         if(algName==null ||algName.equals(""))
@@ -315,27 +384,45 @@ public class TestConfig {
             setupTimedelta.invoke(algorithmObj, this.getLandscapeReference().get(this.getLandscapeReference().size() - 1).getTimeStamp());
         }
 
-        Method runMethod= optimizerClass.getMethod("run",int.class,String.class,String.class,String.class);
-        runMethod.invoke( algorithmObj,this.savingFrequence,experimentDir,backupDir,saveFileName);
+        Method runMethod= optimizerClass.getMethod("run",String.class,String.class,String.class);
+        runMethod.invoke( algorithmObj,experimentDir,backupDir,saveFileName);
 
 
 
-        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
-        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
+        /*Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
+        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);*/
 
-        return (String)result1;
+        return (String)this.getLandscapeCSVString();
     }
-
-    public void runAndGetResultfiles(String expFileName, String resFileName, String experimentDir,String backupDir) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, IOException, OptimizerException {
+    /**
+     * Calls {@link #runOptimizer(String, String, String)} and then writes the result and experiment files
+     * @param expFileName name of the setup file that will be stored in {@code experimentDir}
+     * @param resFileName Name of the CSV result file
+     * @param experimentDir Folder to save setup of the experiment
+     * @param backupDir Folder to store the optional backup files
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws IOException
+     * @throws OptimizerException
+     * @throws CloneNotSupportedException
+     */
+    public void runAndGetResultfiles(String expFileName, String resFileName, String experimentDir,String backupDir) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, IOException, OptimizerException, CloneNotSupportedException {
         this.wirteExperimentDescriptionFile(expFileName);
 
-        String result = this.runOptimizer(this.savingFrequence!=-1,experimentDir,backupDir,expFileName);
-        String resultFilePath =  /*projectDir + "/BlackBoxOptimizer"+staticDir+"/"+*/resFileName;
+        String result = this.runOptimizer(experimentDir,backupDir,expFileName);
+        String resultFilePath =  resFileName;
         try (Writer writer = new FileWriter(resultFilePath)) {
             writer.write(result);
         }
     }
 
+    /**
+     * Find the {@link AbstractAlgorithm} instance whit the specified name from the  list of instances previously loaded into {@link #optimizerClasses}
+     * @param algName
+     * @return The {@link java.lang.Class} with the given name, and null if it cannot be found in the list
+     */
     public  Class getOptimizerClassBySimpleName(String algName) {
 
         Class optimizerClass = null;
@@ -344,51 +431,38 @@ public class TestConfig {
                 optimizerClass = optAlg;
         return optimizerClass;
     }
-    /*@Deprecated
-    public  String runOptimizer(String algorithmname, List<Param> lp, boolean safeMode,String experimentDir,String backupDir) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        Class optimizerClass = getOptimizerClassBySimpleName(algorithmname);
 
-
-        // final Class optimizerClasses = main.Main.class.getClassLoader().loadClass(algorithmName[0]);
-        Object algorithmObj = optimizerClass.newInstance();
-        Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
-        setConfig.invoke(algorithmObj,this);
-
-
-
-        Method setOptimizerConfigMethod= optimizerClass.getMethod("setOptimizerParams",List.class);
-        setOptimizerConfigMethod.invoke( algorithmObj,lp);
-
-        if(this.getLandscapeReference().size()>0) {
-            Method setupTimedelta = optimizerClass.getMethod("setTimeDelta", long.class);
-            setupTimedelta.invoke(algorithmObj, this.getLandscapeReference().get(this.getLandscapeReference().size() - 1).getTimeStamp());
-        }
-
-        Method runMethod= optimizerClass.getMethod("run",boolean.class,int.class,String.class);
-        runMethod.invoke( algorithmObj, safeMode,savingFrequence,experimentDir,backupDir);
-
-
-        Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
-        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);
-
-        return (String)result1;
-    }*/
-
+    /**
+     * Static method to read a {@link TestConfig} from file. Calls {@link #readConfigJSON(File)} internally.
+     * @param configFileName Name of the JSON contains the serialized {@link TestConfig} object
+     * @return the deserialized object
+     * @throws FileNotFoundException
+     */
     public static TestConfig readConfigJSON(String configFileName) throws FileNotFoundException {
         File f = new File(configFileName);
         return readConfigJSON(f);
     }
 
-    public static TestConfig readConfigJSON(File f) throws FileNotFoundException {
+    /**
+     * Static method to read a {@link TestConfig} from file
+     * @param configFile File object that contains the serialized {@link TestConfig} object
+     * @return the deserialized object
+     * @throws FileNotFoundException
+     */
+    public static TestConfig readConfigJSON(File configFile) throws FileNotFoundException {
         GsonBuilder gsonBuilder = new GsonBuilder();
         //gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
         //gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
         gsonBuilder.registerTypeAdapter(TestConfig.class, new TestConfigDeserializer());
         Gson gson = gsonBuilder.create();
-        JsonReader reader = new JsonReader(new FileReader(f));
+        JsonReader reader = new JsonReader(new FileReader(configFile));
         return gson.fromJson(reader, TestConfig.class);
     }
 
+    /**
+     * Filters the {@link AbstractAlgorithm} classes, according to which of those can handle the {@link Param}s of the {@link TestConfig} object.
+     * @return A {@link java.util.Map} with keys : name({@link Class#getSimpleName()}) of the Classes, and values : the list of parameters of the optimizer algorithm{@link java.util.List<Param>}
+     */
     public   Map<String, List<Param>> filterAlgorithms() {
         Map<String, List<Param>> algParamMap = new HashMap<String, List<Param>>();
         optimizerClasses.forEach((optimizerClass, configfile) -> {
@@ -425,6 +499,11 @@ public class TestConfig {
         });
         return algParamMap;
     }
+
+    /**
+     * Serializes the {@link TestConfig} object, excluding the {@link #landscape}.
+     * @param expFileName the name of the setup JSON file to be created
+     */
     public void wirteExperimentDescriptionFile(String expFileName) {
         try (Writer writer = new FileWriter(expFileName)) {
             List<IterationResult> ls = this.getLandscapeReference();
