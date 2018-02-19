@@ -607,7 +607,7 @@ public class BrowserInterface {
             if (obj_type.equals("java.lang.Integer"))
                 objective = new Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0:new Float(Float.parseFloat(obj_value)).intValue(),0,Float.parseFloat(obj_weight));
             else if (obj_type.equals("java.lang.Float"))
-                objective = new Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0.0:Float.parseFloat(obj_value ),0.0,Float.parseFloat(obj_weight));
+                objective = new Objective(Utils.Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0.0:Float.parseFloat(obj_value ),0.0f,Float.parseFloat(obj_weight));
             //else if (obj_type.equals("java.lang.Boolean "))
 
             if(!olist.contains(objective))
