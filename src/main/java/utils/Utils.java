@@ -174,10 +174,13 @@ public class Utils {
     }
 
     /**
-     *
-     * @param foundClasses
+     * We are searching for custom setup files of extension '.config' at the location of the optimiter '.class' files., then we add as velues to foundClasses {@link Map}.
+     * This custom config files are not really useful, so this will be removed.
+     * @param foundClasses Input {@link Map}, with nulls at the values, and {@link AbstractAlgorithm} {@link Class} objects at keys.
+     * @param optimizerClassLocation The location of the class files.
      * @param <T>
      */
+    @Deprecated
     public static <T> void findConfigFiles(Map<Class<? extends T>, String> foundClasses,String optimizerClassLocation) {
         Path p = Paths.get(optimizerClassLocation);
         //System.out.println(p);
@@ -200,6 +203,13 @@ public class Utils {
 
         }
     }
+
+    /**
+     * Compares two {@link List}s of {@link Param}s to decide whether they correspond to each other.
+     * @param p1 First {@link List} of {@link Param}s.
+     * @param p2 Second {@link List} of {@link Param}s.
+     * @return
+     */
     public static boolean paramConfigsAreEqual(List<Param> p1,List<Param> p2){
         if(p1.size()!=p2.size())
             return false;
@@ -213,10 +223,10 @@ public class Utils {
     }
 
     /**
-     *
-     * @param function
-     * @param arrayLength
-     * @return
+     * A method to execute JavaScript formulas. This will generate an {@link Float[]} executing the script iteratively on natural numbers.
+     * @param function The script to be executed. One variable van be used in a formula, denoted by `$` prefix.
+     * @param arrayLength The number of element to be generated.
+     * @return The array of generated {@link Float}s of size arrayLength
      * @throws ScriptException
      */
     public static Float[] evalFunction(String function, int arrayLength) throws ScriptException {
@@ -261,26 +271,39 @@ public class Utils {
 
     }
 
+    /**
+     * Method for deciding, whether a numeric value is betwee two other values.
+     * @param value The value to examine.
+     * @param upper Upper bound.
+     * @param lower Lower bound
+     * @param <T> The actual type of the value and the boundaries.
+     * @return
+     */
     public static <T extends  Number> boolean comply (T value , T upper, T lower){
         return Utils.compareNumbers(value,upper)<0 && Utils.compareNumbers(lower,value)<0;
 
     }
 
-
+    /**
+     * Corresponds to comply on numners for {@link java.lang.Boolean}s, defined as TRUE if the value equals the upperbound.
+     * @param value
+     * @param upper
+     * @param lower
+     * @param <Boolean>
+     * @return
+     */
     public static <Boolean> boolean comply (Boolean value , Boolean upper, Boolean lower){
         return value.equals(upper);
 
     }
-
+    @Deprecated
     public static  boolean comply (String value , String upper, String lower){
         return value.equals(upper);
 
     }
-
-    // TODO: 26/10/17 unnecesary check
+    @Deprecated
     public static <T> boolean comply (Relation relation, T value, T target,T lastValue){
-        /*if(relation.equals(Relation.EQUALS) && value.equals(target))
-            return true;*/
+
         if(value instanceof Number) {
             Double castedValue = ((Number) value).doubleValue();
             Double castedLastValue = ((Number) lastValue).doubleValue();

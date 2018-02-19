@@ -311,10 +311,11 @@ function addEmptyDependencyControl(paramdivid,paramname,depenedencyid, value,low
     $("#"+paramdivid).append("<div id = \"range_"+depenedencyid+"\" class = 'range'>\
                 <input type=\"text\" name=\""+depenedencyid+"_value_string\" id = \""+depenedencyid+"_value_string\"  value =\""+value+"\" class='"+paramname+"_string "+paramname+"_input_string' required>\
                 <input type=\"text\" placeholder = \"Give the formula here! \"text=\"formula\" name=\""+depenedencyid+"_value_string_func\" id = \""+depenedencyid+"_value_string_func\"  value =\""+otherInfo+"\" class='"+paramname+"_func' required>\
+                <span class='"+paramname+"_func'>Number of generated values :</span>\
                 <input type=\"number\" name=\""+depenedencyid+"_value_int_func\" id = \""+depenedencyid+"_value_int_func\"  value =\""+10+"\" class='"+paramname+"_func'required >\
                 <input type=\"number\" name=\""+depenedencyid+"_value_int\" id = \""+depenedencyid+"_value_int\"  value =\""+value+"\" class='"+paramname+"_int' required>\
                 <input type=\"number\" step=\"any\" name=\""+depenedencyid+"_value_float\" id = \""+depenedencyid+"_value_float\"  value =\""+value+"\" class='"+paramname+"_float' required>\
-                <select  name=\""+depenedencyid+"_value_bool\" id = \""+depenedencyid+"_value_bool\"  value =\""+value+"\" class='"+paramname+"_bool' required >\
+                <select  name=\""+depenedencyid+"_value_bool\" id = \""+depenedencyid+"_value_bool\"  value =\""+value+"\" class='"+paramname+"_bool' required ></select>\
                 <span class = '"+paramname+"_string "+paramname+"_float "+paramname+"_int'>Range :</span><span class = '"+paramname+"_string "+paramname+"_float "+paramname+"_int'> From: </span><input type=\"text\" name=\""+depenedencyid+"_lower_string\" id = \""+depenedencyid+"_lower_string\"  value =\""+lower+"\" class='"+paramname+"_string "+paramname+"_input_string' required>\
                 <input type=\"number\" name=\""+depenedencyid+"_lower_int\" id = \""+depenedencyid+"_lower_int\"  value =\""+lower+"\" class='"+paramname+"_int' required>\
                                 <input type=\"number\" step=\"any\" name=\""+depenedencyid+"_lower_float\" id = \""+depenedencyid+"_lower_float\"  value =\""+lower+"\" class='"+paramname+"_float' required>\
