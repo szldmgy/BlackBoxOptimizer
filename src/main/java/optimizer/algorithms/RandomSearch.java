@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * Random Search
+ * Supported parameter types: float, integer, boolean, enumeration
+ * Parallelizable
+ *
+ * The next parameter configuration is chosen uniform randomly from the search space.
  * Created by peterkiss on 17/10/16.
  */
 public class RandomSearch extends AbstractAlgorithm {

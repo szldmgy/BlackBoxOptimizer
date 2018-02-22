@@ -17,6 +17,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * Simulated annealing
+ * Supported parameter types: float
+ *
+ * Random sampling technique, motivated by physics.
+ * A new point x_i is compared to x_(i-1) and is accepted with a probability
+ * P(x_i | x_(i-1)) = exp(-(f(x_i)-f(x_(i-1))) / T_i), where T_i is a decreasing "temperature" parameter,
+ * which permit the algorithm to escape from local optimums of the function.
  * Created by david on 2017. 07. 10..
  */
 
@@ -28,13 +35,18 @@ public class SimulatedAnnealing extends AbstractAlgorithm {
 
     InternalState is = new InternalState();
 
+    /**
+     * @param max_step_size Maximum of ||x_i - x_(i-1)||.
+     * @param max_number_of_runs Number of trials of new candidates from a given center.
+     * @param temperature Temperature function. It is recommended to choose a strictly decreasing positive function which converge to 0.
+     */
     {
         this.optimizerParams = new LinkedList<>();
         this.optimizerParams.add(new Param(10f,10f,0.0001f,"max_step_size"));
         this.optimizerParams.add(new Param(3,1000,1,"max_number_of_runs"));
         // TODO: 09/08/17 js compatible closed formula
         try {
-            this.optimizerParams.add(new FunctionParam("temperature","1/(1+$alma)",100));
+            this.optimizerParams.add(new FunctionParam("temperature","1/(1+$n)",100));
         } catch (ScriptException e) {
             e.printStackTrace();
         }
