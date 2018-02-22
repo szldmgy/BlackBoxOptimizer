@@ -1,6 +1,7 @@
 package optimizer.math;
 
 /**
+ * Interface for kernels used by Gaussian processes
  * Created by david on 2018. 02. 22..
  */
 

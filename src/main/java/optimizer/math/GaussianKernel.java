@@ -1,6 +1,8 @@
 package optimizer.math;
 
-
+/**
+ * k(u,v) = exp(-||u-v||^2 / 2*sigma^2)
+ */
 public class GaussianKernel implements MercerKernel<double[]>{
     private double gamma;
 
@@ -14,7 +16,7 @@ public class GaussianKernel implements MercerKernel<double[]>{
 
     public double k(double[] x, double[] y) {
         if(x.length != y.length) {
-            throw new IllegalArgumentException(String.format("Arrays have different length: x[%d], y[%d]", new Object[]{Integer.valueOf(x.length), Integer.valueOf(y.length)}));
+            throw new IllegalArgumentException("arrays have different length");
         } else {
             double s = 0;
             for(int i = 0; i < x.length; ++i)

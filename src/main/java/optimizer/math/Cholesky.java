@@ -1,13 +1,16 @@
 package optimizer.math;
 
 /**
+ * Matrix in Cholesky form
  * Created by david on 2018. 02. 22..
  */
 public class Cholesky {
 
     protected Matrix L;
 
-
+    /**
+     * Create Cholesky from @param M
+     */
     public Cholesky(Matrix M) {
         if (M.getNrows() != M.getNcols()) {
             throw new UnsupportedOperationException("Cholesky constructor on a non-square matrix");
@@ -15,6 +18,10 @@ public class Cholesky {
         this.L = M;
     }
 
+    /**
+     * Returns with the inverse of L.
+     * @return L^(-1)
+     */
     public Matrix inverse() {
         int n = L.getNrows();
         Matrix inv = Matrix.identity(n);
@@ -22,11 +29,19 @@ public class Cholesky {
         return inv;
     }
 
+    /**
+     * Solve the equation L * x = b
+     * @param b column vector represented by an array. b will be overwritten by x.
+     */
     public void solve(double[] b) {
         Matrix B = new Matrix(b);
         solve(B);
     }
 
+    /**
+     * Solve the equation L * X = B
+     * @param B matrix, B will be overwritten by X.
+     */
     public void solve(Matrix B) {
         if (B.getNrows() != L.getNrows()) {
             throw new IllegalArgumentException(String.format("Row dimensions do not agree"));

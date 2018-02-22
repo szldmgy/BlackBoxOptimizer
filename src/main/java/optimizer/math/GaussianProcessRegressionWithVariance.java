@@ -15,9 +15,9 @@ public class GaussianProcessRegressionWithVariance<T> {
 
     public GaussianProcessRegressionWithVariance(T[] x, double[] y, MercerKernel<T> kernel, double lambda) {
         if(x.length != y.length) {
-            throw new IllegalArgumentException(String.format("The sizes of X and Y don't match: %d != %d", new Object[]{Integer.valueOf(x.length), Integer.valueOf(y.length)}));
+            throw new IllegalArgumentException("The sizes of X and Y don't match");
         } else if(lambda < 0.0D) {
-            throw new IllegalArgumentException("Invalid regularization parameter lambda = " + lambda);
+            throw new IllegalArgumentException("Invalid regularization parameter lambda");
         } else {
             this.kernel = kernel;
             this.lambda = lambda;
