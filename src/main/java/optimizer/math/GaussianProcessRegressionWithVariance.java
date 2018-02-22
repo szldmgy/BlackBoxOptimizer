@@ -1,21 +1,15 @@
-package optimizer.utils;
-
-import smile.math.kernel.MercerKernel;
-import smile.math.matrix.*;
-import smile.regression.Regression;
-
-import java.io.Serializable;
+package optimizer.math;
 
 /**
  * Created by david on 2017. 09. 22..
  */
-public class GaussianProcessRegressionWithVariance<T> implements Regression<T>, Serializable {
-    private static final long serialVersionUID = 1L;
+public class GaussianProcessRegressionWithVariance<T> {
+
     private T[] knots;
     private double[] w;
     private MercerKernel<T> kernel;
     private double lambda;
-    private DenseMatrix KInverse;
+    private Matrix KInverse;
 
     public GaussianProcessRegressionWithVariance() {}
 
@@ -29,7 +23,7 @@ public class GaussianProcessRegressionWithVariance<T> implements Regression<T>, 
             this.lambda = lambda;
             this.knots = x;
             int n = x.length;
-            DenseMatrix K = Matrix.zeros(n, n);
+            Matrix K = new Matrix(n, n);
 
             for(int i = 0; i < n; ++i) {
                 for(int j = 0; j <= i; ++j) {
@@ -44,7 +38,7 @@ public class GaussianProcessRegressionWithVariance<T> implements Regression<T>, 
             Cholesky cholesky = K.cholesky();
             KInverse = cholesky.inverse();
             this.w = y.clone();
-            this.w = KInverse.ax(y,this.w);
+            this.w = KInverse.ax(y);
         }
     }
 

@@ -166,11 +166,6 @@
             <artifactId>fluentlenium-assertj</artifactId>
             <version>3.1.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.haifengl</groupId>
-            <artifactId>smile-core</artifactId>
-            <version>1.4.0</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
         <dependency>
             <groupId>org.slf4j</groupId>
