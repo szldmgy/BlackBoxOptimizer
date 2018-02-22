@@ -103,7 +103,10 @@ public class ParamTest {
         assertTrue(Math.abs(((Number)p.getValue()).floatValue()-50f)<0.0001);
 
         List<Param> pl = deserializeParamList(param_list_sinple_dep);
-       // assertTrue(pl.get(0).getDependencies().size()==2);
+        assertTrue(pl.size()==2);
+        assertTrue(pl.get(0).getDependencies().size()==1);
+        assertTrue(pl.get(0).getParamGenericType().equals(Float.class));
+        assertTrue(pl.get(1).getDependencies().size()==1);
         //pl.get(0).getDependencies().get(0)
 
     }
