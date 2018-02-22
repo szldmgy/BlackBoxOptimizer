@@ -13,6 +13,7 @@
       {
         "relation": "MAXIMIZE",
         "terminator": false,
+        "typeName": "java.lang.Float",
         "weight": 30.0,
         "name": "rosen",
         "dummy": 0.0,
@@ -21,6 +22,7 @@
       {
         "relation": "MINIMIZE",
         "terminator": false,
+        "typeName": "java.lang.Float",
         "weight": 80.0,
         "name": "rosen1",
         "dummy": 0.0,
@@ -29,6 +31,7 @@
       {
         "relation": "LESS_THEN",
         "terminator": false,
+        "typeName": "java.lang.Float",
         "weight": 90.0,
         "name": "obj_0",
         "dummy": 0,

@@ -131,9 +131,9 @@ Setup an experiment
 
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
 
-#The optimizer algorithms
+#The optimizer optimizer.algorithms
 
-- on the next page we can chose what algorithm we want to use to optimize the parameters. After choosing the algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
+- on the next page we can chose what algorithm we want to use to optimize the parameters. After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
 
 
 Command Line Use

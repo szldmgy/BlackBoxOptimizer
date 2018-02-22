@@ -51,12 +51,12 @@
                         <phase>validate</phase>
                         <configuration>
                             <tasks>
-                                <mkdir dir="${project.build.directory}/lib/algorithms" />
-                                <!--<mkdir dir="${project.build.directory}/lib/algorithms" />-->
-                                <copy file="src/main/java/algorithms/AlgorithmFI.java" tofile="${project.build.directory}/lib/algorithms/AlgorithmFI.java"/>
+                                <mkdir dir="${project.build.directory}/lib/optimizer.algorithms" />
+                                <!--<mkdir dir="${project.build.directory}/lib/optimizer.algorithms" />-->
+                                <copy file="src/optimizer.main/java/optimizer/algorithms/AlgorithmFI.java" tofile="${project.build.directory}/lib/optimizer.algorithms/AlgorithmFI.java"/>
 
-                                <copy todir="${project.build.directory}/lib/algorithms/">
-                                    <fileset dir="${project.build.directory}/classes/algorithms">
+                                <copy todir="${project.build.directory}/lib/optimizer.algorithms/">
+                                    <fileset dir="${project.build.directory}/classes/optimizer.algorithms">
                                         <include name="*.class"/>
                                     </fileset>
                                 </copy>

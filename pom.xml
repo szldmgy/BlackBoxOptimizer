@@ -75,7 +75,7 @@
                             <transformers>
                                 <transformer implementation=
                                                      "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>main.Main</mainClass>
+                                    <mainClass>optimizer.main.Main</mainClass>
                                 </transformer>
                             </transformers>
                             <finalName>${project.artifactId}-${project.version}</finalName>
@@ -101,10 +101,10 @@
                                         <!--<include name="*.class"/>-->
                                     </fileset>
                                 </copy>
-                                <copy file="src/main/java/algorithms/AlgorithmFI.java" tofile="${project.build.directory}/lib/algorithms/AlgorithmFI.java"/>
+                                <copy file="src/optimizer.main/java/optimizer/algorithms/AlgorithmFI.java" tofile="${project.build.directory}/lib/algorithms/AlgorithmFI.java"/>
 
-                                <copy todir="${project.build.directory}/App/lib/algorithms/">
-                                    <fileset dir="${project.build.directory}/classes/algorithms">
+                                <copy todir="${project.build.directory}/App/lib/optimizer.algorithms/">
+                                    <fileset dir="${project.build.directory}/classes/optimizer.algorithms">
                                         <include name="*.class"/>
                                     </fileset>
                                 </copy>

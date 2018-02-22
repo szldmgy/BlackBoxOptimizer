@@ -15,7 +15,7 @@ compute_accuracy <- function(real, predicted) {
 }
 
 # ----------------------
-# main.Main program
+# optimizer.main.Main program
 # ----------------------
 # args[1] = input file -- string
 # args[2] = cp -- float
