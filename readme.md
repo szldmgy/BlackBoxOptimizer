@@ -113,7 +113,7 @@ Setup an experiment
 
 	- specify the formula generating the series of values (in js style). For now the system handles one variable in the formula, that should be marked with '$'. That means that any string starting with an '$' will be replaced by a natural value at evaluation ('$foo' and '$bar' will. be handled as one variable). Formula type now generates a series of numbers computed from '[0,1,2,..]' using the formula.
 
-			example: 	`1/$alma` will generate a series of `[INFINITY ,1 ,1/2 ,1/3 , ... ]`
+		- example: 	`1/$alma` will generate a series of `[INFINITY ,1 ,1/2 ,1/3 , ... ]`
 
 	- the next input defines how long the generated series should be.
 
@@ -178,7 +178,7 @@ We allow to use a linear combination of multiple objectives, in this case we can
 ![](readmefiles/dropdown_alg2.png)
 After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the **`Run`** button.
 
-![img](readmefiles/alg_param_setup.png)
+![img](readmefiles/algorithm_param_setup.png)
 
 
 Command Line Use
