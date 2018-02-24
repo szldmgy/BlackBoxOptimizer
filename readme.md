@@ -1,7 +1,6 @@
 
 BlaBoO
 =======
-![Image of Yaktocat](readmefiles/x.png)
 
 Weclome to BlaBoO!
 
@@ -34,7 +33,7 @@ Run the software with GUI
 GUI menu
 -
 
-![Image of Yaktocat](readmefiles/1_menu_and_cl.png)
+![](readmefiles/1_menu_and_cl.png  =250x)
 
 
 ## Start new BBO task 
@@ -67,7 +66,7 @@ Setup an experiment
 
 ## Command
 
-![Image of Yaktocat](readmefiles/cl.png =250x)
+![](readmefiles/cl.png =250x)
 
 
 - specify the terminal command using '$<paramname>' at the params to be optimized
@@ -76,7 +75,7 @@ Setup an experiment
 
 ## Params
 
-![Image of Yaktocat](readmefiles/2_paramsetup1.png=250x)
+![](readmefiles/2_paramsetup1.png =250x)
 
 - the params annotated with '$' must be defined in the 'Params' section.
     
@@ -84,7 +83,7 @@ Setup an experiment
     
     - after you added your new Parameter, you can change its name by simply editing it in the text input. Please note, that every parameter denoted by `$` in the **Command** section should have a corresponding entry in this section. After the two names matched, the GUI attempts to follow renaming and adjust the command automatically, nevertheless it is not always possible.  
 
-![Image of Yaktocat](readmefiles/p_2param_change_name.png)
+![](readmefiles/p_2param_change_name.png =250x)
 
 - to add a **numeric** new param :
 
@@ -126,18 +125,18 @@ Setup an experiment
 - to add such dependency to a parameter you can click on the 'New param dependency' button,
  
 
-![Image of Yaktocat](readmefiles/add_dep.png)
+![](readmefiles/add_dep.png =250x)
 
 then you should choose the variable from the select on which our parameter depends, then specify in case of what values will be our parameter in the range we have given before.
 
-![Image of Yaktocat](readmefiles/choose_dependency.png)
+![](readmefiles/choose_dependency.png =250x)
 
-![Image of Yaktocat](readmefiles/setup_dep_range.png)
+![](readmefiles/setup_dep_range.png =250x)
 
 
 - If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases. If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies complies.
 
-![Image of Yaktocat](readmefiles/add_default_range.png)
+![](readmefiles/add_default_range.png =250x)
 
 
 ## Objectives
@@ -150,11 +149,11 @@ then you should choose the variable from the select on which our parameter depen
 
 - and the characteristics of the objectives to be given similarly to the 'Param' descriptions. Here we can specify the type of the objective, 
 
-![Image of Yaktocat](readmefiles/objective_generic.png)
+![](readmefiles/objective_generic.png =250x)
 
 that can be: to be minimized, maximized, less or greater then or equal to a specific value.
  
-![Image of Yaktocat](readmefiles/objectiveType.png)
+![](readmefiles/objectiveType.png =250x)
  
  
 We allow to use a linear combination of multiple objectives, in this case we can specify the importance of the target function at the 'Weight' parameter.
@@ -165,7 +164,7 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - if check the 'Safe mode' option at the bottom of the page the software will save the state of the optimization at a frequency given in the next input(per iterations)
 
-![Image of Yaktocat](readmefiles/safe_mode_options.png)
+![](readmefiles/safe_mode_options.png =250x)
 
 
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
@@ -175,10 +174,10 @@ We allow to use a linear combination of multiple objectives, in this case we can
 - on the next page we can chose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be runned, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
 
 
-![](readmefiles/dropdown_alg1.png)  |  ![](readmefiles/dropdown_alg2.png)
+![](readmefiles/dropdown_alg1.png =100x)  |  ![](readmefiles/dropdown_alg2.png =100x)
 After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
 
-![Image of Yaktocat](readmefiles/alg_param_setup.png)
+![](readmefiles/alg_param_setup.png  =250x)
 
 
 Command Line Use
