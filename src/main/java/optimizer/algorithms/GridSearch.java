@@ -11,8 +11,14 @@ import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
 
-// optimizerParams[i] : stepsize for the i-th parameter
-
+/**
+ * Grid Search
+ * Supported parameter types: float, integer, boolean, enumeration
+ * Parallelizable
+ *
+ * Search on a points of a grid. The step size in the direction of the i-th axis is stored in optimizerparams.get(i).
+ * Created by david on 17/02/17.
+ */
 public class GridSearch extends AbstractAlgorithm {
 
 

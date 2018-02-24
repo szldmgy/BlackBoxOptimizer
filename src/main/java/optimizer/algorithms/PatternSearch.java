@@ -9,13 +9,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Pattern Search
+ *
  * Created by david on 2017. 07. 10..
  */
-
-// optimizerParams[0] : initial stepsize
-// optimizerParams[1] : max number of iterations without stepping
-
-//TODO : Handle inactive parameters
 
 public class PatternSearch extends AbstractAlgorithm {
     // TODO: 31/07/17 set algorithmparams 

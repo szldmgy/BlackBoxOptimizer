@@ -1,35 +1,29 @@
-package optimizer.utils;
-
-import smile.math.kernel.MercerKernel;
-import smile.math.matrix.*;
-import smile.regression.Regression;
-
-import java.io.Serializable;
+package optimizer.math;
 
 /**
  * Created by david on 2017. 09. 22..
  */
-public class GaussianProcessRegressionWithVariance<T> implements Regression<T>, Serializable {
-    private static final long serialVersionUID = 1L;
+public class GaussianProcessRegressionWithVariance<T> {
+
     private T[] knots;
     private double[] w;
     private MercerKernel<T> kernel;
     private double lambda;
-    private DenseMatrix KInverse;
+    private Matrix KInverse;
 
     public GaussianProcessRegressionWithVariance() {}
 
     public GaussianProcessRegressionWithVariance(T[] x, double[] y, MercerKernel<T> kernel, double lambda) {
         if(x.length != y.length) {
-            throw new IllegalArgumentException(String.format("The sizes of X and Y don't match: %d != %d", new Object[]{Integer.valueOf(x.length), Integer.valueOf(y.length)}));
+            throw new IllegalArgumentException("The sizes of X and Y don't match");
         } else if(lambda < 0.0D) {
-            throw new IllegalArgumentException("Invalid regularization parameter lambda = " + lambda);
+            throw new IllegalArgumentException("Invalid regularization parameter lambda");
         } else {
             this.kernel = kernel;
             this.lambda = lambda;
             this.knots = x;
             int n = x.length;
-            DenseMatrix K = Matrix.zeros(n, n);
+            Matrix K = new Matrix(n, n);
 
             for(int i = 0; i < n; ++i) {
                 for(int j = 0; j <= i; ++j) {
@@ -44,7 +38,7 @@ public class GaussianProcessRegressionWithVariance<T> implements Regression<T>, 
             Cholesky cholesky = K.cholesky();
             KInverse = cholesky.inverse();
             this.w = y.clone();
-            this.w = KInverse.ax(y,this.w);
+            this.w = KInverse.ax(y);
         }
     }
 

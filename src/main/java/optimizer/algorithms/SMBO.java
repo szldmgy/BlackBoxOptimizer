@@ -3,8 +3,8 @@ package optimizer.algorithms;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import smile.math.kernel.GaussianKernel;
-import optimizer.utils.GaussianProcessRegressionWithVariance;
+import optimizer.math.GaussianKernel;
+import optimizer.math.GaussianProcessRegressionWithVariance;
 import optimizer.trial.IterationResult;
 import optimizer.param.Param;
 import optimizer.utils.Utils;
@@ -19,11 +19,25 @@ import java.util.Random;
 
 
 /**
+ * Sequential Model-Based Optimization with Gaussian Processes
+ * Supported parameter types: float
+ *
+ * After a few random trial, fits a Gaussian process model to the landscape, and find the parameter configuration with
+ * the largest expected improvement using grid search
+ *
  * Created by david on 2017. 08. 14..
  */
 public class SMBO extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
+    /**
+     * @param number_of_random_points Number of random trials in the initial phase of the algorithm.
+     * @param sigma_of_Gaussian_kernel For fitting Gaussian processes we use Gaussian kernel.
+     *                                 k(u,v) = exp(-||u-v||^2 / 2*sigma^2)
+     * @param lambda For numerical stability, (A + lamda * I) is inverted instead of A
+     * @param grid_size After fitting the model we search the largest expected improvement on a grid.
+     *                  This parameter sets the number of grid points in the axis directions.
+     */
     {
         this.optimizerParams = new LinkedList<>();
         this.optimizerParams.add(new Param(5,1000,0,"number_of_random_points"));
