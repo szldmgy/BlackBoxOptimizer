@@ -67,7 +67,7 @@ Setup an experiment
 
 ## Command
 
-![Image of Yaktocat](readmefiles/1_menu_and_cl.png)
+![Image of Yaktocat](readmefiles/cl.png =250x)
 
 
 - specify the terminal command using '$<paramname>' at the params to be optimized
@@ -75,9 +75,8 @@ Setup an experiment
 - example: 'python Rosenbrock1.py $firstParam $secondParam'
 
 ## Params
-2_paramsetup1.png
 
-![Image of Yaktocat](readmefiles/2_paramsetup1.png)
+![Image of Yaktocat](readmefiles/2_paramsetup1.png=250x)
 
 - the params annotated with '$' must be defined in the 'Params' section.
     
@@ -87,7 +86,7 @@ Setup an experiment
 
 ![Image of Yaktocat](readmefiles/p_2param_change_name.png)
 
-	- to add a **numeric** new param :
+- to add a **numeric** new param :
 
 		- push 'Add param'
 
@@ -95,7 +94,7 @@ Setup an experiment
 
 		- specify the default value	and its boundaries
 
-	- to add an **emumerated** param
+- to add an **emumerated** param
 
 		- choose type `Enum`
 
@@ -103,13 +102,13 @@ Setup an experiment
 
 		- setup the default value and the first and last options as boundaries
 
-	- to add an **boolean** param
+- to add an **boolean** param
 
 		- choose type 'Boolean'
 
 		- choose the starting value
 
-	- to add an function param
+- to add an function param
 
 		- choose type 'Function'
 
@@ -124,9 +123,10 @@ Setup an experiment
 
 - the ranges the parameters move in can depend on the value of other parameters, or it is possible that setting a parameter only makes sense if an other parameter has in a specified range. (think on SVM parametrization in machine learning where some parameters have meaning only in case of uding given kernels )
 
-- to add such dependency to a parameter you can click on the 'New param dependency' button, 
+- to add such dependency to a parameter you can click on the 'New param dependency' button,
+ 
 
-![Image of Yaktocat](readmefiles/add_dependency.png)
+![Image of Yaktocat](readmefiles/add_dep.png)
 
 then you should choose the variable from the select on which our parameter depends, then specify in case of what values will be our parameter in the range we have given before.
 
@@ -165,7 +165,8 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - if check the 'Safe mode' option at the bottom of the page the software will save the state of the optimization at a frequency given in the next input(per iterations)
 
-//safe_mode_options
+![Image of Yaktocat](readmefiles/safe_mode_options.png)
+
 
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
 
@@ -173,8 +174,8 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - on the next page we can chose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be runned, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
 
-//dropdown_alg
 
+![](readmefiles/dropdown_alg1.png)  |  ![](readmefiles/dropdown_alg2.png)
 After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
 
 ![Image of Yaktocat](readmefiles/alg_param_setup.png)
