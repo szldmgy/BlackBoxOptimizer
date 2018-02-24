@@ -4,7 +4,7 @@ BlaBoO
 
 Weclome to BlaBoO!
 
-BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest range of algorithms one wants to run.
+BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest range of algorithms one may want to run.  
 
 Install BlaBoO
 --------------
@@ -87,7 +87,7 @@ Setup an experiment
 
 - to add a **numeric** new param :
 
-	- push `Add param`
+    - push `Add param`
 
 	- specify its name and type
 
