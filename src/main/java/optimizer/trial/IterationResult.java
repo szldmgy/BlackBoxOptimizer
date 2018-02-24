@@ -75,7 +75,7 @@ public class IterationResult {
                 else if ((o.getRelation().equals(Relation.GREATER_THAN) || (o.getRelation().equals(Relation.MAXIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MIN_VALUE)
                     return true;
             }catch (Exception e){
-                // TODO: 2018. 02. 24.  
+                // TODO: 2018. 02. 24.
                 System.out.println("Bad objective value.");
             }
         }

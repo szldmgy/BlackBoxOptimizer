@@ -1,0 +1,98 @@
+{
+  "baseCommand": " python3 examples/Wormhole/wh_det_alg_2.py 1.2  $p 0.75",
+  "algorithmName": "GridSearch",
+  "iterationCounter": 0,
+  "optimizerParameters": [
+    {
+      "name": "p_step_size",
+      "typeName": "java.lang.Float",
+      "initValue": 0.01,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 0.7,
+            "lowerBound": 1.0E-4
+          }
+        }
+      ]
+    }
+  ],
+  "iterationCount": {
+    "value": 2100
+  },
+  "savingFrequence": -1,
+  "optimizerClasses": {},
+  "objectiveContainer": {
+    "objectives": [
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "true_positives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "false_negatives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "false_positives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "true_negatives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "avg_degree",
+        "dummy": 0.0,
+        "target": 0.0,
+        "typeName": "java.lang.Float"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "max_degree",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      }
+    ]
+  },
+  "scriptParameters": [
+    {
+      "name": "p",
+      "typeName": "java.lang.Float",
+      "initValue": 0.3,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 1.0,
+            "lowerBound": 0.3
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 
 BlaBoO
 =======
+![Image of Yaktocat](readmefiles/x.png)
 
 Weclome to BlaBoO!
 
-BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize 
+BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest
 
 Install BlaBoO
 --------------
@@ -33,20 +34,20 @@ Run the software with GUI
 GUI menu
 -
 
-##Start new BBO task
+## Start new BBO task
 
 - the first thig you see here is a simple setup for an optimization task, whose setup file is stored in the examples folder.
 
 - when you want to start a task from scratch you can chose `Start task` menu
 
-##Load already existing task
+## Load already existing task
 
 
 - you can browse and load in already done configuration using `Load task` menu 
 
 - here can you load backups from former experiments and resume the work
 
-##Results
+## Results
 
 
 - the results of the optimization tasks will be storesdin the `results` folder, while the setups of the task are saved in the `experiments` folder
@@ -61,14 +62,14 @@ GUI menu
 Setup an experiment
 -
 
-##Command
+## Command
 
 
 - specify the terminal command using '$<paramname>' at the params to be optimized
 
 	- example: 'python Rosenbrock1.py $firstParam $secondParam'
 
-##Params
+## Params
 
 - the params annotated with '$' must be deefined in the 'Params' section.
 
@@ -104,7 +105,7 @@ Setup an experiment
 
 		- the next input defines how long the generated series should be.
 
-##Params depending on other params (beta)
+## Params depending on other params (beta)
 
 
 - the ranges the parameters move in can depend on the value of other parameters, or it is possible that setting a parameter only makes sense if an other parameter has in a specified range. (think on SVM parametrization in machine learning where some parameters have meaning only in case of uding given kernels )
@@ -113,7 +114,7 @@ Setup an experiment
 
 - If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases, If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies comlies.
 
-##Objectives
+## Objectives
 
 - to evaluate the quality of the parameter setup the software needs to know value of the objective function. Now we expect the blackbox function to write this value(s) on standard output, or in a specified file from where we can read it. The format of this file is: '<name of objective> <value>'.
 
@@ -125,13 +126,13 @@ Setup an experiment
 
 - if the algorithm does not submit the expected objective measurements, the value will be set to `0`/`false`.
 
-##Safe mode and restart tasks
+## Safe mode and restart tasks
 
 - if check the 'Safe mode' option at the bottom of the page the software will save the state of the optimization at a frequency given in the next input(per iterations)
 
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
 
-#The optimizer optimizer.algorithms
+# The optimizer algorithms
 
 - on the next page we can chose what algorithm we want to use to optimize the parameters. After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
 

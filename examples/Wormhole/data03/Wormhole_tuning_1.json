@@ -1,12 +1,12 @@
 {
-  "baseCommand": " python3 examples/Wormhole/wh_det_alg_2.py 1.2  $p 1",
+  "baseCommand": " python3 examples/Wormhole/wh_det_alg_2.py 1.2  $p 0.3",
   "algorithmName": "GridSearch",
   "iterationCounter": 0,
   "optimizerParameters": [
     {
       "name": "p_step_size",
       "typeName": "java.lang.Float",
-      "initValue": 0.05,
+      "initValue": 0.01,
       "dependencies": [
         {
           "rangeOfThis": {
@@ -18,7 +18,7 @@
     }
   ],
   "iterationCount": {
-    "value": 15
+    "value": 2100
   },
   "savingFrequence": -1,
   "optimizerClasses": {},
