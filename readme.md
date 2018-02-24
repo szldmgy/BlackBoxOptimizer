@@ -155,6 +155,9 @@ Recover interrupted process
 
 You can restart an interrupted process by loading the backup files that have been stored in `App/backup` folder. That is either xou browse it from gui as setup file, or give as argument in command line mode.
 
+Examples
+
+You cen find some examples [here](readmefiles/example.md)
 
 User support
 -
