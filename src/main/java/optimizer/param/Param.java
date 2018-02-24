@@ -5,6 +5,7 @@ package optimizer.param;
 
 
 
+import optimizer.exception.InvalidParameterValueException;
 import optimizer.utils.Utils;
 
 import javax.script.ScriptException;
@@ -84,7 +85,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     public String getAdditionalInfo(){return "";}
 
     /**
-     * We regard two parameters as equal, if the name and generic type are the same.
+     * We regard two parameters as equal, if the names are the same.
      * @param o
      * @return
      */
@@ -94,12 +95,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         if (!(o instanceof Param)) return false;
 
         Param<?> param = (Param<?>) o;
-        if(param.getParamGenericType()!=this.getParamGenericType())
-            return false;
+        /*if(param.getParamGenericType()!=this.getParamGenericType())
+            return false;*/
 
         return name != null ? name.equals(param.name) : param.name == null;
 
     }
+
+
 
     /**
      * Returns hash of the {@code name}
@@ -111,6 +114,8 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     }
 
     public void setInitValue(T initValue) {
+        if(this.getAllValueArray()!=null&&!Arrays.asList(this.getAllValueArray()).contains(initValue))
+            throw new InvalidParameterValueException("Value not in valid value array.");
         this.initValue = initValue;
     }
 
@@ -234,7 +239,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
 
     /**
-     * Adds a {@link ParameterDependency} to {@code dependencies}.
+     * Adds a {@link ParameterDependency} to {@code dependencies}. In case of enumeration dependenciesm the boundaries(dependencyLower,dependencyUpper) should be from the value array.
      * @param lower The lower bound of the parameter if the value of the bounding param is between {@code dependencyLower} and {@code dependencyUpper}
      * @param upper The upper bound of the parameter if the value of the bounding param is between {@code dependencyLower} and {@code dependencyUpper}
      * @param p The bounding parameter.
@@ -243,9 +248,11 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @param <T2> The generic type of the bounding parameter.
      */
     public <T2 >void addDependency(T lower,T upper ,Param<T2> p, T2 dependencyLower, T2 dependencyUpper){
-        this.dependencies.add(new ParameterDependency(lower,upper,p,dependencyLower,dependencyLower));
-
-
+        if(this.getAllValueArray()==null)
+            this.dependencies.add(new ParameterDependency(lower,upper,p,dependencyLower,dependencyUpper));
+        else {
+            this.dependencies.add(new ParameterDependency(this.getAllValueArray(), lower, upper, p, dependencyLower, dependencyUpper));
+        }
     }
 
     /**
@@ -341,15 +348,23 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         //list only for sake of lambda
         LinkedList<Range<T>> l = new LinkedList<Range<T>>();
         l.add(null);
-        dependencies.stream().filter(d -> d.comply()).forEach(new Consumer<ParameterDependency>() {
-            @Override
-            public void accept(ParameterDependency parameterDependency) {
-                l.set(0, Range.intersection(l.get(0), (Range<T>)parameterDependency.rangeOfThis));
-            }
-        });
-        return l.get(0);
+        try {
+
+
+            dependencies.stream().filter(d -> d.comply()).forEach(new Consumer<ParameterDependency>() {
+                @Override
+                public void accept(ParameterDependency parameterDependency) {
+                    l.set(0, Range.intersection(l.get(0), (Range<T>) parameterDependency.rangeOfThis));
+                    if (l.get(0) == null)
+                        throw new IllegalArgumentException("Disjoint ranges.");
+                }
+            });
+            return l.get(0);
+        }catch (IllegalArgumentException e){
+            return null;
+        }
     }
-    // TODO: 21/09/17 should use availible ranges graph
+    // TODO: 21/09/17 should use availible ranges graph -> the default range should contain all the others to correct intersections at least some hint on interface
     @Deprecated
     public <T> List<Range<T>>  getAllRanges(){
         return this.dependencies.stream().map(d->(Range<T>)d.getRangeOfThis()).collect(Collectors.toList());
@@ -477,12 +492,15 @@ public class Param<T> implements Cloneable, Comparable<Param>{
                 }
                 else if(Boolean.class.getName().equals(cl.getName())){
                     dependencyLower = Boolean.parseBoolean(dependencyLower.toString());
-                    dependencyUpper= Boolean.parseBoolean(dependencyUpper.toString());
+                    dependencyUpper= Boolean.parseBoolean(dependencyLower.toString());
+                    //in case of boolean no meaning for two boundaries
+                    // TODO: 2018. 02. 24. for uniformity push Boolean in enum..
+                    //dependencyUpper= Boolean.parseBoolean(dependencyUpper.toString());
                 }
-                else if(Double.class.getName().equals(cl.getName())){
+                /*else if(Double.class.getName().equals(cl.getName())){
                     dependencyLower = Double.parseDouble(dependencyLower.toString());
                     dependencyUpper= Double.parseDouble(dependencyUpper.toString());
-                }
+                }*/
 
                 toRemoveList.add(d);
                 toAddList.add(new ParameterDependency(d.getRangeOfThis().getLowerBound(), d.getRangeOfThis().getUpperBound(), param,dependencyLower,dependencyUpper));

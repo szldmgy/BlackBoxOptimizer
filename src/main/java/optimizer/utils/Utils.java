@@ -317,8 +317,7 @@ public class Utils {
     public static <T> boolean comply (Relation relation, T value, T target, T lastValue){
 
         if(value instanceof Number) {
-            Double castedValue = ((Number) value).doubleValue();
-            Double castedLastValue = ((Number) lastValue).doubleValue();
+            Float castedValue = ((Number) value).floatValue();
 
             Double castedThreshold = ((Number)target).doubleValue();
             int rel = Utils.compareNumbers(castedValue,castedThreshold);
@@ -326,9 +325,9 @@ public class Utils {
                 return true;
             if (relation.equals(Relation.GREATER_THAN) && rel > 0)
                 return true;
-            if (relation.equals(Relation.MINIMIZE_TO_CONVERGENCE) && Math.abs(castedValue-castedLastValue)<castedThreshold )
+            if (relation.equals(Relation.MINIMIZE_TO_CONVERGENCE) && lastValue!=null&& Math.abs(castedValue-((Number)lastValue).floatValue())<castedThreshold )
                 return true;
-            if (relation.equals(Relation.MAXIMIZE_TO_CONVERGENCE) && Math.abs(castedValue-castedLastValue)<castedThreshold )
+            if (relation.equals(Relation.MAXIMIZE_TO_CONVERGENCE)  && lastValue!=null&& Math.abs(castedValue-((Number)lastValue).floatValue())<castedThreshold )
                 return true;
         }
         return false;

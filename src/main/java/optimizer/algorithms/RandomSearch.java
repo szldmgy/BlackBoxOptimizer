@@ -25,7 +25,11 @@ public class RandomSearch extends AbstractAlgorithm {
         for(Param entry : parameterMap)
         {
             if(entry.isActive()) {
-                if (entry.getValue() instanceof Float ) {
+                if(entry.isEnumeration()){
+                    int enumPos = rand.nextInt(entry.getActiveValueArray().length-1);
+                    entry.setInitValue(entry.getActiveValueArray()[enumPos]);
+                }
+                else if (entry.getValue() instanceof Float ) {
                     float lb = ((Number)entry.getLowerBound()).floatValue();
                     float ub = ((Number)entry.getUpperBound()).floatValue();
                     float r = rand.nextFloat();
@@ -33,22 +37,19 @@ public class RandomSearch extends AbstractAlgorithm {
                     entry.setInitValue(newVal);
                     //optimizer.main.Main.log(Level.INFO,newVal);
                 }
-                if (entry.getValue() instanceof Integer) {
+                else if (entry.getValue() instanceof Integer) {
                     Integer u = (Integer) entry.getUpperBound();
                     Integer l = (Integer) entry.getLowerBound();
                     int newVal = l + rand.nextInt(u-l) ;
                    entry.setInitValue(newVal);
                     //optimizer.main.Main.log(Level.INFO,newVal);
                 }
-                if (entry.getValue() instanceof Boolean) {
+                else if (entry.getValue() instanceof Boolean) {
                     boolean newVal = rand.nextBoolean();
                    entry.setInitValue(newVal);
                     //optimizer.main.Main.log(Level.INFO,newVal);
                 }
-                if(entry.isEnumeration()){
-                    int enumPos = rand.nextInt(entry.getActiveValueArray().length-1);
-                    entry.setInitValue(entry.getActiveValueArray()[enumPos]);
-                }
+
             }
         }
 

@@ -1,5 +1,6 @@
 package optimizer.param;
 
+import optimizer.exception.InvalidParameterValueException;
 import optimizer.utils.Utils;
 
 import java.util.Arrays;
@@ -58,8 +59,12 @@ public class Range<T> implements Cloneable{
      * @param from Boundaries on the possible values.
      * @param to  Boundaries on the possible values.
      */
-    public Range(T[] array, T from, T to) {
+    public Range(T[] array, T to, T from) {
 
+        if(!Arrays.asList(array).contains(from))
+            throw new InvalidParameterValueException("Lower bound for Range not in the array.");
+        if(!Arrays.asList(array).contains(to))
+            throw new InvalidParameterValueException("Upper bound for Range not in the array.");
         List<T> arr1 = Arrays.asList(array);
         List<T> arr2 = new LinkedList<T>();
         for(int i = arr1.indexOf(from);i<=arr1.indexOf(to);i++)
@@ -102,7 +107,25 @@ public class Range<T> implements Cloneable{
             return r2;
         if(r2==null)
             return r1;
-        if(r1.lowerBound.getClass().equals(Integer.class)) {
+        if(r1.getValueArray()!=null){
+            int r1l = r1.valueArray.length;
+            int r2l = r2.valueArray.length;
+            int l = Math.max(r1l,r2l);
+            T[] x = r1l>r2l?r1.valueArray:r2.valueArray;
+            int maxlen = Math.max(r1.valueArray.length,r2.valueArray.length);
+            List<T> l1 = Arrays.asList(r1.valueArray);
+            List<T> l2 = Arrays.asList(r2.valueArray);
+            List<T> res = new LinkedList<>();
+            for(int i=0;i<l;i++)
+                if(l1.contains(x[i])&&l2.contains(x[i]))
+                    res.add(x[i]);
+
+            // if there is no intersection we want the Range to be 0
+            if(res.size()>0)
+                return new Range<T>( (T[])res.toArray());
+            return null;
+        }
+         if(r1.lowerBound.getClass().equals(Integer.class)) {
             Range<Integer> r1n = (Range<Integer>) r1;
             Range<Integer> r2n = (Range<Integer>) r2;
             Range<Integer> min = (r1n.lowerBound < r2n.lowerBound ? r1n : r2n);
@@ -114,7 +137,7 @@ public class Range<T> implements Cloneable{
 
             return (Range<T>)new Range<Integer>( (min.upperBound < max.upperBound ? min.upperBound : max.upperBound),max.lowerBound);
         }
-        if(r1.lowerBound.getClass().equals(Float.class)) {
+         if(r1.lowerBound.getClass().equals(Float.class)) {
             Range<Float> r1n = (Range<Float>) r1;
             Range<Float> r2n = (Range<Float>) r2;
             Range<Float> min = (r1n.lowerBound < r2n.lowerBound ? r1n : r2n);
@@ -127,6 +150,7 @@ public class Range<T> implements Cloneable{
             return (Range<T>)new Range<Float>( (min.upperBound < max.upperBound ? min.upperBound : max.upperBound),max.lowerBound);
         }
         if(r1.lowerBound.getClass().equals(Double.class)) {
+
             Range<Double> r1n = (Range<Double>) r1;
             Range<Double> r2n = (Range<Double>) r2;
             //Range<Double> min = (r1n.lowerBound < r2n.lowerBound ? r1n : r2n);
@@ -141,28 +165,39 @@ public class Range<T> implements Cloneable{
             return (Range<T>)new Range<Double>(max,min);
         }
         if(r1.lowerBound.getClass().equals(Boolean.class)) {
+
+
             Range<Boolean> r1n = (Range<Boolean>) r1;
             Range<Boolean> r2n = (Range<Boolean>) r2;
-            return (Range<T>)new Range<Boolean>(r1n.lowerBound && r2n.lowerBound,r1n.lowerBound && r2n.lowerBound);
+            if(r1n.lowerBound^r1n.upperBound) {
+                if (r2n.lowerBound ^ r2n.upperBound)
+                    return (Range<T>)new Range(true, false);
+                else return (Range<T>)new Range(r2n.upperBound, r2n.lowerBound);
+            }
+            else if(r1n.lowerBound != r2n.lowerBound)
+                return null;
+            return (Range<T>)new Range<Boolean>(r1n.lowerBound,r2n.lowerBound);
         }
-        if(r1.lowerBound.getClass().equals(String.class)){
+     /*   if(r1.lowerBound.getClass().equals(String.class)){
 
-            int r1Lower = Arrays.asList(r1.valueArray).indexOf(r1.lowerBound);
-            int r2Lower =  Arrays.asList(r2.valueArray).indexOf(r2.lowerBound);
-            int r1Upper = Arrays.asList(r1.valueArray).indexOf(r1.upperBound);
-            int r2Upper = Arrays.asList(r2.valueArray).indexOf(r2.upperBound);
 
-           // int r1Lower = Arrays.binarySearch(r1.valueArray,r1.lowerBound);
-           // int r2Lower = Arrays.binarySearch(r2.valueArray,r2.lowerBound);
-           // int r1Upper = Arrays.binarySearch(r1.valueArray,r1.upperBound);
-           // int r2Upper = Arrays.binarySearch(r2.valueArray,r2.upperBound);
-            //// TODO: 22/09/17 is this always good what is empty intersection ??????
+            int r1l = r1.valueArray.length;
+            int r2l = r2.valueArray.length;
+            int l = Math.max(r1l,r2l);
+            T[] x = r1l>r2l?r1.valueArray:r2.valueArray;
+            int maxlen = Math.max(r1.valueArray.length,r2.valueArray.length);
+            List<T> l1 = Arrays.asList(r1.valueArray);
+            List<T> l2 = Arrays.asList(r2.valueArray);
+            List<T> res = new LinkedList<>();
+            for(int i=0;i<l;i++)
+                if(l1.contains(x[i])&&l2.contains(x[i]))
+                    res.add(x[i]);
 
-            int from = r1Lower<r2Lower?r2Lower:r1Lower;
-            int to = r1Upper>r2Upper?r2Upper:r1Upper +1;
-            return new Range<T>(Arrays.copyOfRange(r1.valueArray.length>r2.valueArray.length?r1.valueArray:r2.valueArray ,from,to));
+            // if there is no intersection we want the Range to be 0
+            if(res.size()>0)
+                return new Range<T>( (T[])res.toArray());
 
-        }
+        }*/
         return null;
     }
 
@@ -194,13 +229,20 @@ public class Range<T> implements Cloneable{
         return result;
     }
 
+    //TODO utils compile bypassed, no template spec for methods ?
     /**
-     * Methog to query whether the value is in the {@link Range}.
-     * @param value
+     * Methog to query whether the passed value is in the {@link Range}.
+     * @param value The value to check if it is in this {@link Range}
      * @return
      */
     public   boolean comply (T value){
-        return  Utils.comply(value,lowerBound,upperBound);
+        if(this.getValueArray()!=null) // for enumerated values even for Float = FunctionParam
+            return Arrays.asList(this.getValueArray()).contains(value);
+        else if(value instanceof Number)
+            return Utils.compareNumbers((Number)value,(Number) this.upperBound)<=0 && Utils.compareNumbers((Number) this.lowerBound,(Number)value)<=0;
+        else
+            return this.lowerBound.equals(value); // this for Booleans
+
     }
 
 }

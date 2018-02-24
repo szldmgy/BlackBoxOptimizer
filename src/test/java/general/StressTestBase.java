@@ -11,6 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StressTestBase {
+
+    final static String[] setupsToTest={
+            "Rosenbrock_DifferentialEvolution_cl.json",
+            "SVM_python_GridSearch_cl.json",
+            "Rosenbrock_multi.json",
+            "SVM_python.json",
+            "Wormhole_tuning.json"
+    };
     //available optimizer.algorithms
     // development path
     final static String defaultOptimizerClassLocation =  "target/classes/optimizer/algorithms/";

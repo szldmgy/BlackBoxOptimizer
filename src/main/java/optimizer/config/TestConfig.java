@@ -81,7 +81,7 @@ public class TestConfig {
     public void setIterationCount(Optional<Integer> iterationCount) {        this.iterationCount = iterationCount;    }
     public void setAlgorithmName(String algorithmName) {        this.algorithmName = algorithmName;    }
     public void setLandscape(List<IterationResult> landscape) {        this.landscape = landscape;    }
-    public void setIterationCounter(int iterationCounter) {        this.iterationCounter = iterationCounter;    }
+    public synchronized void  setIterationCounter(int iterationCounter) {        this.iterationCounter = iterationCounter;    }
     public void setOptimizerStateBackupFilename(String optimizerStateBackupFilename) {        this.optimizerStateBackupFilename = optimizerStateBackupFilename;    }
     public void setOptimizerClasses(Map<Class<? extends AbstractAlgorithm>, String> optimizerClasses) {        this.optimizerClasses = optimizerClasses;    }
     public void setSavingFrequence(Integer savingFrequence) {
@@ -98,14 +98,14 @@ public class TestConfig {
     public String getAlgorithmName() {        return algorithmName;    }
     public String getBaseCommand() { return baseCommand; }
     public String getObjectiveFileName() { return objectiveFileName; }
-    public Optional<Integer> getIterationCount() {return iterationCount;}
+    public synchronized Optional<Integer> getIterationCount() {return iterationCount;}
     public List< Param> getScriptParametersReference() {return scriptParameters;}
     public List< Param> getOptimizerParameters() {return optimizerParameters; }
 
     public List<IterationResult> getLandscapeReference() { return landscape; }
     public ObjectiveContainer getObjectiveContainer() {        return objectiveContainer;    }
     public String getOptimizerConfigFilename() {       return optimizerConfigFilename;    }
-    public int getIterationCounter() {        return iterationCounter;    }
+    public synchronized int getIterationCounter() {        return iterationCounter;    }
     public String getOptimizerStateBackupFilename() {        return optimizerStateBackupFilename;    }
 
     public Integer getSavingFrequence() {        return savingFrequence;    }
@@ -196,7 +196,7 @@ public class TestConfig {
     }
 
     /**
-     * Default contructor to create an empty setup.
+     * Default constructor to create an empty setup.
      */
     public TestConfig() {
         objectiveContainer = new ObjectiveContainer();

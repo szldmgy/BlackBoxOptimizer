@@ -29,7 +29,7 @@ public class ObjectiveContainer implements Cloneable {
         this.objectives = objectives;
     }
 
-    public List<Objective> getObjectiveClones() throws CloneNotSupportedException {
+    public synchronized List<Objective> getObjectiveClones() throws CloneNotSupportedException {
         List<Objective> copy = new LinkedList<>();
         for(Objective o : this.objectives)
             copy.add((Objective) o.clone());

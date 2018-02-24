@@ -3,6 +3,7 @@ package optimizer.main;
 import optimizer.algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import optimizer.exception.OptimizerException;
 import optimizer.objective.Relation;
 import spark.ModelAndView;
 import spark.Request;
@@ -15,6 +16,7 @@ import optimizer.param.DummyParam;
 import optimizer.param.FunctionParam;
 import optimizer.param.Param;
 import optimizer.trial.IterationResult;
+import sun.plugin2.jvm.CircularByteBuffer;
 
 import javax.script.ScriptException;
 import javax.servlet.MultipartConfigElement;
@@ -27,6 +29,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static spark.Spark.*;
@@ -38,6 +44,7 @@ import static spark.Spark.*;
 public class BrowserInterface {
 
 
+    private  Thread optimizationRunnerThread;
     private final static String layout = "templates/layout.vtl";
     private final static String resultTemplate = "templates/resultnew.vtl";
     private final String[] algoritmhs;
@@ -84,6 +91,15 @@ public class BrowserInterface {
 
     public void run(){
 
+        get("/progress", (req, res) ->{
+            if(optimizationRunnerThread.getState()==Thread.State.TERMINATED){
+                return "done";
+            }
+            return (float)config[0].getIterationCounter() / (float)config[0].getIterationCount().get()*100;
+
+        });
+
+
         get("/results", (req, res) ->{
             Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainer().getObjectiveClones(), "experiment.csv",saveFileName[0]);
             return new VelocityTemplateEngine().render(
@@ -92,7 +108,7 @@ public class BrowserInterface {
         });
 
         get("/stop", (req, res) ->{
-           Map<String, Object> model = getGoodBye();
+            Map<String, Object> model = getGoodBye();
             stop();
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
@@ -108,7 +124,7 @@ public class BrowserInterface {
 
 
         post("/loadsetup","multipart/form-data",(req,res)->{
-        // TODO: 28/08/17 check if exists
+            // TODO: 28/08/17 check if exists
             config[0] = new TestConfig();
             File uploadDir = new File(BrowserInterface.uploadDir);
             Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
@@ -135,126 +151,144 @@ public class BrowserInterface {
         });
 
         post("/updateconfig", (request, response) -> {
-            Map<String, Object> model = new HashMap<String, Object>();
-            String safeModeString = request.queryParams("safe_mode");
-            if(safeModeString != null) {
-                config[0].setSavingFrequence(Integer.parseInt(request.queryParams("frequency")));
-                safeMode[0] = true;
-            }
-
-
-            saveFileName[0] = request.queryParams("savefilename");
-            String useIterationString = request.queryParams("use_iterations");
-            String iterationCountString = request.queryParams("iterationCount");
-            String command_input = request.queryParams("commandinput");
-
-            int counter = 0;
-            List<IterationResult> landscape = new LinkedList<IterationResult>();
-            //followings needed for recovery(??)
-            //setup previous or predefined optimizer optimizer.algorithms it there is any -
-            List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
-
-
-            if(config[0].getLandscapeReference().size()>0) {
-                recoveryMode[0] = true;
-                landscape = config[0].getLandscapeReference();
-                counter = config[0].getIterationCounter();
-
-            }
-            else
-                recoveryMode[0] = false;
-            TestConfig c = new TestConfig();
-            c.setAlgorithmName(config[0].getAlgorithmName());
-            // in case we have htem in the same file
-            c.setOptimizerParameters(predefinedOptimizerParams);
-            c.setBaseCommand(command_input);
-            c.setIterationCounter(config[0].getIterationCounter()); //this is for recovery mode (??)
-            if(useIterationString != null)
-                c.setIterationCount(Optional.of(Integer.parseInt(iterationCountString)));
-
-
-            String objFileName1 = request.queryParams("objFileName");
-            ObjectiveContainer objectiveContainer = readObjectives(request);
-            c.setObjectiveContainer(objectiveContainer);
-            String usefileStr = request.queryParams("use_file_output");
-            if(usefileStr!=null)
-                c.setObjectiveFileName(objFileName1);
-            c.setLandscape(landscape);
-            c.setIterationCounter(counter);
-
-            List<Param> paramList = null;
             try{
+                String safeModeString = request.queryParams("safe_mode");
+                if(safeModeString != null) {
+                    config[0].setSavingFrequence(Integer.parseInt(request.queryParams("frequency")));
+                    safeMode[0] = true;
+                }
+
+
+                saveFileName[0] = request.queryParams("savefilename");
+                String useIterationString = request.queryParams("use_iterations");
+                String iterationCountString = request.queryParams("iterationCount");
+                String command_input = request.queryParams("commandinput");
+
+                int counter = 0;
+                List<IterationResult> landscape = new LinkedList<IterationResult>();
+                //followings needed for recovery(??)
+                //setup previous or predefined optimizer optimizer.algorithms it there is any -
+                List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
+
+
+                if(config[0].getLandscapeReference().size()>0) {
+                    recoveryMode[0] = true;
+                    landscape = config[0].getLandscapeReference();
+                    counter = config[0].getIterationCounter();
+
+                }
+                else
+                    recoveryMode[0] = false;
+                TestConfig c = new TestConfig();
+                c.setAlgorithmName(config[0].getAlgorithmName());
+                // in case we have htem in the same file
+                c.setOptimizerParameters(predefinedOptimizerParams);
+                c.setBaseCommand(command_input);
+                c.setIterationCounter(config[0].getIterationCounter()); //this is for recovery mode (??)
+                if(useIterationString != null)
+                    c.setIterationCount(Optional.of(Integer.parseInt(iterationCountString)));
+
+
+                String objFileName1 = request.queryParams("objFileName");
+                ObjectiveContainer objectiveContainer = readObjectives(request);
+                c.setObjectiveContainer(objectiveContainer);
+                String usefileStr = request.queryParams("use_file_output");
+                if(usefileStr!=null)
+                    c.setObjectiveFileName(objFileName1);
+                c.setLandscape(landscape);
+                c.setIterationCounter(counter);
+
+                List<Param> paramList = null;
+
                 paramList = readParams(request,null);
-            }catch(Exception e){
-                e.printStackTrace();
-                //todo error page
-            }
 
 
 
-            c.setScriptParameters(paramList);
 
-            config[0]= c;
-            Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
-            optimizerClasses.forEach( (optimizerClass, configfile ) ->{
-                try {
-                    Object algorithmObj = optimizerClass.newInstance();
+                c.setScriptParameters(paramList);
 
-                    Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
-                    setConfig.invoke(algorithmObj,config[0]);
+                config[0]= c;
+                String[] errormsg = new String[1];
+                boolean[] faliure = new boolean[]{false};
+                Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
+                optimizerClasses.forEach( (optimizerClass, configfile ) ->{
+                    if(!faliure[0]){
+
+                        try {
+                            Object algorithmObj = optimizerClass.newInstance();
+
+                            Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
+                            setConfig.invoke(algorithmObj,config[0]);
 
                     /*Method setConfigFromFile= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
                     setConfig.invoke(algorithmObj,"test.json");*/
 
-                    Method setParams= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
+                            Method setParams= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
+                            setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
 
-                    Method getConfig= optimizerClass.getMethod("getConfig");
-                    Object o = getConfig.invoke(algorithmObj);
-                    List<Param> pl = (List<Param>)o;
+                            Method getConfig= optimizerClass.getMethod("getConfig");
+                            Object o = getConfig.invoke(algorithmObj);
+                            List<Param> pl = (List<Param>)o;
 
-                    Method isApplyableMethod= optimizerClass.getMethod("isApplyableForParams");
-                    if((Boolean)isApplyableMethod.invoke(algorithmObj))
-                        algParamMap.put(optimizerClass.getSimpleName(),(List<Param>)o);
-
-
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            });
-            //recovery mode if there is any predefined algorithm, otherwise the first in the list
-            if(!algParamMap.keySet().contains(config[0].getAlgorithmName()))
-                config[0].setAlgorithmName(algParamMap.keySet().iterator().next());
-            //we set up values for optimizerparam from configfile
-            List<Param> pl = algParamMap.get(config[0].getAlgorithmName());
-            if(pl!=null && config[0].getOptimizerParameters()!=null) // for algorithm without parameters
-                for(Param paramInMap : pl){ //for reloading values at recovery??
-                    for(Param loadedParam : config[0].getOptimizerParameters())
-                        if(paramInMap.equals(loadedParam))
-                            paramInMap = loadedParam; //is this ok? it might be lost after loop
-
-                }
+                            Method isApplyableMethod= optimizerClass.getMethod("isApplyableForParams");
+                            if((Boolean)isApplyableMethod.invoke(algorithmObj))
+                                algParamMap.put(optimizerClass.getSimpleName(),(List<Param>)o);
 
 
-            Map<String, Object> model1 = new HashMap<>();
+                        } catch (InstantiationException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage();
+                        } catch (IllegalAccessException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage();
+                        } catch (NoSuchMethodException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage();
+                        } catch (InvocationTargetException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage();
+                        }
+
+                    }
+
+                });
+                if(faliure[0])
+                    return  new ModelAndView(getErrorMode(errormsg[0]), layout);
+                //recovery mode if there is any predefined algorithm, otherwise the first in the list
+                if(!algParamMap.keySet().contains(config[0].getAlgorithmName()))
+                    config[0].setAlgorithmName(algParamMap.keySet().iterator().next());
+                //we set up values for optimizerparam from configfile
+                List<Param> pl = algParamMap.get(config[0].getAlgorithmName());
+                if(pl!=null && config[0].getOptimizerParameters()!=null) // for algorithm without parameters
+                    for(Param paramInMap : pl){ //for reloading values at recovery??
+                        for(Param loadedParam : config[0].getOptimizerParameters())
+                            if(paramInMap.equals(loadedParam))
+                                paramInMap = loadedParam; //is this ok? it might be lost after loop
+
+                    }
 
 
-            model1.put("algorithmname",config[0].getAlgorithmName());
-            model1.put("filename",saveFileName[0]);
-            model1.put("template","templates/algorithm.vtl");
-            model1.put("algParamMap",algParamMap);
-            model1.put("parametertypes",classList);
+                Map<String, Object> model1 = new HashMap<>();
 
-            return new ModelAndView(model1, layout);
+
+                model1.put("algorithmname",config[0].getAlgorithmName());
+                model1.put("filename",saveFileName[0]);
+                model1.put("template","templates/algorithm.vtl");
+                model1.put("algParamMap",algParamMap);
+                model1.put("parametertypes",classList);
+
+                return new ModelAndView(model1, layout);
+            }
+            catch (Exception e){
+                String msg = e.getMessage();
+                return new ModelAndView(getErrorMode(msg), layout);
+            }
+
+
         }, new VelocityTemplateEngine());
 
         post("/updatealgorithmconfig", (request, response) -> {
+            try{
             Map<String, Object> model = new HashMap<String, Object>();
 
             request.queryParams().stream().forEach(System.out::println);
@@ -286,11 +320,9 @@ public class BrowserInterface {
                 c.setIterationCounter(config[0].getIterationCounter());
             }
             List<Param> paramList = null;
-            try{
-                paramList = readParams(request,algorithmname);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+
+            paramList = readParams(request,algorithmname);
+
 
 
             c.setScriptParameters(paramList);
@@ -299,36 +331,48 @@ public class BrowserInterface {
                 gson1.toJson(c, writer);
             }
             config[0]= c;
+            String[] errormsg = new String[1];
+            boolean[] faliure = new boolean[]{false};
             Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
             optimizerClasses.forEach( (optimizerClass, configfile ) ->{
-                try {
-                    Object algorithmObj = optimizerClass.newInstance();
+                if(!faliure[0]) {
+                    try {
+                        Object algorithmObj = optimizerClass.newInstance();
 
-                    Method setConfig= optimizerClass.getMethod("setConfiguration",TestConfig.class);
-                    setConfig.invoke(algorithmObj,config[0]);
+                        Method setConfig = optimizerClass.getMethod("setConfiguration", TestConfig.class);
+                        setConfig.invoke(algorithmObj, config[0]);
 
                     /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
                     setConfig.invoke(algorithmObj,"test.json");*/
 
 
-                    Method setParams= optimizerClass.getMethod("setOptimizerParams",List.class);
-                    setParams.invoke(algorithmObj,config[0].getScriptParametersReference());
+                        Method setParams = optimizerClass.getMethod("setOptimizerParams", List.class);
+                        setParams.invoke(algorithmObj, config[0].getScriptParametersReference());
 
-                    Method getConfig= optimizerClass.getMethod("getConfig");
-                    Object o = getConfig.invoke(algorithmObj);
-                    algParamMap.put(optimizerClass.getSimpleName(),(List<Param>)o);
+                        Method getConfig = optimizerClass.getMethod("getConfig");
+                        Object o = getConfig.invoke(algorithmObj);
+                        algParamMap.put(optimizerClass.getSimpleName(), (List<Param>) o);
 
 
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        faliure[0] = true;
+                        errormsg[0] = e.getMessage();
+                    } catch (IllegalAccessException e) {
+                        faliure[0] = true;
+                        errormsg[0] = e.getMessage();
+                    } catch (NoSuchMethodException e) {
+                        faliure[0] = true;
+                        errormsg[0] = e.getMessage();
+                    } catch (InvocationTargetException e) {
+                        faliure[0] = true;
+                        errormsg[0] = e.getMessage();
+                    }
                 }
+
             });
+            if(faliure[0])
+                    return  new ModelAndView(getErrorMode(errormsg[0]), layout);
+
             Map<String, Object> model1 = new HashMap<>();
 
 
@@ -338,34 +382,107 @@ public class BrowserInterface {
             model1.put("parametertypes",classList);
 
             return new ModelAndView(model1, layout);
+            }catch(Exception e){
+                return  new ModelAndView(getErrorMode(e.getMessage()), layout);
+            }
         }, new VelocityTemplateEngine());
 
         post("/run", (request, response) ->{
-
             String algorithmname = request.queryParams("algorithm_names");
-            List<Param> lp = readParams(request,algorithmname);
-            //save only the setup = without landscape
+            List<Param> lp = readParams(request, algorithmname);
             config[0].setAlgorithmName(algorithmname);
             config[0].setOptimizerParameters(lp);
             config[0].setOptimizerClasses(optimizerClasses);
-            if(!recoveryMode[0]) {
+            if (!recoveryMode[0]) {
                 config[0].setIterationCounter(0);
                 config[0].clearLandscape();
 
             }
 
 
-            String expFileName = Utils.getExperimentUniqueName(saveFileName[0],experimentDir);
-            String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName),outputDir);
+            String expFileName = Utils.getExperimentUniqueName(saveFileName[0], experimentDir);
+            String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
 
-            config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir,backupDir);
-            Map<String, Object> model1 = getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+            try {
+                this.optimizationRunnerThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
 
-            return new VelocityTemplateEngine().render(
-                    new ModelAndView(model1, layout)
-            );
+                        //save only the setup = without landscape
+
+
+                        try {
+                            config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace(); e.printStackTrace();
+                        } catch (InstantiationException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (OptimizerException e) {
+                            e.printStackTrace();
+                        } catch (CloneNotSupportedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                this.optimizationRunnerThread.start();
+
+
+
+                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+
+                return new VelocityTemplateEngine().render(
+                        new ModelAndView(model1, layout)
+                );
+            }catch (Exception e ){
+                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(e.getMessage()), layout));
+         }
+
         });
+        /*post("/run", (request, response) ->{
 
+            try {
+
+                String algorithmname = request.queryParams("algorithm_names");
+                List<Param> lp = readParams(request, algorithmname);
+                //save only the setup = without landscape
+                config[0].setAlgorithmName(algorithmname);
+                config[0].setOptimizerParameters(lp);
+                config[0].setOptimizerClasses(optimizerClasses);
+                if (!recoveryMode[0]) {
+                    config[0].setIterationCounter(0);
+                    config[0].clearLandscape();
+
+                }
+
+
+                String expFileName = Utils.getExperimentUniqueName(saveFileName[0], experimentDir);
+                String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
+
+                config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
+                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+
+                return new VelocityTemplateEngine().render(
+                        new ModelAndView(model1, layout)
+                );
+            }catch (Exception e ){
+                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(e.getMessage()), layout));
+         }
+
+        });*/
+
+    }
+
+    private Map<String,Object> getErrorMode(String e) {
+        Map res = new HashMap();
+        res.put("template","templates/error.vtl");
+        res.put("errormessage",e);
+        return res;
     }
 
     private static Map<String,Object> getGoodBye() {
@@ -390,6 +507,13 @@ public class BrowserInterface {
     }
 
 
+    private  static Map<String, Object> getProgressModel() {
+
+        Map<String, Object> model1 = new HashMap<>();
+        model1.put("template", "templates/progress.vtl");
+        return model1;
+    }
+
 
     private static Map<String, Object> getResultModel(List<Objective> objectives, String resFileName, String configFileName) {
         final List<String> objectiveList = new LinkedList<String>();
@@ -401,13 +525,13 @@ public class BrowserInterface {
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/resultnew.vtl");
 
-         List<String>[] resFileList = new List[1];
+        List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
             resFileList[0] =Files.list(Paths.get(outputDir))
-                    .filter(Files::isRegularFile).map(f->outputDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
+                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
             setupFileList[0] = Files.list(Paths.get(experimentDir))
-                    .filter(Files::isRegularFile).map(f->experimentDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
+                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".json")).map(f->experimentDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -634,7 +758,7 @@ public class BrowserInterface {
     // we defined the param properly, so if there is any depending on this, we bound it to this
     private static void updateDependencies(List<Param> paramList, Param<?> param) {
         for(Param<?> p : paramList)
-           p.updateDependencies(param);
+            p.updateDependencies(param);
 
 
     }

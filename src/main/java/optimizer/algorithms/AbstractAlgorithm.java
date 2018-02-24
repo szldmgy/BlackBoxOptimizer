@@ -140,8 +140,13 @@ public abstract class AbstractAlgorithm {
                         for (Future<IterationResult> future : set) {
                             IterationResult ir = future.get();
                             Main.log(Level.INFO,"GETTING RESULT FROM " + ir.getCSVString());
+                            this.config.setIterationCounter(this.config.getIterationCounter()+1);
                             this.config.getLandscapeReference().add(ir);
-                        }
+                            if(this.config.getSavingFrequence()!=-1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
+                                String saveFileName1 = saveFileName.replace(experimetDir,backupDir).replace(".json","_"+this.config.getIterationCounter()+".json");
+                                writeResultFile(saveFileName1);
+                            }
+                            }
                         pool.shutdown();
                         config.setIterationCounter(config.getIterationCount().get());
                         terminated = true;

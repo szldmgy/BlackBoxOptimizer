@@ -1,5 +1,8 @@
 package optimizer.param;
 
+import optimizer.exception.InvalidParameterValueException;
+
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,11 +52,12 @@ public class ParameterDependency<T2,T1> implements Cloneable{
     }
 
     /**
-     * Method to query whether {@link #p} is in its specified bounding range({@code rangeOfOther})
-     * @param <Boolean>
+     * Method to query whether {@link #p} is in its specified bounding range({@code rangeOfOther}).
+     * That means that here we check, whether the given {@link ParameterDependency} is active, that is the {@link Range} given by it should be taken into consideration at computing {@link Param#getActiveRange()}.
+     * If there are bo bounding {@link Param}, returns true.
      * @return
      */
-    public <Boolean> boolean comply(){
+    public boolean comply(){
         if(p==null)
             return true;
         return rangeOfOther.comply(p.getValue());
@@ -85,6 +89,10 @@ public class ParameterDependency<T2,T1> implements Cloneable{
         this.p = p;
         if(p!=null && lowerBound!=null && upperBound!=null) {
             if (p.isEnumeration()) {
+                if(!Arrays.asList(p.getAllValueArray()).contains(lowerBound))
+                    throw new InvalidParameterValueException("Lower bound for dependency not in valid value array.");
+                if(!Arrays.asList(p.getAllValueArray()).contains(upperBound))
+                    throw new InvalidParameterValueException("Upper bound for dependency not in valid value array.");
                 List<T2> res = new LinkedList<T2>();
                 boolean afterFirst = false, beforeLast = true;
                 for(T2 element : p.getAllValueArray()  ) {
@@ -100,7 +108,45 @@ public class ParameterDependency<T2,T1> implements Cloneable{
                 this.rangeOfOther = new Range<T2>((T2[])res.toArray());
             }
             else
-                this.rangeOfOther = new Range<T2>(lowerBound, upperBound);
+                this.rangeOfOther = new Range<T2>(upperBound, lowerBound);
+
+        }
+    }
+
+    /**
+     *This should be the main constructor
+     * @param allValueArray All available values for the bounded {@link Param}, the bounded value array
+     * @param lower Lower bound for bounded {@link Param}.
+     * @param upper Upper bound for bounded {@link Param}.
+     * @param p Bounding {@link Param}.
+     * @param lowerBound Lower bound for bounding {@link Param}.
+     * @param upperBound Upper bound for bounding {@link Param}.
+     */
+    public ParameterDependency(T1[] allValueArray,T1 lower, T1 upper, Param<T2> p, T2 lowerBound , T2 upperBound) {
+        this.rangeOfThis = new Range<T1>(allValueArray,upper,lower);
+        this.p = p;
+        if(p!=null && lowerBound!=null && upperBound!=null) {
+            if (p.isEnumeration()) {
+                if(!Arrays.asList(p.getAllValueArray()).contains(lowerBound))
+                    throw new InvalidParameterValueException("Lower bound for dependency not in valid value array.");
+                if(!Arrays.asList(p.getAllValueArray()).contains(upperBound))
+                    throw new InvalidParameterValueException("Upper bound for dependency not in valid value array.");
+                List<T2> res = new LinkedList<T2>();
+                boolean afterFirst = false, beforeLast = true;
+                for(T2 element : p.getAllValueArray()  ) {
+                    if (element.equals(lowerBound))
+                        afterFirst = true;
+                    if(element.equals(upperBound)){
+                        res.add(element);
+                        beforeLast = false;
+                    }
+                    if(afterFirst&&beforeLast)
+                        res.add(element);
+                }
+                this.rangeOfOther = new Range<T2>((T2[])res.toArray());
+            }
+            else
+                this.rangeOfOther = new Range<T2>(upperBound, lowerBound);
 
         }
     }

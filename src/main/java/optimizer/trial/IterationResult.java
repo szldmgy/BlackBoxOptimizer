@@ -69,11 +69,15 @@ public class IterationResult {
 
     public boolean badConfig() throws CloneNotSupportedException {
         for(Objective o : this.objectives.getObjectiveClones()) {
-
-            if ((o.getRelation().equals(Relation.LESS_THAN) || (o.getRelation().equals(Relation.MINIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MAX_VALUE)
-                return true;
-            else if ((o.getRelation().equals(Relation.GREATER_THAN) || (o.getRelation().equals(Relation.MAXIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MIN_VALUE)
-                return true;
+            try {
+                if ((o.getRelation().equals(Relation.LESS_THAN) || (o.getRelation().equals(Relation.MINIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MAX_VALUE)
+                    return true;
+                else if ((o.getRelation().equals(Relation.GREATER_THAN) || (o.getRelation().equals(Relation.MAXIMIZE))) && ((Number) o.getValue()).floatValue() == Float.MIN_VALUE)
+                    return true;
+            }catch (Exception e){
+                // TODO: 2018. 02. 24.  
+                System.out.println("Bad objective value.");
+            }
         }
         return false;
 

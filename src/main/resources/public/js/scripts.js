@@ -9,7 +9,24 @@ function getGeneratedId(){
 }
 
 
+function checkProgress() {
+    $.ajax({
+        url: "http://localhost:4567/progress",
+        type: 'GET',
+        // String result here
+        success: function(res) {
+            if(res == 'done') {
+                window.location = "http://localhost:4567/results";
+            }else {
+                $('#progress').text(res + " %");
+                $("#pbar").css('width',res + "%");
+                $("#pbar").text(res + " %")
+                setTimeout(checkProgress(), 500);
+            }
+        }
+    });
 
+}
 
 function addAlgorithmsToControl(name){
     $("#algorithm_names").append($("<option>").text(name).val(name))
@@ -654,19 +671,20 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,mo
                 var name = getParamNameFromId(valueSelected);
 
                 //reset all the dependency input class to new paramname
-
-                $(rangeid+ "_other_param_div > ."+previous+"_int").addClass(name+"_int")
-                $(rangeid+ "_other_param_div > ."+previous+"_int").removeClass(previous+"_int")
-                $(rangeid+ "_other_param_div > ."+previous+"_float").addClass(name+"_float")
-                $(rangeid+ "_other_param_div > ."+previous+"_float").removeClass(previous+"_float")
-                $(rangeid+ "_other_param_div > ."+previous+"_bool").addClass(name+"_bool")
-                $(rangeid+ "_other_param_div > ."+previous+"_bool").removeClass(previous+"_bool")
-                $(rangeid+ "_other_param_div > ."+previous+"_string").addClass(name+"_string")
-                $(rangeid+ "_other_param_div > ."+previous+"_string").removeClass(previous+"_string")
+                var x = $("#"+rangeid+ "_other_param_div > ."+previous+"_int")
+                $("#"+rangeid+ "_other_param_div > ."+previous+"_int").addClass(name+"_int").removeClass(previous+"_int")
+                x = $("#"+rangeid+ "_other_param_div > ."+previous+"_int")
+               // $("#"+rangeid+ "_other_param_div > ."+previous+"_int").removeClass(previous+"_int")
+                $("#"+rangeid+ "_other_param_div > ."+previous+"_float").addClass(name+"_float").removeClass(previous+"_float")
+               // $("#"+rangeid+ "_other_param_div > ."+previous+"_float").removeClass(previous+"_float")
+                $("#"+rangeid+ "_other_param_div > ."+previous+"_bool").addClass(name+"_bool").removeClass(previous+"_bool")
+                //$("#"+rangeid+ "_other_param_div > ."+previous+"_bool").removeClass(previous+"_bool")
+                $("#"+rangeid+ "_other_param_div > ."+previous+"_string").addClass(name+"_string").removeClass(previous+"_string")
+                //$("#"+rangeid+ "_other_param_div > ."+previous+"_string").removeClass(previous+"_string")
 
 
                 var new_type = name_type_map.get(name_param_id_map.get(valueSelected))
-                renameDependencyClasses()
+               // renameDependencyClasses()
                 updateType(name)
 
 

@@ -44,7 +44,7 @@
     }
   ],
   "iterationCount": {
-    "value": 2500000
+    "value": 25
   },
   "savingFrequence": -1,
   "optimizerClasses": {},
