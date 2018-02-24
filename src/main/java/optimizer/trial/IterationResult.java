@@ -14,7 +14,7 @@ import java.util.StringJoiner;
  * the parameter setup and the corresponding objective values stored in a {@link java.util.List< Param >} and an {@link ObjectiveContainer}
  * Created by peterkiss on 20/04/17.
  */
-public class IterationResult {
+public class IterationResult implements Comparable<IterationResult>{
 
     /**
      * Recent parametrization of the BBF .
@@ -148,5 +148,10 @@ public class IterationResult {
                 "configuration=" + configuration +
                 ", fitness=" + objectives +
                 '}';
+    }
+
+    @Override
+    public int compareTo(IterationResult o) {
+        return (int)(this.timeStamp-o.timeStamp);
     }
 }

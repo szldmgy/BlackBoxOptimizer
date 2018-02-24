@@ -565,7 +565,7 @@ public class BrowserInterface {
      * @return
      */
 
-    public static List<Param> readParams(Request request,String alg_name) {
+    public static List<Param> readParams(Request request,String alg_name) throws ScriptException {
 
         String param_div_range_idsStr = request.queryParams("param_range_div_ids");
         String[] param_div_range_ids = param_div_range_idsStr.split(";");
@@ -696,11 +696,8 @@ public class BrowserInterface {
                             else{
                                 //we come here when we add a default range to a bounded parameter = when bounding param is not in its range specified to bound this
 
-                                try {
                                     param.addDependency1(lowerStr,upperStr,valStr,funcRunningCountStr);
-                                } catch (ScriptException e) {
-                                    e.printStackTrace();
-                                }
+
                             }
 
                         }

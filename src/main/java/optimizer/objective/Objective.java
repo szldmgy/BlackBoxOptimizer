@@ -118,6 +118,8 @@ public class Objective<T> implements Cloneable{
      */
     private String typeName;
     public void setValue(T value){
+        if(value==null)
+            System.out.println();
         this.lastvalue = this.value;
         this.value = value;
     }
@@ -150,6 +152,8 @@ public class Objective<T> implements Cloneable{
      * @param weight
      */
     public Objective(Relation relation, boolean terminator, String name, T value, T target, T dummynull, float weight) {
+        if(value==null)
+            System.out.println();
         this.relation = relation;
         this.terminator = terminator;
         this.dummy = dummynull;
@@ -162,13 +166,13 @@ public class Objective<T> implements Cloneable{
     }
 
     /**
-     * default contructor for deserialization.l
+     * default constructor for deserialization.l
      */
     public Objective() {
     }
 
     /**
-     * Clone methof to avoid leaking of inner state.
+     * Clone method to avoid leaking of inner state.
      * @return A new Objective created through field by field copy.
      * @throws CloneNotSupportedException
      */

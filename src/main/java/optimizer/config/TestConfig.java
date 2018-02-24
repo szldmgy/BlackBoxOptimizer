@@ -169,6 +169,7 @@ public class TestConfig {
         StringJoiner sj = new StringJoiner("\n");
         sj.add("iteration,"+this.getLandscapeReference().get(0).getCSVHeaderString());
         int i =0;
+        Collections.sort(this.getLandscapeReference());
         for(IterationResult ir :this.getLandscapeReference()){
             try {
                 if(!ir.badConfig())

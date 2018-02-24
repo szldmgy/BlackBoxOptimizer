@@ -308,6 +308,11 @@ public class Param<T> implements Cloneable, Comparable<Param>{
             upperO = Boolean.parseBoolean(upper);
             pd = new ParameterDependency(lowerO,upperO);
         }
+        else if(typeName.equals(String.class.getName())){ //enumeration String
+            lowerO = lower;
+            upperO = upper;
+            pd = new ParameterDependency(this.getAllValueArray(),lowerO,upperO,null,null,null);
+        }
 
         this.dependencies.add(pd);
 
@@ -475,6 +480,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         List<ParameterDependency> toAddList = new LinkedList<>();
 
         for(ParameterDependency d : this.getDependencies()){
+            if(d==null) continue; //can happen at reading from GUI, when we know that there will be a range but that is not processed yet.
             if(d.p == null) continue;
             if(d.p.getName().equals(param.getName())) {
                 Class<?> cl =param.getParamGenericType();
@@ -503,8 +509,10 @@ public class Param<T> implements Cloneable, Comparable<Param>{
                 }*/
 
                 toRemoveList.add(d);
-                toAddList.add(new ParameterDependency(d.getRangeOfThis().getLowerBound(), d.getRangeOfThis().getUpperBound(), param,dependencyLower,dependencyUpper));
-
+                if(this.isEnumeration())
+                    toAddList.add(new ParameterDependency(this.getAllValueArray(),d.getRangeOfThis().getLowerBound(), d.getRangeOfThis().getUpperBound(), param,dependencyLower,dependencyUpper));
+                else
+                    toAddList.add(new ParameterDependency(d.getRangeOfThis().getLowerBound(), d.getRangeOfThis().getUpperBound(), param,dependencyLower,dependencyUpper));
 
             }
         }

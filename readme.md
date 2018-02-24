@@ -5,7 +5,7 @@ BlaBoO
 
 Weclome to BlaBoO!
 
-BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest
+BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest range of algorithms one wants to run.
 
 Install BlaBoO
 --------------
@@ -34,7 +34,10 @@ Run the software with GUI
 GUI menu
 -
 
-## Start new BBO task
+![Image of Yaktocat](readmefiles/1_menu_and_cl.png)
+
+
+## Start new BBO task 
 
 - the first thig you see here is a simple setup for an optimization task, whose setup file is stored in the examples folder.
 
@@ -64,14 +67,25 @@ Setup an experiment
 
 ## Command
 
+![Image of Yaktocat](readmefiles/1_menu_and_cl.png)
+
 
 - specify the terminal command using '$<paramname>' at the params to be optimized
 
-	- example: 'python Rosenbrock1.py $firstParam $secondParam'
+- example: 'python Rosenbrock1.py $firstParam $secondParam'
 
 ## Params
+2_paramsetup1.png
 
-- the params annotated with '$' must be deefined in the 'Params' section.
+![Image of Yaktocat](readmefiles/2_paramsetup1.png)
+
+- the params annotated with '$' must be defined in the 'Params' section.
+    
+    - in oreder to specify a new parameter you habe to push the add Param button in the **Params** section.
+    
+    - after you added your new Parameter, you can change its name by simply editing it in the text input. Please note, that every parameter denoted by `$` in the **Command** section should have a corresponding entry in this section. After the two names matched, the GUI attempts to follow renaming and adjust the command automatically, nevertheless it is not always possible.  
+
+![Image of Yaktocat](readmefiles/p_2param_change_name.png)
 
 	- to add a **numeric** new param :
 
@@ -110,9 +124,21 @@ Setup an experiment
 
 - the ranges the parameters move in can depend on the value of other parameters, or it is possible that setting a parameter only makes sense if an other parameter has in a specified range. (think on SVM parametrization in machine learning where some parameters have meaning only in case of uding given kernels )
 
-- to add such dependency to a parameter you can click on the 'New param dependency' button, then you should choose the variable from the select on which our parameter depends, then specify in case of what values will bw our parameter in the range we have given before.
+- to add such dependency to a parameter you can click on the 'New param dependency' button, 
 
-- If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases, If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies comlies.
+![Image of Yaktocat](readmefiles/add_dependency.png)
+
+then you should choose the variable from the select on which our parameter depends, then specify in case of what values will be our parameter in the range we have given before.
+
+![Image of Yaktocat](readmefiles/choose_dependency.png)
+
+![Image of Yaktocat](readmefiles/setup_dep_range.png)
+
+
+- If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases. If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies complies.
+
+![Image of Yaktocat](readmefiles/add_default_range.png)
+
 
 ## Objectives
 
@@ -122,19 +148,36 @@ Setup an experiment
 
 - the maximum number of iterations we want to allow to find the best possible setup
 
-- and the characteristics of the objectives to be given similarly to the 'Param' descriptions. Here we can specify the type of the objective, that can beto be minimized, maximized, less or greater then or equal to a specific value. We allow to use a linear combination of multiple objectives, in this case we can specify the importance of the target function at the 'Weight' parameter.
+- and the characteristics of the objectives to be given similarly to the 'Param' descriptions. Here we can specify the type of the objective, 
 
-- if the algorithm does not submit the expected objective measurements, the value will be set to `0`/`false`.
+![Image of Yaktocat](readmefiles/objective_generic.png)
+
+that can be: to be minimized, maximized, less or greater then or equal to a specific value.
+ 
+![Image of Yaktocat](readmefiles/objectiveType.png)
+ 
+ 
+We allow to use a linear combination of multiple objectives, in this case we can specify the importance of the target function at the 'Weight' parameter.
+
+- if the algorithm does not submit the expected objective measurements, the value will be set to `0`.
 
 ## Safe mode and restart tasks
 
 - if check the 'Safe mode' option at the bottom of the page the software will save the state of the optimization at a frequency given in the next input(per iterations)
 
+//safe_mode_options
+
 - if we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the 'backup' or the 'experiments' folder inside the software's working directory.
 
 # The optimizer algorithms
 
-- on the next page we can chose what algorithm we want to use to optimize the parameters. After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
+- on the next page we can chose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be runned, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
+
+//dropdown_alg
+
+After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the 'clickme' button.
+
+![Image of Yaktocat](readmefiles/alg_param_setup.png)
 
 
 Command Line Use
