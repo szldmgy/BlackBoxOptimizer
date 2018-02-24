@@ -69,7 +69,7 @@ Setup an experiment
 ![img](readmefiles/cl.png )
 
 
-- specify the terminal command using '$<paramname>' at the params to be optimized
+- specify the terminal command using `$<paramname>` at the params to be optimized
 
 - example: 'python Rosenbrock1.py $firstParam $secondParam'
 
@@ -77,7 +77,7 @@ Setup an experiment
 
 ![img](readmefiles/2_paramsetup1.png)
 
-- the params annotated with '$' must be defined in the 'Params' section.
+- the params annotated with `$` must be defined in the 'Params' section.
     
     - in oreder to specify a new parameter you habe to push the add Param button in the **Params** section.
     
@@ -87,35 +87,35 @@ Setup an experiment
 
 - to add a **numeric** new param :
 
-		- push 'Add param'
+	- push `Add param`
 
-		- specify its name and type
+	- specify its name and type
 
-		- specify the default value	and its boundaries
+	- specify the default value	and its boundaries
 
 - to add an **emumerated** param
 
-		- choose type `Enum`
+	- choose type `Enum`
 
-		- specify the possible values separated by ';'
+	- specify the possible values separated by ';'
 
-		- setup the default value and the first and last options as boundaries
+	- setup the default value and the first and last options as boundaries
 
 - to add an **boolean** param
 
-		- choose type 'Boolean'
+	- choose type `Boolean`
 
-		- choose the starting value
+	- choose the starting value
 
 - to add an function param
 
-		- choose type 'Function'
+	- choose type `Function`
 
-		- specify the formula generating the series of values (in js style). For now the system handles one variable in the formula, that should be marked with '$'. That means that any string starting with an '$' will be replaced by a natural value at evaluation ('$foo' and '$bar' will. be handled as one variable). Formula type now generates a series of numbers computed from '[0,1,2,..]' using the formula.
+	- specify the formula generating the series of values (in js style). For now the system handles one variable in the formula, that should be marked with '$'. That means that any string starting with an '$' will be replaced by a natural value at evaluation ('$foo' and '$bar' will. be handled as one variable). Formula type now generates a series of numbers computed from '[0,1,2,..]' using the formula.
 
-			example: 	'1/$alma' will generate a series of '[INFINITY ,1 ,1/2 ,1/3 , ... ]'
+			example: 	`1/$alma` will generate a series of `[INFINITY ,1 ,1/2 ,1/3 , ... ]`
 
-		- the next input defines how long the generated series should be.
+	- the next input defines how long the generated series should be.
 
 ## Params depending on other params (beta)
 
@@ -127,12 +127,13 @@ Setup an experiment
 
 ![img](readmefiles/add_dep.png)
 
-then you should choose the variable from the select on which our parameter depends, then specify in case of what values will be our parameter in the range we have given before.
+- then you should choose the variable from the select on which our parameter depends.
 
 ![img](readmefiles/choose_dependency.png)
 
-![img](readmefiles/setup_dep_range.png)
+ - After that we specify what is the range this **bounding parameter** has to be to influence the value of our parameter. We have to tell as well, what should be the range of available values of our **bounded parameter** if the **bounding** one is in the **bounding range**. 
 
+![img](readmefiles/setup_dep_range.png)
 
 - If there are more possible range/value that our parameter can take, we can add new ranges to the parameter for the different cases. If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter if none of the other dependencies complies.
 
@@ -173,7 +174,8 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - on the next page we can chose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be runned, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
 
-![](readmefiles/dropdown_alg1.png)    ![](readmefiles/dropdown_alg2.png)
+![](readmefiles/dropdown_alg1.png)    
+![](readmefiles/dropdown_alg2.png)
 After choosing the optimizer.algorithms we can set the parameters of the optimizer, that will be executed after pushing the **`Run`** button.
 
 ![img](readmefiles/alg_param_setup.png)
@@ -198,6 +200,7 @@ Recover interrupted process
 You can restart an interrupted process by loading the backup files that have been stored in `App/backup` folder. That is either xou browse it from gui as setup file, or give as argument in command line mode.
 
 Examples
+-
 
 You cen find some examples [here](readmefiles/example.md)
 
