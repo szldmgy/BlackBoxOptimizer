@@ -180,6 +180,13 @@ After choosing the optimizer.algorithms we can set the parameters of the optimiz
 
 ![img](readmefiles/algorithm_param_setup.png)
 
+# Results (beta)
+
+After the optimzation task terminated, the results are stored in a `.csv` file that contains the parameter setup and the result Objective values. On the GUI, after the termination you will be redirected to a result page, where in a simple chart the evolution of the Objective values is visualized in function of time.
+
+![img](readmefiles/res.png)
+
+
 
 Command Line Use
 -
