@@ -5,6 +5,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.sun.org.apache.xml.internal.security.algorithms.Algorithm;
+import jdk.internal.dynalink.linker.LinkerServices;
+import optimizer.exception.AlgorithmException;
+import optimizer.exception.ImplementationException;
 import org.apache.log4j.Level;
 import optimizer.main.Main;
 import optimizer.utils.*;
@@ -17,6 +21,7 @@ import optimizer.trial.Trial;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -116,38 +121,43 @@ public abstract class AbstractAlgorithm {
      * @param saveFileName Unique filename with relative path generated before for experiment describing JSON.
      * @throws Exception
      */
-    public void run(String experimetDir, String backupDir,String saveFileName) throws Exception {
-        try {
+    public void run(String experimetDir, String backupDir,String saveFileName) throws AlgorithmException, IOException, ImplementationException {
 
             boolean terminated = false;
             long startTime = System.currentTimeMillis();
             while (!terminated ) {
 
-                try {
+try{
                     if(this.parallelizable){
-                        int threads = Runtime.getRuntime().availableProcessors();
-                        ExecutorService pool = Executors.newFixedThreadPool(threads);
-                        Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
-                        for(int i = 0;i < this.config.getIterationCount().get();++i) {
-                            if(!configAllowed(config.getScriptParametersReference())) {
-                                config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
-                                config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(),startTime,timeDelta));
+
+                            int threads = Runtime.getRuntime().availableProcessors();
+                            ExecutorService pool = Executors.newFixedThreadPool(threads);
+                            Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
+                        try {
+                            for (int i = 0; i < this.config.getIterationCount().get(); ++i) {
+                                if (!configAllowed(config.getScriptParametersReference())) {
+                                    config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
+                                    config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(), startTime, timeDelta));
+                                }
+                                set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainer(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
+                                updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
+                                Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
-                            set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainer(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
-                            updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
-                            Main.log(Level.INFO,"PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
+                            for (Future<IterationResult> future : set) {
+                                IterationResult ir = future.get();
+                                Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
+                                this.config.setIterationCounter(this.config.getIterationCounter() + 1);
+                                this.config.getLandscapeReference().add(ir);
+                                if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
+                                    String saveFileName1 = saveFileName.replace(experimetDir, backupDir).replace(".json", "_" + this.config.getIterationCounter() + ".json");
+                                    writeResultFile(saveFileName1);
+                                }
+                            }
+                        }catch (ExecutionException e){
+                            throw new ImplementationException("Parallelizetion failed : "+e.getStackTrace() );
+                        }finally {
+                            pool.shutdown();
                         }
-                        for (Future<IterationResult> future : set) {
-                            IterationResult ir = future.get();
-                            Main.log(Level.INFO,"GETTING RESULT FROM " + ir.getCSVString());
-                            this.config.setIterationCounter(this.config.getIterationCounter()+1);
-                            this.config.getLandscapeReference().add(ir);
-                            if(this.config.getSavingFrequence()!=-1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
-                                String saveFileName1 = saveFileName.replace(experimetDir,backupDir).replace(".json","_"+this.config.getIterationCounter()+".json");
-                                writeResultFile(saveFileName1);
-                            }
-                            }
-                        pool.shutdown();
                         config.setIterationCounter(config.getIterationCount().get());
                         terminated = true;
 
@@ -174,8 +184,7 @@ public abstract class AbstractAlgorithm {
                         try {
                             updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
                         }  catch (Exception e){
-                            System.out.println("=============Algorithm error!===========");
-                            e.printStackTrace();
+                            throw new AlgorithmException("Algorithm error");
                         }
                         Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParametersReference().toString());
                     }
@@ -189,7 +198,7 @@ public abstract class AbstractAlgorithm {
                             writeResultFile(saveFileName1);
                         }
                     }
-
+    // TODO: 2018. 02. 25. InterruptedException  
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (CloneNotSupportedException e) {
@@ -198,9 +207,7 @@ public abstract class AbstractAlgorithm {
                 this.config.setIterationCounter(this.config.getIterationCounter()+1);
                 Main.log(Level.INFO,this.config.toString());
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     /**
@@ -239,7 +246,7 @@ public abstract class AbstractAlgorithm {
      * @return
      * @throws Exception
      */
-    private synchronized boolean configAllowed(List<Param> scriptParameters) throws Exception {
+    private synchronized boolean configAllowed(List<Param> scriptParameters) throws ImplementationException {
         for(Param p : scriptParameters){
             if(!p.isActive())
                 continue;

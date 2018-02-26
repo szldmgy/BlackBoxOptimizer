@@ -1,9 +1,11 @@
 package optimizer.config;
 
+import com.oracle.javafx.jmx.json.JSONException;
 import optimizer.algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
+import optimizer.exception.JSONReadException;
 import optimizer.objective.Relation;
 import org.apache.log4j.Logger;
 import optimizer.trial.IterationResult;
@@ -444,7 +446,12 @@ public class TestConfig {
         gsonBuilder.registerTypeAdapter(TestConfig.class, new TestConfigDeserializer());
         Gson gson = gsonBuilder.create();
         JsonReader reader = new JsonReader(new FileReader(configFile));
-        return gson.fromJson(reader, TestConfig.class);
+        try {
+            return gson.fromJson(reader, TestConfig.class);
+        }catch (Exception e){
+            throw new JSONReadException("Error during deserialization of JSON");
+        }
+
     }
 
     /**

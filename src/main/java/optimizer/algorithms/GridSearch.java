@@ -52,6 +52,10 @@ public class GridSearch extends AbstractAlgorithm {
         }*/
         int i = is.lastConfiguration.size()-1;
         while(i >= 0) {
+            if(optimizerParams.get(i).getValue().equals("dummy")) {
+                i--;
+                continue; //we dont care about unreachable variables
+            }
             if(this.config.getScriptParametersReference().get(i).isActive()) {
                 if(this.config.getScriptParametersReference().get(i).isNumeric())
                 {
@@ -153,16 +157,16 @@ public class GridSearch extends AbstractAlgorithm {
         //// TODO: 21/09/17 reconsider the solution for stepsize boundaries
          for(Param p : algParams){
              if(p.isValid()) {
-                 if (p.getParamTypeName().equals("java.lang.Float") )
-                     //this.optimizerParams.add(new Param<Float>(0.0001f,((Number)p.getUpperBound()).floatValue()-((Number)p.getLowerBound()).floatValue(),0.0001f,p.getName()+"_step_size"));
-                     this.optimizerParams.add(new Param<Float>(0.0001f, ((Number) p.getOuterRange().getUpperBound()).floatValue() - ((Number) p.getOuterRange().getLowerBound()).floatValue(), 0.0001f, p.getName() + "_step_size"));
+                 if (p.getParamTypeName().equals("Enum") || p.getParamTypeName().equals("Function"))
+                     this.optimizerParams.add(new Param<Integer>(1, p.getOuterRange().getValueArray().length - 1, 1, p.getName() + "_step_size"));
                  else if (p.getParamTypeName().equals("java.lang.Integer"))
                      this.optimizerParams.add(new Param<Integer>(1, (Integer) p.getOuterRange().getUpperBound() - (Integer) p.getOuterRange().getLowerBound(), 1, p.getName() + "_step_size"));
-                 //this.optimizerParams.add(new Param<Integer>(1, p.ge, 1, p.getName() + "_step_size"));
-                 else if (p.getParamTypeName().equals("Enum") || p.getParamTypeName().equals("Function"))
-                     this.optimizerParams.add(new Param<Integer>(1, p.getOuterRange().getValueArray().length - 1, 1, p.getName() + "_step_size"));
+                 else  if (p.getParamTypeName().equals("java.lang.Float") )
+                     this.optimizerParams.add(new Param<Float>(0.0001f, ((Number) p.getOuterRange().getUpperBound()).floatValue() - ((Number) p.getOuterRange().getLowerBound()).floatValue(), 0.0001f, p.getName() + "_step_size"));
+                 else  if (p.getParamTypeName().equals("java.lang.Boolean") ) //only for display and placeholder
+                     this.optimizerParams.add(new Param<Integer>(1, 1, 1, p.getName() + "_step_size"));
              }else
-                 this.optimizerParams.add(new DummyParam(p.getName()+"_step_size")); //placeholder for the alorithm
+                     this.optimizerParams.add(new DummyParam(p.getName()+"_step_size")); //placeholder for the alorithm, these are unreacheable params, that is that no valid range for them..
 
          }
 

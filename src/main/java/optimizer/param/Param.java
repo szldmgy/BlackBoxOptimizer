@@ -5,8 +5,10 @@ package optimizer.param;
 
 
 
+import optimizer.exception.ImplementationException;
 import optimizer.exception.InvalidParameterValueException;
 import optimizer.utils.Utils;
+import org.apache.commons.lang.NotImplementedException;
 
 import javax.script.ScriptException;
 import java.util.*;
@@ -157,16 +159,17 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     /**
      * Adds a dependency to the param, we should only get here if we knew that there will be another bounding param on which this will depend.
+     * @param rangeOfThis the range that we look for
      * @param p the other param on which the current range will depend.
      * @param lower The lower bound of the bounding param.
      * @param upper The lower bound of the bounding param.
      * @param <T2> Gneric type of the bounding param.
      */
     //we added the dependency param before and now we add its range
-    public <T2>void addDependencyToNotBoundedRange(Param<T2> p, T2 lower, T2 upper ){
+    public <T,T2>void addDependencyToNotBoundedRange(Range<T> rangeOfThis,Param<T2> p, T2 lower, T2 upper ){
         ParameterDependency freePd = null;
         for(ParameterDependency dep : this.dependencies ){
-            if(dep.rangeOfOther == null)
+            if(dep.rangeOfOther == null && dep.getRangeOfThis().equals(rangeOfThis))
                 freePd = dep;
         }
         if(p.isEnumeration())
@@ -185,6 +188,15 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     // TODO: 04/05/17 we should have some factory to check things...
     // TODO: 04/05/17 maybe polimorphism for enum
+    public Param(T value ,T[] values, T lower,T upper ,String name) {
+        this.name = name;
+        this.dependencies = new LinkedList<>();
+        this.dependencies.add(new ParameterDependency<T,T>(values,lower,upper,null,null,null));//first T could be Object, there is no boundary on it
+        this.initValue = value;
+        this.typeName = getParamGenericTypeName();
+
+    }
+
     public Param(T value ,T[] values,String name) {
         this.name = name;
         this.dependencies = new LinkedList<>();
@@ -207,8 +219,12 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @return
      */
     public  T[] getAllValueArray(){
-        //0 indexed one should contain  all value -> see the constructor
-        return (T[])this.dependencies.get(0).rangeOfThis.getValueArray();
+
+        T[] out = null;
+        for( ParameterDependency pd : this.dependencies)
+            if(pd.getRangeOfThis()!=null&&pd.getRangeOfThis().getValueArray()!=null && ( out==null || out.length<pd.getRangeOfThis().getValueArray().length))
+                out = (T[]) pd.getRangeOfThis().getValueArray();
+        return out;
     }
     @Deprecated
     public  String getAllValueString(){
@@ -332,14 +348,14 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @return
      * @throws Exception
      */
-    public boolean isInRange() throws Exception {
+    public boolean isInRange() throws ImplementationException {
         if(this.getValue() instanceof Number)
             return /*this.getActiveRange()!=null&&*/((Number)(this.getActiveRange().getUpperBound())).floatValue()>= ((Number)this.getValue()).floatValue() && ((Number)(this.getActiveRange().getLowerBound())).floatValue()<= ((Number)this.getValue()).floatValue();
         else if (this.isEnumeration())
             return /*this.getActiveValueArray()!=null&&*/Arrays.asList(getActiveValueArray()).contains(this.getValue());
         else if (this.getValue() instanceof Boolean)
             return ((this.getActiveRange().getUpperBound())).equals( this.getValue()) || ((this.getActiveRange().getLowerBound())).equals( this.getValue());
-        throw new Exception("not implemented!!");
+        throw new ImplementationException("Not implemented branch in Param.isInRange");
 
     }
 
@@ -353,9 +369,8 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         //list only for sake of lambda
         LinkedList<Range<T>> l = new LinkedList<Range<T>>();
         l.add(null);
+        //try catch is for returning from lambda
         try {
-
-
             dependencies.stream().filter(d -> d.comply()).forEach(new Consumer<ParameterDependency>() {
                 @Override
                 public void accept(ParameterDependency parameterDependency) {

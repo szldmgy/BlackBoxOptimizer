@@ -388,12 +388,12 @@ function addParamWithDependency(paramdivid, paramname,value,lower, upper, othern
         // addAddDependencyButton(paramdivid,paramname,dependencyid)
         // addRemoveRangeButton(paramdivid,paramname,dependencyid)
     }
-    addDependency(paramdivid, paramname, dependencyid,otherlower,otherupper, modifiable)
+    addDependency(paramdivid, paramname, dependencyid,otherlower,otherupper,othername, modifiable)
 
 }
 
 function addDependencyDiv(paramdivid,paramname,dependencyid){
-    $("#range_"+dependencyid).append("<div id ='range_"+dependencyid+  "_div'/>")
+    $("#range_"+dependencyid).append("<div id ='range_"+dependencyid+  "_div' />")
     addAddDependencyButton(paramdivid,paramname,dependencyid);
     addRemoveRangeButton(paramdivid,paramname,dependencyid);
     addRemoveDependencyButton(paramdivid,paramname,dependencyid);
@@ -403,7 +403,7 @@ function addDependencyDiv(paramdivid,paramname,dependencyid){
 
 
 function addAddDependencyButton(paramdivid,paramname, dependencyid){
-    $("#range_"+dependencyid+"_div").append("<button id = \""+dependencyid+"_addDependencyButton\" type=\"button\" onclick=\"addDependency(\'"+paramdivid+"\',\'"+paramname+"\',\'"+dependencyid+"\','','')\">New param dependency</button>")
+    $("#range_"+dependencyid+"_div").append("<button id = \""+dependencyid+"_addDependencyButton\" type=\"button\" onclick=\"addDependency(\'"+paramdivid+"\',\'"+paramname+"\',\'"+dependencyid+"\','','','')\">New param dependency</button>")
     //$("#range_"+depenedencyid+).append("<button id = \""+paramdivid+"_addDependencyButton\" type=\"button\" onclick=\"addDependency(\'"+paramdivid+"\',\'"+paramname+"\',\'"+depenedencyid+"\','','')\">New param dependency</button>")
 }
 //??????
@@ -464,11 +464,18 @@ function removeRange(paramdivid, paramname, depenedencyid){
     $("#param_range_div_ids").val( $("#param_range_div_ids").val().replace(depenedencyid,""))
     var rangeDivToRemove = document.getElementById(rangeid)
     rangeDivToRemove.parentNode.removeChild(rangeDivToRemove)
-    if($("#"+paramdivid).children('range').length == 0){
+    var range_count = $('#paramdivid').find('.range').length;
+    var dep_count = $('#paramdivid').find('.dep').length;
+    //that is that all range has a dependency so thus all of them are bounded
+    if(range_count==dep_count)
         placeNewRangeButton(paramdivid,paramname)
-    }
+   /* if($("#"+paramdivid).children('range').length == 0){
+        placeNewRangeButton(paramdivid,paramname)
+    }*/
 }
-function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,modifiable = true){
+
+
+function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,othername, modifiable = true){
     var rangeid = "range_"+depenedencyid
     $("#param_names").val($("#param_names").val()+";"+rangeid)
 
@@ -490,6 +497,10 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,mo
             selector.appendChild(opt)
         }
 
+    }
+    if(othername != '') {
+        dep_value = name_param_id_map.get(othername);
+        $(selector).val(dep_value);
     }
     //$( "#selector option:selected" ).text();
 
@@ -630,7 +641,7 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,mo
         var divid = rangeid+ "_other_param_div"
 
         //$("<div id='"+ rangeid+ "_other_param_div'></div>").insertBefore('#'+depenedencyid+"_removeRangeButton");
-        $("<div id='"+ rangeid+ "_other_param_div'></div>").insertBefore('#range_'+depenedencyid+  "_div");
+        $("<div class='dep' id='"+ rangeid+ "_other_param_div'></div>").insertBefore('#range_'+depenedencyid+  "_div");
         document.getElementById(divid).appendChild(tn1)
         document.getElementById(divid).appendChild(selector)
         document.getElementById(divid).appendChild(tn2)
@@ -652,7 +663,7 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,mo
     $("#"+rangeid+"_dep_upper_string").on('change', function (e) {
         testEnum(selected_param)}
     );
-    if($("#"+paramdivid).children('range').length % 2 == 0){
+    if($("#"+paramdivid).find('.range').length  == $("#"+paramdivid).find('.dep').length){
         placeNewRangeButton(paramdivid,paramname)
     }
 
@@ -710,6 +721,7 @@ function  hideRemoveDependencyButton(paramdivid,paramname, depenedencyid){
 }
 
 function placeNewRangeButton(paramdivid, paramname){
+
 
     var new_reangebutton = document.getElementById(paramdivid+"add_new_range_btn")
     if(!!new_reangebutton){

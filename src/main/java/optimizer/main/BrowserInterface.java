@@ -3,8 +3,11 @@ package optimizer.main;
 import optimizer.algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import optimizer.exception.AlgorithmException;
+import optimizer.exception.ImplementationException;
 import optimizer.exception.OptimizerException;
 import optimizer.objective.Relation;
+import optimizer.param.*;
 import spark.ModelAndView;
 import spark.Request;
 import spark.template.velocity.VelocityTemplateEngine;
@@ -12,9 +15,6 @@ import optimizer.utils.*;
 import optimizer.config.TestConfig;
 import optimizer.objective.Objective;
 import optimizer.objective.ObjectiveContainer;
-import optimizer.param.DummyParam;
-import optimizer.param.FunctionParam;
-import optimizer.param.Param;
 import optimizer.trial.IterationResult;
 import sun.plugin2.jvm.CircularByteBuffer;
 
@@ -137,18 +137,22 @@ public class BrowserInterface {
             try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
                 Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
             }
+            try {
+                if (tempFile.toFile().length() != 0)
+                    config[0] = TestConfig.readConfigJSON(tempFile.toFile());
+                Files.delete(tempFile);
+                Map<String, Object> model = getBBSetupModel(saveFileName[0], config, classList, objectiveTypes, algoritmhs, objTypes);
+                return new VelocityTemplateEngine().render(
+                        new ModelAndView(model, layout)
+                );
+            }catch (Exception e){
+                return new VelocityTemplateEngine().render( new ModelAndView(getErrorMode("Error in setup file: "+configFileName[0]),layout));
+            }
 
-            if(tempFile.toFile().length()!=0)
-                config[0] =  TestConfig.readConfigJSON(tempFile.toFile());
-            Files.delete(tempFile);
-            //  }
-            Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
 
-
-            return new VelocityTemplateEngine().render(
-                    new ModelAndView(model, layout)
-            );
         });
+
+
 
         post("/updateconfig", (request, response) -> {
             try{
@@ -237,16 +241,16 @@ public class BrowserInterface {
 
                         } catch (InstantiationException e) {
                             faliure[0]= true;
-                            errormsg[0] = e.getMessage();
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         } catch (IllegalAccessException e) {
                             faliure[0]= true;
-                            errormsg[0] = e.getMessage();
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         } catch (NoSuchMethodException e) {
                             faliure[0]= true;
-                            errormsg[0] = e.getMessage();
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         } catch (InvocationTargetException e) {
                             faliure[0]= true;
-                            errormsg[0] = e.getMessage();
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         }
 
                     }
@@ -280,7 +284,7 @@ public class BrowserInterface {
                 return new ModelAndView(model1, layout);
             }
             catch (Exception e){
-                String msg = e.getMessage();
+                String msg = e.getMessage() + Arrays.toString(e.getStackTrace());
                 return new ModelAndView(getErrorMode(msg), layout);
             }
 
@@ -289,101 +293,102 @@ public class BrowserInterface {
 
         post("/updatealgorithmconfig", (request, response) -> {
             try{
-            Map<String, Object> model = new HashMap<String, Object>();
+                Map<String, Object> model = new HashMap<String, Object>();
 
-            request.queryParams().stream().forEach(System.out::println);
+                request.queryParams().stream().forEach(System.out::println);
 
-            String algorithmname = request.queryParams("algorithm_names");
-            config[0].setAlgorithmName(algorithmname);
-            String useIterationString = request.queryParams("use_iterations");
+                String algorithmname = request.queryParams("algorithm_names");
+                config[0].setAlgorithmName(algorithmname);
+                String useIterationString = request.queryParams("use_iterations");
 
-            String iterationCountString = request.queryParams("iterationCount");
-            String command_input = request.queryParams("commandinput");
+                String iterationCountString = request.queryParams("iterationCount");
+                String command_input = request.queryParams("commandinput");
 
-            TestConfig c = new TestConfig();
-            c.setAlgorithmName(algorithmname);
-            c.setBaseCommand(command_input);
-            c.setIterationCounter(config[0].getIterationCounter());
-
-            if(useIterationString != null)
-                c.setIterationCount(Optional.of(Integer.parseInt(iterationCountString)));
-
-
-            String objFileName1 = request.queryParams("objFileName");
-
-            ObjectiveContainer objectiveContainer = readObjectives(request);
-
-            c.setObjectiveContainer(objectiveContainer);
-            c.setObjectiveFileName(objFileName1);
-            if(recoveryMode[0]) {
-                c.setLandscape(config[0].getLandscapeReference());
+                TestConfig c = new TestConfig();
+                c.setAlgorithmName(algorithmname);
+                c.setBaseCommand(command_input);
                 c.setIterationCounter(config[0].getIterationCounter());
-            }
-            List<Param> paramList = null;
 
-            paramList = readParams(request,algorithmname);
-
+                if(useIterationString != null)
+                    c.setIterationCount(Optional.of(Integer.parseInt(iterationCountString)));
 
 
-            c.setScriptParameters(paramList);
-            try (Writer writer = new FileWriter("test_"+algorithmname+"_conf.json")) {
-                Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
-                gson1.toJson(c, writer);
-            }
-            config[0]= c;
-            String[] errormsg = new String[1];
-            boolean[] faliure = new boolean[]{false};
-            Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
-            optimizerClasses.forEach( (optimizerClass, configfile ) ->{
-                if(!faliure[0]) {
-                    try {
-                        Object algorithmObj = optimizerClass.newInstance();
+                String objFileName1 = request.queryParams("objFileName");
 
-                        Method setConfig = optimizerClass.getMethod("setConfiguration", TestConfig.class);
-                        setConfig.invoke(algorithmObj, config[0]);
+                ObjectiveContainer objectiveContainer = readObjectives(request);
+
+                c.setObjectiveContainer(objectiveContainer);
+                c.setObjectiveFileName(objFileName1);
+                if(recoveryMode[0]) {
+                    c.setLandscape(config[0].getLandscapeReference());
+                    c.setIterationCounter(config[0].getIterationCounter());
+                }
+                List<Param> paramList = null;
+
+                paramList = readParams(request,algorithmname);
+
+
+
+                c.setScriptParameters(paramList);
+                try (Writer writer = new FileWriter("test_"+algorithmname+"_conf.json")) {
+                    Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
+                    gson1.toJson(c, writer);
+                }
+                config[0]= c;
+                String[] errormsg = new String[1];
+                boolean[] faliure = new boolean[]{false};
+                Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
+                optimizerClasses.forEach( (optimizerClass, configfile ) ->{
+                    if(!faliure[0]) {
+                        try {
+                            Object algorithmObj = optimizerClass.newInstance();
+
+                            Method setConfig = optimizerClass.getMethod("setConfiguration", TestConfig.class);
+                            setConfig.invoke(algorithmObj, config[0]);
 
                     /*Method setConfig= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
                     setConfig.invoke(algorithmObj,"test.json");*/
 
 
-                        Method setParams = optimizerClass.getMethod("setOptimizerParams", List.class);
-                        setParams.invoke(algorithmObj, config[0].getScriptParametersReference());
+                            Method setParams = optimizerClass.getMethod("setOptimizerParams", List.class);
+                            setParams.invoke(algorithmObj, config[0].getScriptParametersReference());
 
-                        Method getConfig = optimizerClass.getMethod("getConfig");
-                        Object o = getConfig.invoke(algorithmObj);
-                        algParamMap.put(optimizerClass.getSimpleName(), (List<Param>) o);
+                            Method getConfig = optimizerClass.getMethod("getConfig");
+                            Object o = getConfig.invoke(algorithmObj);
+                            algParamMap.put(optimizerClass.getSimpleName(), (List<Param>) o);
 
 
-                    } catch (InstantiationException e) {
-                        faliure[0] = true;
-                        errormsg[0] = e.getMessage();
-                    } catch (IllegalAccessException e) {
-                        faliure[0] = true;
-                        errormsg[0] = e.getMessage();
-                    } catch (NoSuchMethodException e) {
-                        faliure[0] = true;
-                        errormsg[0] = e.getMessage();
-                    } catch (InvocationTargetException e) {
-                        faliure[0] = true;
-                        errormsg[0] = e.getMessage();
+                        } catch (InstantiationException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
+                        } catch (IllegalAccessException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
+                        } catch (NoSuchMethodException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
+                        } catch (InvocationTargetException e) {
+                            faliure[0]= true;
+                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
+                        }
                     }
-                }
 
-            });
-            if(faliure[0])
+                });
+                if(faliure[0])
                     return  new ModelAndView(getErrorMode(errormsg[0]), layout);
 
-            Map<String, Object> model1 = new HashMap<>();
+                Map<String, Object> model1 = new HashMap<>();
 
 
-            model1.put("filename",saveFileName[0]);
-            model1.put("template","templates/algorithm.vtl");
-            model1.put("algParamMap",algParamMap);
-            model1.put("parametertypes",classList);
+                model1.put("filename",saveFileName[0]);
+                model1.put("template","templates/algorithm.vtl");
+                model1.put("algParamMap",algParamMap);
+                model1.put("parametertypes",classList);
 
-            return new ModelAndView(model1, layout);
+                return new ModelAndView(model1, layout);
             }catch(Exception e){
-                return  new ModelAndView(getErrorMode(e.getMessage()), layout);
+
+                return  new ModelAndView(getErrorMode(e.getMessage()+" "+ Arrays.toString(e.getStackTrace())), layout);
             }
         }, new VelocityTemplateEngine());
 
@@ -402,48 +407,50 @@ public class BrowserInterface {
 
             String expFileName = Utils.getExperimentUniqueName(saveFileName[0], experimentDir);
             String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
+            String[] errormsg = new String[1];
+            boolean[] faliure = new boolean[]{false};
+            Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+                public void uncaughtException(Thread th, Throwable ex) {
+                    errormsg[0] = ex.getMessage();
+                    faliure[0] = true;
+                }
+            };
 
-            try {
-                this.optimizationRunnerThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
+            this.optimizationRunnerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
 
-                        //save only the setup = without landscape
+                    //save only the setup = without landscape
 
-
-                        try {
-                            config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace(); e.printStackTrace();
-                        } catch (InstantiationException e) {
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (OptimizerException e) {
-                            e.printStackTrace();
-                        } catch (CloneNotSupportedException e) {
-                            e.printStackTrace();
-                        }
+                    String[] errormsg = new String[1];
+                    boolean[] faliure = new boolean[]{false};
+                    try {
+                        config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
+                    } catch (Exception e) {
+                        faliure[0] = true;
+                        errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
+                        throw new AlgorithmException("Error in optimization process: "+errormsg[0]);
                     }
-                });
-                this.optimizationRunnerThread.start();
+                }
+            });
+            this.optimizationRunnerThread.setUncaughtExceptionHandler(h);
+
+            this.optimizationRunnerThread.start();
+
+            if(faliure[0])
+                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(errormsg[0]), layout));
 
 
 
-                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+            Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
 
-                return new VelocityTemplateEngine().render(
-                        new ModelAndView(model1, layout)
-                );
-            }catch (Exception e ){
-                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(e.getMessage()), layout));
-         }
+            return new VelocityTemplateEngine().render(
+                    new ModelAndView(model1, layout)
+            );
+
 
         });
+        //this is the version without separated thred
         /*post("/run", (request, response) ->{
 
             try {
@@ -678,8 +685,12 @@ public class BrowserInterface {
                             if (param == null) {
                                 param = createNewParamWithoutDepencency(paramname, valStr, typeStr, enumStr, lowerStr, upperStr, funcRunningCountStr);
                             }
+                            else{
+                                createNewParamRangeWithoutDepencency(param,paramname, valStr, typeStr, enumStr, lowerStr, upperStr, funcRunningCountStr);
+                            }
+
                             //by now we added the param, now we can add dependency - a dummy now
-                            addDependencyToNotBoundedParam(param, dependencyParam,  depupperStr,deplowerStr);
+                            addDependencyToNotBoundedParam(param,lowerStr,upperStr, dependencyParam,  depupperStr,deplowerStr);
                             if(!paramList.contains(param))
                                 paramList.add(param);
 
@@ -687,7 +698,11 @@ public class BrowserInterface {
                         //there is no dependency for the param so we add param to the list
                         if(!foundDep) {
                             if (param == null || param instanceof DummyParam) {
-                                param = createNewParamWithoutDepencency(paramname, valStr, typeStr, enumStr, lowerStr, upperStr,funcRunningCountStr);
+                                //this branch is for handling dummy params of optimizers e.g. in GridSearch parameters ar created for each variables, but some of those are unreachable..
+                                if(valStr == null && enumStr==null && lowerStr==null && upperStr==null)
+                                    param = new DummyParam(paramname);
+                                else
+                                    param = createNewParamWithoutDepencency(paramname, valStr, typeStr, enumStr, lowerStr, upperStr,funcRunningCountStr);
                                 updateDependencies(paramList,param);
 
                                 if(!paramList.contains(param))
@@ -696,7 +711,7 @@ public class BrowserInterface {
                             else{
                                 //we come here when we add a default range to a bounded parameter = when bounding param is not in its range specified to bound this
 
-                                    param.addDependency1(lowerStr,upperStr,valStr,funcRunningCountStr);
+                                param.addDependency1(lowerStr,upperStr,valStr,funcRunningCountStr);
 
                             }
 
@@ -761,24 +776,36 @@ public class BrowserInterface {
     }
 
     //why in the hell we need this????
-    private static void addDependencyToNotBoundedParam(Param<?> param, Param dependencyParam, String depupperStr, String deplowerStr) {
+    private static void addDependencyToNotBoundedParam(Param<?> param, String loweStr,String upperStr,Param dependencyParam, String depupperStr, String deplowerStr) {
+        Range r =null;
+        if(param.isEnumeration() && param.getParamGenericTypeName().equals("java.lang.Float"))
+            r = new Range(param.getAllValueArray());
+        else{
+            switch (param.getParamGenericTypeName()){
+                case "java.lang.String" : r = new Range(param.getAllValueArray(),upperStr,loweStr);break;
+                case "java.lang.Float" : r = new Range(Float.parseFloat(upperStr), Float.parseFloat(loweStr));break;
+                case "java.lang.Integer" : r = new Range(Integer.parseInt(upperStr), Integer.parseInt(loweStr));break;
+                case "java.lang.Boolean" : r = new Range(Boolean.parseBoolean(loweStr), Boolean.parseBoolean(loweStr));break;
+            }
+        }
         String paramTypeString = dependencyParam.getParamGenericType().getName();
+        if(dependencyParam.isEnumeration() && paramTypeString== "java.lang.Float")
+            throw new ImplementationException("Branch does not support function param - addDependencyToNotBoundedParam");
         switch (paramTypeString) {
             case "java.lang.String":
                 //String[] values = enumStr.split(",;");
                 //this is dummy most probably!!!
-                param.addDependencyToNotBoundedRange(dependencyParam,deplowerStr,depupperStr);
+                param.addDependencyToNotBoundedRange(r,dependencyParam,deplowerStr,depupperStr);
                 break;
             case "java.lang.Boolean":
-                // TODO: 19/05/17 dummy falses
-                param.addDependencyToNotBoundedRange(dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(deplowerStr) );
+                // TODO: 2018. 02. 25. now we put the same value to both places
+                param.addDependencyToNotBoundedRange(r,dependencyParam,Boolean.parseBoolean(deplowerStr),Boolean.parseBoolean(deplowerStr) );
                 break;
             case "java.lang.Float":
-                param.addDependencyToNotBoundedRange(dependencyParam,Float.parseFloat(deplowerStr),Float.parseFloat(depupperStr) );
+                param.addDependencyToNotBoundedRange(r,dependencyParam,Float.parseFloat(deplowerStr),Float.parseFloat(depupperStr) );
                 break;
             case "java.lang.Integer":
-                param.addDependencyToNotBoundedRange(dependencyParam,Integer.parseInt(deplowerStr),Integer.parseInt(depupperStr) );
-
+                param.addDependencyToNotBoundedRange(r,dependencyParam,Integer.parseInt(deplowerStr),Integer.parseInt(depupperStr) );
                 break;
 
         }
@@ -794,7 +821,7 @@ public class BrowserInterface {
             }
             break;
             case "Boolean": {
-                // TODO: 19/05/17 dummy falses
+                // dummy falses
                 Param<Boolean> param1 = (Param<Boolean>) param;
 
                 param1.addDependency(Boolean.FALSE, Boolean.FALSE);
@@ -818,11 +845,10 @@ public class BrowserInterface {
         switch (typeStr) {
             case "Enum":
                 String[] values = enumStr.split("[,;]");
-                param = new Param<String>(valStr, values, paramname);
+                param = new Param<String>(valStr, values, lowerStr,upperStr,paramname);
                 break;
             case "java.lang.Boolean":
-                // TODO: 19/05/17 dummy falses
-                param = new Param<Boolean>(Boolean.parseBoolean(valStr), Boolean.FALSE, Boolean.FALSE, paramname);
+                param = new Param<Boolean>(Boolean.parseBoolean(valStr), Boolean.TRUE, Boolean.FALSE, paramname);
                 break;
             case "java.lang.Float":
                 param = new Param<Float>(Float.parseFloat(valStr), Float.parseFloat(upperStr), Float.parseFloat(lowerStr), paramname);
@@ -842,5 +868,35 @@ public class BrowserInterface {
 
         }
         return param;
+    }
+
+    private static void  createNewParamRangeWithoutDepencency(Param p,String paramname, String valStr, String typeStr, String enumStr, String lowerStr,String upperStr,String funcRunningCountStr) {
+        Param<?> param = null;
+        switch (typeStr) {
+            case "Enum":
+                String[] values = enumStr.split("[,;]");
+                param = new Param<String>(valStr, values, lowerStr,upperStr,paramname);
+                break;
+            case "java.lang.Boolean":
+                param = new Param<Boolean>(Boolean.parseBoolean(valStr), Boolean.TRUE, Boolean.FALSE, paramname);
+                break;
+            case "java.lang.Float":
+                param = new Param<Float>(Float.parseFloat(valStr), Float.parseFloat(upperStr), Float.parseFloat(lowerStr), paramname);
+                break;
+            case "java.lang.Integer":
+                param = new Param<Integer>(Integer.parseInt(valStr),Integer.parseInt(upperStr),Integer.parseInt(lowerStr), paramname);
+                break;
+
+            case "Function":
+                try {
+                    param = new FunctionParam(paramname,valStr,Integer.parseInt(funcRunningCountStr));
+                } catch (ScriptException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+
+        }
+        p.getDependencies().add((ParameterDependency)param.getDependencies().get(0));
     }
 }
