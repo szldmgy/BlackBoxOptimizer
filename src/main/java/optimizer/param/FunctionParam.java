@@ -10,7 +10,7 @@ import javax.script.ScriptException;
 public class FunctionParam extends Param<Float> {
     String functionString;
     public FunctionParam(String name,String functionString,int arrayLength) throws ScriptException {
-        super(0f, Utils.evalFunction(functionString,arrayLength), name);
+        super(null, Utils.evalFunction(functionString,arrayLength), name);
         this.functionString = functionString;
 
 

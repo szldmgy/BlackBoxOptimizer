@@ -1,4 +1,4 @@
-ąź<!--<!doctype>-->
+<!--<!doctype>-->
 <div id = "cont" class="container-fluid text-left">
     <div class="row content">
         <!--<div class="col-sm-2 sidenav">
@@ -201,7 +201,7 @@
 
             $("#failed_experiment_div").append("Failed tasks:")
 
-            $("#failed_experiment_div").append(failedfilelist.join(",\<n></n>"))
+            $("#failed_experiment_div").append(failedfilelist.join(",<br>"))
 
 
 
@@ -211,40 +211,49 @@
                 var j =0;
                 experiments.forEach(function(exp){
                             //data rows to json conversion
-                            var data =  JSON.parse(csvJSON(exp.data))
-                            if(Object.keys(data).length>=exp.setup.iterationCount.value){
+                            var data0 =  JSON.parse(csvJSON(exp.data))
+                            var length_of_data = data0.length;
+                            if(Object.keys(data0).length>=exp.setup.iterationCount.value){
                             //iterate over objectives specified in the experiment- each of those will be one graph
                             exp.setup.objectiveContainer.objectives.forEach(function(obj) {
                                 var color = '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6) + "aa";
                                 var color1 = '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6);
 
-
+                                var data = Object.assign([], data0);
                                 var k;
                                 // timestamps for the iterations
                                 var time_iter_map = {};
-                                for (k = 0; k < data.length; ++k) {
-                                    //find the latest iteration timestamp
-                                    if (max_x < +data[k]['timestamp']) {
-                                        max_x = +data[k]['timestamp'];
-                                    }
-                                    //x value will be the timestamp
-                                    data[k]["x"] = +data[k]['timestamp'];
-                                    //y is the column with  name of the objective
-                                    data[k]["y"] = +data[k][obj.name]
-                                    //key: timestamp value:  iteration number
-                                    time_iter_map[data[k]['timestamp']] = k;
-
+                                for (k = 0; k < length_of_data; k++) {
+                                    (function (k) {
+                                        if(k>0&&+data[k]['timestamp'] == +data[k-1]['timestamp'])
+                                            data[k]['timestamp'] = ''+(+data[k-1]['timestamp']+1);
+                                        //find the latest iteration timestamp
+                                        if (max_x < +data[k]['timestamp']) {
+                                            max_x = +data[k]['timestamp'];
+                                        }
+                                        //x value will be the timestamp
+                                        data[k]["x"] = +data[k]['timestamp'];
+                                        //y is the column with  name of the objective
+                                        data[k]["y"] = +data[k][obj.name]
+                                        //key: timestamp value:  iteration number
+                                        time_iter_map[data[k]['timestamp']] = k;
+                                    })(k);
                                 }
                                 //lastx : furthest value of objective in time
+                                var last_element = data[k-1]
                                 var lastx = data[k - 1]["x"];
                                 var lasty = data[k - 1]["y"];
                                 // here we add aditional nodes
-                                for (; k < max_iteration_count; ++k) {
+                                for (; k <= max_iteration_count; k++) {
                                     (function (k) {
                                         lastx++;
-                                        var new_entry = {x: lastx, y: 0} //add a couple of new x value next to the last one with y=0
+
+                                        var new_entry = Object.assign({}, last_element);
+                                        new_entry['y']= 0; //add a couple of new x value next to the last one with y=0
+                                        new_entry['x'] = lastx;
+
                                         // headers.forEach(function(h){new_entry[h]=""; });
-                                        new_entry['timestamp'] = new_entry['x'];
+                                        new_entry['timestamp'] = ''+new_entry['x'];
                                         data.push(new_entry);
                                         time_iter_map[new_entry['timestamp']] = k;
                                     })(k);
@@ -252,7 +261,11 @@
 
                                 //another graph: best value up to now
                                 var setup = {};
-                                setup['name'] = j + ": " + exp.setup.algorithmName + " " + obj.name;
+                                var rel =  obj.relation;
+                                var target = !!(obj.target)?('->'+obj.target):('');
+                                if(target === undefined)
+                                    alert(target)
+                                setup['name'] = j + ": " + exp.setup.algorithmName + " " + obj.name+"  ("+ rel+target+" )";
                                 setup['data'] = data;
                                 setup['color'] = color;
                                 setup['renderer'] = 'area';
@@ -264,37 +277,53 @@
 
                                 data1 = JSON.parse(csvJSON(exp.data));
                                 var best = +data1[1][obj.name];
-                                for (k = 0; k < data1.length; ++k) {
-                                    if(k != 0) {
+                                if(isNaN(best))
+                                    best = 0;
+                                for (k = 0; k < data1.length; k++) {
+                                    (function (k) {
+                                    var next_value = +(data1[k][obj.name]);
+                                    if((k != 0) && !Number.isNaN(next_value)) {
                                         if ((obj.relation === 'MINIMIZE' || obj.relation === 'LESS_THAN') && +data1[k][obj.name] < best) {
-                                            best = +data1[k][obj.name];
+                                            best = next_value;
                                         }
                                         else if ((obj.relation === 'MAXIMIZE' || obj.relation === 'GREATER_THAN') && +data1[k][obj.name] > best) {
-                                            best = +data1[k][obj.name];
+                                            best = next_value;
                                         }
                                     }
+                                    if(k>0 && +data1[k]['timestamp'] == +data1[k-1]['timestamp'])
+                                            data1[k]['timestamp'] = ''+(+data1[k-1]['timestamp']+1);
+                                    //else alert("NaN: "+data1[k][obj.name])
                                     //iter based
                                     // data1[i]["x"] = +data1[k][headers[0]] ;
-                                    data1[k]["x"] = +data1[k]['timestamp'];
+                                    var ind = k;
+                                    data1[k]["x"] = +(data1[k]['timestamp']);
                                     data1[k]["y"] = best
-                                    time_iter_map1[data1[k]['timestamp']] = k;
-
+                                    time_iter_map1[data1[k]['timestamp']] = ind;
+                                    })(k);
 
                                 }
-                                lastx = data[k - 1]["x"];
-                                for (; k < max_iteration_count; ++k) {
+                                var lastx1 = data1[k - 1]["x"];
+                                var last_element1 =  data1[k - 1];
+                                for (; k <= max_iteration_count; k++) {
                                     (function (k) {
-                                        lastx++;
-                                        var new_entry = {x: lastx, y: best}
+                                        lastx1++;
+                                        //var new_entry = {x: lastx, y: +best}
+                                        var new_entry =  Object.assign({}, last_element1);
+                                        new_entry['y'] = +best;
+                                        new_entry['x'] = lastx1;
                                         //  headers.forEach(function(h){new_entry[h]=""; });
-                                        new_entry['timestamp'] = new_entry['x'];
+                                        new_entry['timestamp'] = ''+new_entry['x'];
                                         data1.push(new_entry);
                                         time_iter_map1[new_entry['timestamp']] = k;
                                     })(k);
                                 }
 
                                 var setup1 = {};
-                                setup1['name'] = j + ": " + exp.setup.algorithmName + " " + obj.name + " best so far";
+                                var rel =  obj.relation;
+                                var target = !!(obj.target)?('->'+obj.target):('');
+                                if(target === undefined)
+                                    alert(target)
+                                setup1['name'] = j + ": " + exp.setup.algorithmName + " " + obj.name +"  ("+ rel+target+" ) best so far";
                                 setup1['data'] = data1;
                                 setup1['color'] = color1;
                                 setup1['renderer'] = 'line';
@@ -378,7 +407,7 @@
                     graph: graph
                 } );
 
-                /*var slider = new Rickshaw.Graph.RangeSlider.Preview({
+               /* var slider = new Rickshaw.Graph.RangeSlider.Preview({
                     graph: graph,
                     element: document.querySelector('#slider')
                 });*/
@@ -388,27 +417,29 @@
                     element: document.querySelector('#legend')
                 });
 
-                /*var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
+                var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
                     graph: graph,
                     legend: legend,
                    //disabledColor: function() { return 'rgba(0, 0, 0, 0)' }
-                });*/
-
-                var highlighter = new Rickshaw.Graph.Behavior.Series.Toggle({
-                    graph: graph,
-                    legend: legend
                 });
 
-                /*var shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
+               /* var highlighter = new Rickshaw.Graph.Behavior.Series.Toggle({
                     graph: graph,
                     legend: legend
-                } );*/
+                });*/
+
+                var shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
+                    graph: graph,
+                    legend: legend
+                } );
 
                 var order = new Rickshaw.Graph.Behavior.Series.Order( {
                     graph: graph,
                     legend: legend
                 } );
 
+
+                //graph.renderer.unstack = true;
                 graph.render();
 
             }

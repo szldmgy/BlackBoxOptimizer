@@ -79,7 +79,7 @@ public class SimulatedAnnealing extends AbstractAlgorithm {
             s[i] = (2 * gen.nextDouble()) - 1;
         }
         double c = ((Number) optimizerParams.get(0).getValue()).doubleValue();
-        List<Param> center = landscape.get(landscape.size()-1-is.hits).getConfiguration();
+        List<Param> center = landscape.get(landscape.size()-1-is.hits).getConfigurationClone();
 
         for (int i = 0; i < s.length; ++i) {
             if (s[i] > 0 && ((Number) center.get(i).getUpperBound()).doubleValue() - ((Number) center.get(i).getValue()).doubleValue() < c * s[i])

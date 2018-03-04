@@ -2,6 +2,7 @@ package optimizer.utils;
 
 
 import optimizer.algorithms.AbstractAlgorithm;
+import optimizer.exception.InvalidParameterValueException;
 import optimizer.objective.Relation;
 import optimizer.param.Param;
 import optimizer.trial.IterationResult;
@@ -71,7 +72,7 @@ public class Utils {
     /**
      * Due to the limits of some Browsers, we set an upper bound on float values going to the GUI.
      */
-    public static Float FLOAT_REDEFINED_MAX_VALUE = 100000f;
+    public static Float FLOAT_REDEFINED_MAX_VALUE = 1000000f;
 
     /**
      * Creates the relative path for the CSV result file of the optimization.
@@ -244,7 +245,6 @@ public class Utils {
             String toEval = function.replaceAll(variablePattern, i.toString());
             ret[i] = ((Number) engine.eval(toEval)).floatValue();
         }
-//// TODO: 23/09/17 not really efficient
         for(Integer i = 0;i<arrayLength;++i ) {
             if(ret[i].equals(Float.POSITIVE_INFINITY))
                 ret[i] = FLOAT_REDEFINED_MAX_VALUE;
@@ -254,8 +254,13 @@ public class Utils {
         return ret;
     }
     //// TODO: 21/09/17 a huge hack..
-    public static int compareNumbers(Number a, Number b){
-        if(a == null && b == null)
+    public static double compareNumbers(Number a, Number b){
+        if(a==null || b == null)
+            throw new InvalidParameterValueException("Null in number comparision ");
+        double diff = a.doubleValue() - b.doubleValue();
+        if(Math.abs(diff)<0.00001) return 0;
+        return diff ;
+       /* if(a == null && b == null)
             return 0;
         if(a == null)
             return -1;
@@ -263,14 +268,14 @@ public class Utils {
             return 1;
         try {
             return new BigDecimal(a.toString()).compareTo(new BigDecimal(b.toString()));
-        }
+        /
         catch (Exception e){
             //// TODO: 20/09/17 hack
             if(a.equals(Float.MAX_VALUE)) return 1;
             if(b.equals(Float.MAX_VALUE)) return -1;
 
         }
-        return 0;
+        return 0;*/
 
     }
 
@@ -282,19 +287,21 @@ public class Utils {
      * @param <T> The actual type of the value and the boundaries.
      * @return
      */
+    @Deprecated
     public static <T extends  Number> boolean comply (T value , T upper, T lower){
         return Utils.compareNumbers(value,upper)<0 && Utils.compareNumbers(lower,value)<0;
 
     }
 
     /**
-     * Corresponds to comply on numners for {@link java.lang.Boolean}s, defined as TRUE if the value equals the upperbound.
+     * Corresponds to comply on numners for {@link java.lang.Boolean}s, defined as TRUE if the value equals the upper bound.
      * @param value
      * @param upper
      * @param lower
      * @param <Boolean>
      * @return
      */
+    @Deprecated
     public static <Boolean> boolean comply (Boolean value , Boolean upper, Boolean lower){
         return value.equals(upper);
 
@@ -320,7 +327,7 @@ public class Utils {
             Float castedValue = ((Number) value).floatValue();
 
             Double castedThreshold = ((Number)target).doubleValue();
-            int rel = Utils.compareNumbers(castedValue,castedThreshold);
+            double rel = Utils.compareNumbers(castedValue,castedThreshold);
             if (relation.equals(Relation.LESS_THAN) && rel < 0 )
                 return true;
             if (relation.equals(Relation.GREATER_THAN) && rel > 0)

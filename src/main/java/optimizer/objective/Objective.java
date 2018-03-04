@@ -87,6 +87,9 @@ public class Objective<T> implements Cloneable{
         this.weight = weight;
     }
 
+
+    public T getLastvalue() {        return lastvalue;    }
+
     /**
      * In case of linear combination of multiple {@link Objective} this specifies the importance of each of them.
      */
@@ -109,6 +112,7 @@ public class Objective<T> implements Cloneable{
      * The target value the {@code value} should approximate
      */
     private T target;
+
     /**
      * {@code value} of the previous
      */
@@ -152,8 +156,6 @@ public class Objective<T> implements Cloneable{
      * @param weight
      */
     public Objective(Relation relation, boolean terminator, String name, T value, T target, T dummynull, float weight) {
-        if(value==null)
-            System.out.println();
         this.relation = relation;
         this.terminator = terminator;
         this.dummy = dummynull;
@@ -166,7 +168,7 @@ public class Objective<T> implements Cloneable{
     }
 
     /**
-     * default constructor for deserialization.l
+     * Default constructor for deserialization.
      */
     public Objective() {
     }

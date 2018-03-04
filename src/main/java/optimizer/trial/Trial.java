@@ -25,7 +25,7 @@ public class Trial implements Callable<IterationResult> {
      */
     private String baseCommand;
     /**
-     * Name of the outputfile of the executed process.
+     * Name of the output file of the executed process.
      */
     private String processOutputFileName;
     /**
@@ -33,7 +33,7 @@ public class Trial implements Callable<IterationResult> {
      */
     private ObjectiveContainer pattern;
     /**
-     * Stores the timestemp of starting moment of the process.
+     * Stores the timestamp of starting moment of the process.
      */
     long startTime;
     /**

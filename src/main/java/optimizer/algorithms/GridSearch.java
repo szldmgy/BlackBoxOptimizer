@@ -46,7 +46,7 @@ public class GridSearch extends AbstractAlgorithm {
             if(landscape.isEmpty())
                 lastConfiguration = parameterMap;
             else
-                lastConfiguration = landscape.get(landscape.size()-1).getConfiguration();
+                lastConfiguration = landscape.get(landscape.size()-1).getConfigurationClone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }*/

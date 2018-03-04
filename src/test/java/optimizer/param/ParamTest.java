@@ -3,9 +3,11 @@ package optimizer.param;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import optimizer.exception.InvalidParameterValueException;
 import org.junit.*;
 import optimizer.config.TestConfig;
 
+import javax.script.ScriptException;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
@@ -93,9 +95,108 @@ public class ParamTest {
         return gson.fromJson(in, listType);
     }
 
+    @Test
+    public void paramCloneTest1() throws CloneNotSupportedException {
+        Param p = new Param("1",new String[]{"1","2","3"},"p");
+        Param p2 = p.clone();
+        List<ParameterDependency> pdl = new LinkedList<ParameterDependency>();
+        pdl.add(new ParameterDependency(new String[]{"3","5","6"}));
+        p2.setDependencies(pdl);
+        p2.setInitValue("3");
+        assertTrue(!p.getValue().equals(p2.getValue()));
+        assertTrue(p.getActiveRange().equals(new Range(new String[]{"1","2","3"})));
+    }
+
+    @Test
+    public void paramCloneTest2() throws CloneNotSupportedException {
+        Param p = new Param(1f,new Float[]{1f,2f,3f},"p");
+        Param p2 = p.clone();
+        List<ParameterDependency> pdl = new LinkedList<ParameterDependency>();
+        pdl.add(new ParameterDependency(new Float[]{3f,5f,6f}));
+        p2.setDependencies(pdl);
+        p2.setInitValue(3f);
+        assertTrue(!p.getValue().equals(p2.getValue()));
+        assertTrue(p.getActiveRange().equals(new Range(new Float[]{1f,2f,3f})));
+
+    }
 
 
-   // @Test
+    @Test
+    public void paramCloneTest3() throws CloneNotSupportedException {
+        Param p = new Param(1,3,1,"p");
+        Param p2 = p.clone();
+        List<ParameterDependency> pdl = new LinkedList<ParameterDependency>();
+        pdl.add(new ParameterDependency(3,6));
+        p2.setDependencies(pdl);
+        p2.setInitValue(3);
+        assertTrue(!p.getValue().equals(p2.getValue()));
+        assertTrue(p.getActiveRange().equals(new Range(3,1)));
+
+    }
+
+    @Test
+    public void paramCloneTest4() throws CloneNotSupportedException {
+        Param p = new Param(1f,3f,1f,"p");
+        Param p2 = p.clone();
+        List<ParameterDependency> pdl = new LinkedList<ParameterDependency>();
+        pdl.add(new ParameterDependency(3f,6f));
+        p2.setDependencies(pdl);
+        p2.setInitValue(3f);
+        assertTrue(!p.getValue().equals(p2.getValue()));
+        assertTrue(p.getActiveRange().equals(new Range(3f,1f)));
+
+    }
+
+    @Test
+    public void paramCloneTest5() throws CloneNotSupportedException, ScriptException {
+        Param p = new FunctionParam("p","$x",10);
+        Param p2 = p.clone();
+        List<ParameterDependency> pdl = new LinkedList<ParameterDependency>();
+        pdl.add(new ParameterDependency(new Float[]{1f,2f,3f}));
+        p2.setDependencies(pdl);
+        p2.setInitValue(3f);
+        assertTrue(!p.getValue().equals(p2.getValue()));
+        assertTrue(p.getActiveRange().equals(new Range(new Float[]{0f,1f,2f,3f,4f,5f,6f,7f,8f,9f})));
+
+    }
+
+    @Test(expected = InvalidParameterValueException.class)
+    public void invalidValueTest1() throws ScriptException {
+        Param p = new FunctionParam("p","$x",10);
+        p.setInitValue(-1f);
+    }
+
+
+    @Test(expected = InvalidParameterValueException.class)
+    public void invalidValueTest2()  {
+        Param p = new Param("1",new String[]{"2"},"p");
+    }
+
+    @Test(expected = InvalidParameterValueException.class)
+    public void invalidValueTest4()  {
+        Param p = new Param("2",new String[]{"2"},"1","2","p");
+    }
+
+
+    @Test(expected = InvalidParameterValueException.class)
+    public void invalidValueTest5()  {
+        Param p = new Param("2",new String[]{"2"},"2","3","p");
+    }
+
+
+    @Test
+    public void invalidValueTest6()  {
+        Param p = new Param("2",new String[]{"2"},"2","2","p");
+    }
+
+    @Test(expected = InvalidParameterValueException.class)
+    public void invalidValueTest3()  {
+        Param p = new Param("1",new String[]{"1","2"},"p");
+        p.setInitValue("x");
+    }
+
+
+    @Test
     public void deserializeTest(){
         Param p = deserializeParam(param_float_single_dep);
         assertTrue(p.getParamGenericType().equals(Float.class));
@@ -110,14 +211,14 @@ public class ParamTest {
         //assertTrue(((ParameterDependency)pl.get(0).getDependencies().get(0)).getP().equals(pl.get(1)));
 
     }
-   // @Test
+    @Test
     public void functionParamTypeTest() throws FileNotFoundException {
-        TestConfig tc = TestConfig.readConfigJSON("src/test/resources/Rosenbrock_multi_SimulatedAnnealing.json");
+        TestConfig tc = TestConfig.readConfigJSON("src/test/resources/Test/Rosenbrock_multi_SimulatedAnnealing.json");
         assertTrue(tc.getOptimizerParameters().get(2).getAllValueArray().getClass().getComponentType()==Float.class);
 
     }
 
-   // @Test
+    @Test
     public void dependencyTestFloat()
     {
         Param bounding = new Param(1f,11f,0f,"bounding");
@@ -149,11 +250,6 @@ public class ParamTest {
         r = bounded.getActiveRange();
         assertTrue(r.equals(new Range(12.75f,12.5f)));
         assertTrue(bounded.isActive());
-
-
-
-
-
 
 
     }

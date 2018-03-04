@@ -1,5 +1,5 @@
 {
-  "baseCommand": "examples/Rastrigin_C/a.out $firstParam $secondParam",
+  "baseCommand": "examples/Rastrigin_C/rastrigin $firstParam $secondParam",
   "algorithmName": "SMBO",
   "iterationCounter": 21,
   "optimizerParameters": [

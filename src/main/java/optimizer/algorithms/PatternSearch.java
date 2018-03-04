@@ -33,7 +33,7 @@ public class PatternSearch extends AbstractAlgorithm {
             is.firstMove = false;
         }
         try {
-            ArrayList<Param> center = new ArrayList<>(landscape.get(landscape.size() - 1 - is.movesFromCenter).getConfiguration());
+            ArrayList<Param> center = new ArrayList<>(landscape.get(landscape.size() - 1 - is.movesFromCenter).getConfigurationClone());
 
             if (is.movesFromCenter < 2 * parameterMap.size()) {
                 center.get(is.movesFromCenter / 2).add((is.movesFromCenter % 2 == 1 ? is.stepsize : -is.stepsize));
@@ -55,7 +55,7 @@ public class PatternSearch extends AbstractAlgorithm {
                     if (modifiedIndex != -1) {
                         bestConfiguration.get(modifiedIndex).setInitValue(center.get(modifiedIndex).getValue());
                     }
-                    bestConfiguration.get(i / 2).setInitValue(landscape.get(j + i).getConfiguration().get(i / 2).getValue());
+                    bestConfiguration.get(i / 2).setInitValue(landscape.get(j + i).getConfigurationClone().get(i / 2).getValue());
                     modifiedIndex = i / 2;
                 }
             }

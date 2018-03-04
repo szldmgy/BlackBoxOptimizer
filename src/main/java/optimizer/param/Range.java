@@ -67,7 +67,11 @@ public class Range<T> implements Cloneable{
             throw new InvalidParameterValueException("Upper bound for Range not in the array.");
         List<T> arr1 = Arrays.asList(array);
         List<T> arr2 = new LinkedList<T>();
-        for(int i = arr1.indexOf(from);i<=arr1.indexOf(to);i++)
+        int fromIndex = arr1.indexOf(from);
+        int toIndex = arr1.indexOf(to);
+        if(toIndex<fromIndex)
+            throw new InvalidParameterValueException("Lower bound for Range not in higher that upper bound.");
+        for(int i = fromIndex;i<=toIndex;i++)
             arr2.add(arr1.get(i));
         T[] arr = (T[]) arr2.toArray();
         this.lowerBound = arr[0];
@@ -76,13 +80,13 @@ public class Range<T> implements Cloneable{
     }
 
     /**
-     * Constructor for discrete {@link Range} that will correspond to the array parameter.
+     * Constructor for discrete {@link Range} that will correspond to the array parameter. Copies the references of elements of the array in an internal one.
      * @param array Array of the possible values.
      */
     public Range(T[] array) {
-        this.lowerBound = array[0];
-        this.upperBound = array[array.length-1];
         this.valueArray = Arrays.copyOf(array,array.length);
+        this.lowerBound = this.valueArray[0];
+        this.upperBound = this.valueArray[this.valueArray.length-1];
     }
 
     /**
@@ -112,7 +116,6 @@ public class Range<T> implements Cloneable{
             int r2l = r2.valueArray.length;
             int l = Math.max(r1l,r2l);
             T[] x = r1l>r2l?r1.valueArray:r2.valueArray;
-            int maxlen = Math.max(r1.valueArray.length,r2.valueArray.length);
             List<T> l1 = Arrays.asList(r1.valueArray);
             List<T> l2 = Arrays.asList(r2.valueArray);
             List<T> res = new LinkedList<>();
@@ -240,8 +243,8 @@ public class Range<T> implements Cloneable{
             return Arrays.asList(this.getValueArray()).contains(value);
         else if(value instanceof Number)
             return Utils.compareNumbers((Number)value,(Number) this.upperBound)<=0 && Utils.compareNumbers((Number) this.lowerBound,(Number)value)<=0;
-        else
-            return this.lowerBound.equals(value); // this for Booleans
+        else //Boolean
+            return this.lowerBound.equals(value) || this.upperBound.equals(value); // this for Booleans
 
     }
 

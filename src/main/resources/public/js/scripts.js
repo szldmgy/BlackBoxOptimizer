@@ -17,7 +17,9 @@ function checkProgress() {
         success: function(res) {
             if(res == 'done') {
                 window.location = "http://localhost:4567/results";
-            }else {
+            }else if(res == 'error')
+                window.location = "http://localhost:4567/error";
+            else {
                 $('#progress').text(res + " %");
                 $("#pbar").css('width',res + "%");
                 $("#pbar").text(res + " %")
@@ -180,8 +182,10 @@ function recursiveReplace(node) {
 //addNewObjective("$obj.getName()","$obj.getRelation()","$obj.getTarget()","$obj.isTerminator()","$obj.getTypeName()")
 
 function addNewObjective(name,relation,target,terminator,typename ){
+
     if(name === undefined){
-        name = "obj_"+objective_counter++ //$("#objectivelistdiv").children().length
+        while($("#object_names").val().includes("obj_"+objective_counter) ){objective_counter++}
+        name = "obj_"+objective_counter //$("#objectivelistdiv").children().length
     }
     var id = name+"_objective_div"
     $("#object_names").val($("#object_names").val()+";"+id)
@@ -194,15 +198,12 @@ function addNewObjective(name,relation,target,terminator,typename ){
     $("#"+id).append("<input id = \""+id+"_weight\" name = \""+id+"_weight\" type=\"text\" value = \"100\">")
 
     $("#"+id).append("Relation: ")
-    var sel = $("<select id = \""+id+"_relation\" name = \""+id+"_relation\">").appendTo($("#"+id));
-    $(objective_relation_types).each(function(t,e) {
-        sel.append($("<option>").text(e));
-    });
+    var sel1 = $("<select id = \""+id+"_relation\" name = \""+id+"_relation\">").appendTo($("#"+id));
 
 
 
 
-    /*  if(relation == "GREATER_THEN" || relation == "LESS_THEN" || relation == "EQUALS" ){
+    /*  if(relation == "GREATER_THAN" || relation == "LESS_THAN" || relation == "EQUALS" ){
           $("#"+id+"_relation_value").show();
           $("#"+id+"_relation_value").attr('disabled', false);
 
@@ -211,7 +212,8 @@ function addNewObjective(name,relation,target,terminator,typename ){
           $("#"+id+"_relation_value").attr('disabled', true);
       }*/
 
-    $("#"+id).append("<input id = \""+id+"_relation_value\" name = \""+id+"_relation_value\" type=\"text\" value = \""+target+"\">")
+    target = target==undefined?0:target;
+    $("#"+id).append("<input id = \""+id+"_relation_value\" name = \""+id+"_relation_value\" type=\"number\" step=\"any\" value = \""+target+"\">")
     //$("#"+id).append("Terminates optimization: ")
     //$("#"+id).append("<input id = \""+id+"_terminator\" name = \""+id+"_terminator\" type=\"checkbox\" value = \""+terminator+"\">")
     $("#"+id).append("Type: ")
@@ -229,7 +231,7 @@ function addNewObjective(name,relation,target,terminator,typename ){
     $("#"+id+"_relation").on('change', function (e) {
         var optionSelected = $("option:selected", this);
         var valueSelected = this.value;
-        if(valueSelected == "GREATER_THEN" || valueSelected == "LESS_THEN" || valueSelected == "EQUALS" || valueSelected == "MAXIMIZE_TO_CONVERGENCE" || valueSelected == "MINIMIZE_TO_CONVERGENCE"){
+        if(valueSelected == "GREATER_THAN" || valueSelected == "LESS_THAN" || valueSelected == "EQUALS" || valueSelected == "MAXIMIZE_TO_CONVERGENCE" || valueSelected == "MINIMIZE_TO_CONVERGENCE"){
             $("#"+id+"_relation_value").show();
             $("#"+id+"_relation_value").attr('disabled', false);
 
@@ -239,13 +241,16 @@ function addNewObjective(name,relation,target,terminator,typename ){
         }
 
     });
+
+    $(objective_relation_types).each(function(t,e) {
+        sel1.append($("<option>").text(e));
+    });
     $("#"+id+"_relation option").filter(function() {
         //may want to use $.trim in here
         return $(this).text() == relation;
     }).prop('selected', true);
-    //todo duplicate code
 
-    if(relation == "GREATER_THEN" || relation == "LESS_THEN" || relation == "EQUALS" || relation == "MAXIMIZE_TO_CONVERGENCE" || relation == "MINIMIZE_TO_CONVERGENCE"){
+    if(relation == "GREATER_THAN" || relation == "LESS_THAN" || relation == "EQUALS" || relation == "MAXIMIZE_TO_CONVERGENCE" || relation == "MINIMIZE_TO_CONVERGENCE"){
         $("#"+id+"_relation_value").show();
         $("#"+id+"_relation_value").attr('disabled', false);
 
@@ -253,6 +258,8 @@ function addNewObjective(name,relation,target,terminator,typename ){
         $("#"+id+"_relation_value").hide();
         $("#"+id+"_relation_value").attr('disabled', true);
     }
+
+
 
 }
 
@@ -802,7 +809,7 @@ function addParamDiv(parentNode,paramdivid, paramname,param_type, enum_values, m
         found_wrong.each(function(){$(this).css("background-color", 'red')})
 
     });
-    //!!!!!!!!!!!!!todo!!!!!!!!!!!!!!!!!!!!!!!!
+
     $("#"+paramdivid+"paramname").on('change', function (e) {
         var new_name = $( this ).val()
         //var old_name = getParamNameFromId(paramname)

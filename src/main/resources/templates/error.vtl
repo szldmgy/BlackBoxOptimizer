@@ -4,10 +4,10 @@
 
         <div>
             <p id = "msg"><span  style="color:red">Some Error happened: <span/></p>
-    </div>
-    <script>
-        var msg = " $errormessage "
-        $("#msg").text( $("#msg").text() +"<br>"+msg);
+        </div>
+        <script>
+            var msg = "<p> $errormessage </p>"
+            $("#msg").append(msg);
 
-    </script>
-</div>
+        </script>
+    </div>

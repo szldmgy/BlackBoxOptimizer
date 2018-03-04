@@ -5,8 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.sun.org.apache.xml.internal.security.algorithms.Algorithm;
-import jdk.internal.dynalink.linker.LinkerServices;
 import optimizer.exception.AlgorithmException;
 import optimizer.exception.ImplementationException;
 import org.apache.log4j.Level;
@@ -123,90 +121,90 @@ public abstract class AbstractAlgorithm {
      */
     public void run(String experimetDir, String backupDir,String saveFileName) throws AlgorithmException, IOException, ImplementationException {
 
-            boolean terminated = false;
-            long startTime = System.currentTimeMillis();
-            while (!terminated ) {
+        boolean terminated = false;
+        long startTime = System.currentTimeMillis();
+        while (!terminated ) {
 
-try{
-                    if(this.parallelizable){
+            try{
+                if(this.parallelizable){
 
-                            int threads = Runtime.getRuntime().availableProcessors();
-                            ExecutorService pool = Executors.newFixedThreadPool(threads);
-                            Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
-                        try {
-                            for (int i = 0; i < this.config.getIterationCount().get(); ++i) {
-                                if (!configAllowed(config.getScriptParametersReference())) {
-                                    config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
-                                    config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(), startTime, timeDelta));
-                                }
-                                set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainer(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
-                                updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
-                                Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
+                    int threads = Runtime.getRuntime().availableProcessors();
+                    ExecutorService pool = Executors.newFixedThreadPool(threads);
+                    Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
+                    try {
+                        for (int i = 0; i < this.config.getIterationCount().get(); ++i) {
+                            if (!configAllowed(config.getScriptParametersReference())) {
+                                config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
+                                config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(), startTime, timeDelta));
                             }
-                            for (Future<IterationResult> future : set) {
-                                IterationResult ir = future.get();
-                                Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
-                                this.config.setIterationCounter(this.config.getIterationCounter() + 1);
-                                this.config.getLandscapeReference().add(ir);
-                                if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
-                                    String saveFileName1 = saveFileName.replace(experimetDir, backupDir).replace(".json", "_" + this.config.getIterationCounter() + ".json");
-                                    writeResultFile(saveFileName1);
-                                }
-                            }
-                        }catch (ExecutionException e){
-                            throw new ImplementationException("Parallelizetion failed : "+e.getStackTrace() );
-                        }finally {
-                            pool.shutdown();
-                        }
-                        config.setIterationCounter(config.getIterationCount().get());
-                        terminated = true;
-
-                    }
-                    else {
-                        if (configAllowed(config.getScriptParametersReference())) {
-
-                            BufferedReader r = null;
-                            r = executeAndGetResultBufferedReader(config);
-                            ObjectiveContainer oc = ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainer());
-                            config.setObjectiveContainer(oc);
-                        } else {
-                            config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainer()));
-
-                        }
-                        terminated =this.terminated();
-                        config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainer(),startTime,timeDelta));
-                    }
-
-
-
-                    if(!terminated) {
-                        Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParametersReference().toString());
-                        try {
+                            set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
                             updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
-                        }  catch (Exception e){
-                            throw new AlgorithmException("Algorithm error");
+                            Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                         }
-                        Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParametersReference().toString());
+                        for (Future<IterationResult> future : set) {
+                            IterationResult ir = future.get();
+                            Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
+                            this.config.setIterationCounter(this.config.getIterationCounter() + 1);
+                            this.config.getLandscapeReference().add(ir);
+                            if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
+                                String saveFileName1 = saveFileName.replace(experimetDir, backupDir).replace(".json", "_" + this.config.getIterationCounter() + ".json");
+                                writeResultFile(saveFileName1);
+                            }
+                        }
+                    }catch (ExecutionException e){
+                        throw new ImplementationException("Parallelizetion failed : "+e.getStackTrace() );
+                    }finally {
+                        pool.shutdown();
                     }
+                    config.setIterationCounter(config.getIterationCount().get());
+                    terminated = true;
 
-                    if(this.config.getSavingFrequence()!=-1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0|| terminated) {
-                        if(terminated && config.getLandscapeReference().size()<config.getIterationCount().get())
-                            System.out.println("para");
-                        this.saveState(this.config.getOptimizerStateBackupFilename()==null?"optBackUp.json":this.config.getOptimizerStateBackupFilename());
-                        if(!terminated) {
-                            String saveFileName1 = saveFileName.replace(experimetDir,backupDir).replace(".json","_"+this.config.getIterationCounter()+".json");
-                            writeResultFile(saveFileName1);
-                        }
-                    }
-    // TODO: 2018. 02. 25. InterruptedException  
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
                 }
-                this.config.setIterationCounter(this.config.getIterationCounter()+1);
-                Main.log(Level.INFO,this.config.toString());
+                else {
+                    if (configAllowed(config.getScriptParametersReference())) {
+
+                        BufferedReader r = null;
+                        r = executeAndGetResultBufferedReader(config);
+                        ObjectiveContainer oc = ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainerReference());
+                        config.setObjectiveContainer(oc);
+                    } else {
+                        config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
+
+                    }
+                    terminated =this.terminated();
+                    config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(),startTime,timeDelta));
+                }
+
+
+
+                if(!terminated) {
+                    Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParametersReference().toString());
+                    try {
+                        updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
+                    }  catch (Exception e){
+                        throw new AlgorithmException("Algorithm error");
+                    }
+                    Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParametersReference().toString());
+                }
+
+                if(this.config.getSavingFrequence()!=-1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0|| terminated) {
+                    if(terminated && config.getLandscapeReference().size()<config.getIterationCount().get())
+                        System.out.println("para");
+                    this.saveState(this.config.getOptimizerStateBackupFilename()==null?"optBackUp.json":this.config.getOptimizerStateBackupFilename());
+                    if(!terminated) {
+                        String saveFileName1 = saveFileName.replace(experimetDir,backupDir).replace(".json","_"+this.config.getIterationCounter()+".json");
+                        writeResultFile(saveFileName1);
+                    }
+                }
+                // TODO: 2018. 02. 25. InterruptedException
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
             }
+            this.config.setIterationCounter(this.config.getIterationCounter()+1);
+            Main.log(Level.INFO,this.config.toString());
+        }
 
     }
 
@@ -271,8 +269,8 @@ try{
      */
     public ObjectiveContainer lookup(List<Param> configuration,long startTime,long delay) throws InterruptedException, IOException, CloneNotSupportedException {
         for(IterationResult ir : config.getLandscapeReference())
-            if(Utils.paramConfigsAreEqual(ir.getConfiguration(),configuration))
-                return ir.getObjectives();
+            if(Utils.paramConfigsAreEqual(ir.getConfigurationClone(),configuration))
+                return ir.getObjectiveContainerClone();
         String command = config.getCommand(configuration,config.getBaseCommand());
         ObjectiveContainer oc = runAlgorithm(command);
 
@@ -290,7 +288,7 @@ try{
      */
     private ObjectiveContainer runAlgorithm(String command) throws IOException, InterruptedException {
         BufferedReader r = executeAndGetResultBufferedReader(config);
-        return ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainer());
+        return ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainerReference());
     }
 
     @Deprecated
@@ -319,7 +317,7 @@ try{
         if(this.config.getIterationCount().isPresent()
                 && this.config.getIterationCounter()>= this.config.getIterationCount().get())
             return  true;
-        return this.config.getObjectiveContainer() == null ? false : this.config.getObjectiveContainer().terminated();
+        return this.config.getObjectiveContainerReference() == null ? false : this.config.getObjectiveContainerReference().terminated();
 
     }
 
@@ -405,7 +403,7 @@ try{
 
     /**
      * loads the parameter configuration of the optimizer from an external json
-     * @param configFileName 
+     * @param configFileName
      * @throws FileNotFoundException
      */
     @Deprecated

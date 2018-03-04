@@ -27,7 +27,6 @@ public class ParticleSwarmOptimization extends AbstractAlgorithm {
     @Override
     public void updateParameters(List<Param> parameterMap, List<IterationResult> landscape) {
 
-        try {
             if(is.initialisedParticles == 0) {
                 int dim = parameterMap.size();
                 float[] blo = new float[dim];
@@ -95,10 +94,7 @@ public class ParticleSwarmOptimization extends AbstractAlgorithm {
                 parameterMap.get(d).setInitValue(is.swarm.get(is.actualParticle).position[d]);
             }
 
-        }
-        catch(CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+
 
     }
 

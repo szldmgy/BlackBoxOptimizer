@@ -21,7 +21,6 @@ public class GeneticTournamentRandomStep extends Genetic {
     @Override
     protected void select(List<IterationResult> landscape) {
 
-        try {
             double fitnessSum = landscape.get(is.bestChromosome).getFitness();
             for(int i = (is.generation-1)*((int)optimizerParams.get(0).getValue()-1); i < is.generation*((int)optimizerParams.get(0).getValue()-1); ++i)
                 fitnessSum += landscape.get(i).getFitness();
@@ -56,9 +55,7 @@ public class GeneticTournamentRandomStep extends Genetic {
 
             }
 
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+
 
     }
 
@@ -68,10 +65,10 @@ public class GeneticTournamentRandomStep extends Genetic {
 
         Random rand = new Random();
         try {
-            for(int i = 0; i < landscape.get(0).getConfiguration().size(); ++i) {
+            for(int i = 0; i < landscape.get(0).getConfigurationClone().size(); ++i) {
                 boolean b = rand.nextBoolean();
-                result.get(i).setInitValue(b ? landscape.get(father).getConfiguration().get(i).getValue() :
-                        landscape.get(mother).getConfiguration().get(i).getValue());
+                result.get(i).setInitValue(b ? landscape.get(father).getConfigurationClone().get(i).getValue() :
+                        landscape.get(mother).getConfigurationClone().get(i).getValue());
             }
 
             double[] s = new double[result.size()];

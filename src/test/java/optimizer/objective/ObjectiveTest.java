@@ -32,10 +32,10 @@ public class ObjectiveTest {
     String o_float_lt = " {\n" +
             "        \"relation\": \"LESS_THAN\",\n" +
             "        \"terminator\": false,\n" +
-            "        \"weight\": 50.0,\n" +
+            "        \"weight\": 40.0,\n" +
             "        \"name\": \"true_positives\",\n" +
             "        \"dummy\": 0,\n" +
-            "        \"target\": 15,\n" +
+            "        \"target\": 50.0,\n" +
             "        \"typeName\": \"java.lang.Float\"\n" +
             "      }";
 
@@ -59,13 +59,13 @@ public class ObjectiveTest {
             "        \"typeName\": \"java.lang.Float\"\n" +
             "      }";
 
-    String o_float_minc = " {\n" +
+    String o_int_minc = " {\n" +
             "        \"relation\": \"MINIMIZE_TO_CONVERGENCE\",\n" +
             "        \"terminator\": false,\n" +
             "        \"weight\": 50,\n" +
             "        \"name\": \"true_positives\",\n" +
             "        \"dummy\": 0,\n" +
-            "        \"target\": 0.01,\n" +
+            "        \"target\": 1,\n" +
             "        \"typeName\": \"java.lang.Integer\"\n" +
             "      }";
 
@@ -93,16 +93,30 @@ public class ObjectiveTest {
         Objective<?> o2 = deserializeObjective(o_float_lt);
         assertTrue(o2.getRelation().equals(Relation.LESS_THAN));
         assertTrue(o2.getName().equals("true_positives"));
-        assertTrue(Math.abs(((Number)o2.getTarget()).floatValue()-50f)>0.0001f);
+        assertTrue(Math.abs(((Number)o2.getTarget()).floatValue()-50f)<0.0001f);
         assertTrue(o2.getType().equals(Float.class));
-        assertTrue(Math.abs(o2.getWeight()-50f)<0.0001f);
+        assertTrue(Math.abs(o2.getWeight()-40)<0.0001f);
 
         Objective<?> o3 = deserializeObjective(o_int_gt);
         assertTrue(o3.getRelation().equals(Relation.GREATER_THAN));
         assertTrue(o3.getName().equals("true_positives"));
         assertTrue(((Number)o3.getTarget()).intValue()==50);
         assertTrue(o3.getType().equals(Integer.class));
-        assertTrue(Math.abs(o2.getWeight()-50f)<0.0001f);
+        assertTrue(Math.abs(o3.getWeight()-50f)<0.0001f);
+
+        Objective<?> o4 = deserializeObjective(o_float_maxc);
+        assertTrue(o4.getRelation().equals(Relation.MAXIMIZE_TO_CONVERGENCE));
+        assertTrue(o4.getName().equals("true_positives"));
+        assertTrue(Math.abs(((Number)o4.getTarget()).floatValue()-0.01f)<0.0001f);
+        assertTrue(o4.getType().equals(Float.class));
+        assertTrue(Math.abs(o4.getWeight()-50f)<0.0001f);
+
+        Objective<?> o5 = deserializeObjective(o_int_minc);
+        assertTrue(o5.getRelation().equals(Relation.MINIMIZE_TO_CONVERGENCE));
+        assertTrue(o5.getName().equals("true_positives"));
+        assertTrue(((Number)o5.getTarget()).intValue()==1);
+        assertTrue(o5.getType().equals(Integer.class));
+        assertTrue(Math.abs(o5.getWeight()-50f)<0.0001f);
 
 
     }
@@ -130,14 +144,58 @@ public class ObjectiveTest {
     public void metTest(){
         Objective<Float> o = deserializeObjective(o_float_maxc);
         o.setValue(10f);
-        o.setValue(10f);
+        assertTrue(!o.met());
+        o.setValue(11f);
+        assertTrue(!o.met());
+        o.setValue(11f);
         assertTrue(o.met());
 
-        Objective<Float> o1 = deserializeObjective(o_float_minc);
-        o1.setValue(10f);
-        o1.setValue(10f);
-        assertTrue(o.met());
 
+        Objective<Float> o1 = deserializeObjective(o_int_minc);
+        o1.setValue(10f);
+        assertTrue(!o1.met());
+        o1.setValue(11f);
+        assertTrue(!o1.met());
+        o1.setValue(11f);
+        assertTrue(o1.met());
+
+
+        Objective<Float> o2 = deserializeObjective(o_float_lt);
+        assertTrue(!o2.met());
+        o2.setValue(51f);
+        assertTrue(!o2.met());
+        o2.setValue(50f);
+        assertTrue(!o2.met());
+        o2.setValue(49f);
+        assertTrue(o2.met());
+
+
+        Objective<Integer> o3 = deserializeObjective(o_int_gt);
+        assertTrue(!o3.met());
+        o3.setValue(51);
+        assertTrue(o3.met());
+        o3.setValue(50);
+        assertTrue(!o3.met());
+        o3.setValue(49);
+        assertTrue(!o3.met());
+
+        Objective<Integer> o4 = deserializeObjective(o_int_max);
+        assertTrue(!o4.met());
+        o4.setValue(51);
+        assertTrue(!o4.met());
+        o4.setValue(50);
+        assertTrue(!o4.met());
+        o4.setValue(49);
+        assertTrue(!o4.met());
+
+        Objective<Float> o5 = deserializeObjective(o_float_min);
+        assertTrue(!o5.met());
+        o5.setValue(51f);
+        assertTrue(!o5.met());
+        o5.setValue(50f);
+        assertTrue(!o5.met());
+        o5.setValue(49f);
+        assertTrue(!o5.met());
     }
 
 

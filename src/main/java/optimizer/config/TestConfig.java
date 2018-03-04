@@ -105,7 +105,7 @@ public class TestConfig {
     public List< Param> getOptimizerParameters() {return optimizerParameters; }
 
     public List<IterationResult> getLandscapeReference() { return landscape; }
-    public ObjectiveContainer getObjectiveContainer() {        return objectiveContainer;    }
+    public ObjectiveContainer getObjectiveContainerReference() {        return objectiveContainer;    }
     public String getOptimizerConfigFilename() {       return optimizerConfigFilename;    }
     public synchronized int getIterationCounter() {        return iterationCounter;    }
     public String getOptimizerStateBackupFilename() {        return optimizerStateBackupFilename;    }

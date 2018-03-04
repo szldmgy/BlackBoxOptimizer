@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import optimizer.exception.AlgorithmException;
 import optimizer.exception.ImplementationException;
-import optimizer.exception.OptimizerException;
 import optimizer.objective.Relation;
 import optimizer.param.*;
 import spark.ModelAndView;
@@ -16,7 +15,6 @@ import optimizer.config.TestConfig;
 import optimizer.objective.Objective;
 import optimizer.objective.ObjectiveContainer;
 import optimizer.trial.IterationResult;
-import sun.plugin2.jvm.CircularByteBuffer;
 
 import javax.script.ScriptException;
 import javax.servlet.MultipartConfigElement;
@@ -29,10 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static spark.Spark.*;
@@ -50,6 +44,7 @@ public class BrowserInterface {
     private final String[] algoritmhs;
     private final Boolean[] safeMode= {false};
     private final boolean[] recoveryMode = {false};
+    private final String[] initialConfigFileName = new String[1];
     private final String[] configFileName= new String[1];
     private final String[] saveFileName= new String[1];
     private static String outputDir;
@@ -59,16 +54,19 @@ public class BrowserInterface {
     private static List<String> classList;
     private static List<String> objTypes;
     final String[] objectiveTypes = Arrays.stream(Relation.values()).map(v->v.toString()).toArray(String[]::new);
+    private  Boolean[] executionError= new Boolean[1];
+    private  String[] executionErrorMsg = new String[1];
 
 
     //available optimizer.algorithms
     private Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses;// = new HashMap<Class<? extends AbstractAlgorithm>,String>();
 
     private  TestConfig[] config = new TestConfig[1];
+
+
     public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
 
-
-        this.config[0] = TestConfig.readConfigJSON(initialConfigFileName);
+        this.initialConfigFileName[0] = initialConfigFileName;
         this.optimizerClasses = optimizerClasses;
         this.algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);
         this.saveFileName[0] =saveFileName;
@@ -92,6 +90,8 @@ public class BrowserInterface {
     public void run(){
 
         get("/progress", (req, res) ->{
+            if(executionError[0])
+                return "error";
             if(optimizationRunnerThread.getState()==Thread.State.TERMINATED){
                 return "done";
             }
@@ -99,9 +99,16 @@ public class BrowserInterface {
 
         });
 
+        get("/error", (req, res) ->{
+            return new VelocityTemplateEngine().render(
+                    new ModelAndView(getErrorMode(executionErrorMsg[0]), layout)
+            );
+
+        });
+
 
         get("/results", (req, res) ->{
-            Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainer().getObjectiveClones(), "experiment.csv",saveFileName[0]);
+            Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]);
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model1, layout)
             );
@@ -116,6 +123,8 @@ public class BrowserInterface {
         });
 
         get("/hello", (req, res) ->{
+            this.config[0] = TestConfig.readConfigJSON(this.initialConfigFileName[0]);
+
             Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model, layout)
@@ -422,14 +431,14 @@ public class BrowserInterface {
 
                     //save only the setup = without landscape
 
-                    String[] errormsg = new String[1];
-                    boolean[] faliure = new boolean[]{false};
+                    //String[] errormsg = new String[1];
+                    //boolean[] faliure = new boolean[]{false};
                     try {
                         config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
                     } catch (Exception e) {
-                        faliure[0] = true;
-                        errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        throw new AlgorithmException("Error in optimization process: "+errormsg[0]);
+                        executionError[0] = true;
+                        executionErrorMsg[0] ="Error in optimization process: (are the command to execute correct?)<br>"+ e.getMessage() + Arrays.toString(e.getStackTrace());
+                        throw new AlgorithmException("Error in optimization process: "+executionErrorMsg[0]);
                     }
                 }
             });
@@ -442,7 +451,7 @@ public class BrowserInterface {
 
 
 
-            Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+            Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
 
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model1, layout)
@@ -472,7 +481,7 @@ public class BrowserInterface {
                 String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
 
                 config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
-                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainer().getObjectiveClones(), resFileName,saveFileName[0]);
+                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
 
                 return new VelocityTemplateEngine().render(
                         new ModelAndView(model1, layout)
@@ -503,7 +512,7 @@ public class BrowserInterface {
         model.put("template","templates/param.vtl");
         model.put("paramlist",config[0].getScriptParametersReference());
         model.put("command",config[0].getBaseCommand());
-        model.put("objlist",config[0].getObjectiveContainer().getObjectiveClones());
+        model.put("objlist",config[0].getObjectiveContainerReference().getObjectiveListClone());
         model.put("objectivetypes", objectiveTypes);
         model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
         model.put("optimizer/algorithms",algoritmhs);
@@ -841,6 +850,16 @@ public class BrowserInterface {
     }
 
     private static Param<?> createNewParamWithoutDepencency(String paramname, String valStr, String typeStr, String enumStr, String lowerStr,String upperStr,String funcRunningCountStr) {
+        Param<?> param = createParamFromStringAttributes(paramname, valStr, typeStr, enumStr, lowerStr, upperStr, funcRunningCountStr);
+        return param;
+    }
+
+    private static void  createNewParamRangeWithoutDepencency(Param p,String paramname, String valStr, String typeStr, String enumStr, String lowerStr,String upperStr,String funcRunningCountStr) {
+        Param<?> param = createParamFromStringAttributes(paramname, valStr, typeStr, enumStr, lowerStr, upperStr, funcRunningCountStr);
+        p.getDependencies().add((ParameterDependency)param.getDependencies().get(0));
+    }
+
+    private static Param<?> createParamFromStringAttributes(String paramname, String valStr, String typeStr, String enumStr, String lowerStr, String upperStr, String funcRunningCountStr) {
         Param<?> param = null;
         switch (typeStr) {
             case "Enum":
@@ -868,35 +887,5 @@ public class BrowserInterface {
 
         }
         return param;
-    }
-
-    private static void  createNewParamRangeWithoutDepencency(Param p,String paramname, String valStr, String typeStr, String enumStr, String lowerStr,String upperStr,String funcRunningCountStr) {
-        Param<?> param = null;
-        switch (typeStr) {
-            case "Enum":
-                String[] values = enumStr.split("[,;]");
-                param = new Param<String>(valStr, values, lowerStr,upperStr,paramname);
-                break;
-            case "java.lang.Boolean":
-                param = new Param<Boolean>(Boolean.parseBoolean(valStr), Boolean.TRUE, Boolean.FALSE, paramname);
-                break;
-            case "java.lang.Float":
-                param = new Param<Float>(Float.parseFloat(valStr), Float.parseFloat(upperStr), Float.parseFloat(lowerStr), paramname);
-                break;
-            case "java.lang.Integer":
-                param = new Param<Integer>(Integer.parseInt(valStr),Integer.parseInt(upperStr),Integer.parseInt(lowerStr), paramname);
-                break;
-
-            case "Function":
-                try {
-                    param = new FunctionParam(paramname,valStr,Integer.parseInt(funcRunningCountStr));
-                } catch (ScriptException e) {
-                    e.printStackTrace();
-                }
-
-                break;
-
-        }
-        p.getDependencies().add((ParameterDependency)param.getDependencies().get(0));
     }
 }

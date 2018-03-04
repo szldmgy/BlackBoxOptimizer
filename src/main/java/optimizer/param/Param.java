@@ -25,7 +25,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
 
     /**
-     * name of the objectives, along with the T type parameter identifies the param.
+     * Name of the objectives, along with the T type parameter identifies the param.
      */
     private String name;
     /**
@@ -33,7 +33,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      */
     private String typeName;
     /**
-     * Recent value of the parameter
+     * Recent value of the parameter.
      */
     private T initValue;
     /**
@@ -87,7 +87,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     public String getAdditionalInfo(){return "";}
 
     /**
-     * We regard two parameters as equal, if the names are the same.
+     * We regard two parameters as equal, if the names are the same, and share the same generic type.
      * @param o
      * @return
      */
@@ -97,8 +97,8 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         if (!(o instanceof Param)) return false;
 
         Param<?> param = (Param<?>) o;
-        /*if(param.getParamGenericType()!=this.getParamGenericType())
-            return false;*/
+        if(param.getParamGenericType()!=this.getParamGenericType())
+            return false;
 
         return name != null ? name.equals(param.name) : param.name == null;
 
@@ -108,7 +108,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     /**
      * Returns hash of the {@code name}
-     * @return
+     * @return The default {@link String#hashCode()} of the name.
      */
     @Override
     public int hashCode() {
@@ -180,15 +180,18 @@ public class Param<T> implements Cloneable, Comparable<Param>{
         freePd.setP(p);
 
     }
-    //todo hack
-    //if inactive at a given start value it will be null!!
-    // public boolean isEnumeration(){return this.getActiveRange().valueArray != null;}
-    //actually can be good
-    public boolean isEnumeration(){return this.dependencies.get(0).rangeOfThis.getValueArray()!= null;}
+
+    /**
+     * Tests whether a {@link Param} is of enumeration type.
+     * @return True id the union of {@link Range}s in the belonging {@link ParameterDependency}-s are not empty.
+     */
+    public boolean isEnumeration(){return this.getAllValueArray()!= null;}
 
     // TODO: 04/05/17 we should have some factory to check things...
     // TODO: 04/05/17 maybe polimorphism for enum
     public Param(T value ,T[] values, T lower,T upper ,String name) {
+        if(!Arrays.asList(values).contains(value))
+            throw new InvalidParameterValueException("Value not in valid value array.");
         this.name = name;
         this.dependencies = new LinkedList<>();
         this.dependencies.add(new ParameterDependency<T,T>(values,lower,upper,null,null,null));//first T could be Object, there is no boundary on it
@@ -197,7 +200,17 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     }
 
+    /**
+     * Constructor for Parameters of discrete value set. If no intitial value is given that will be initiaized for the first element of the discrete value array,
+     * @param value The initial value of the parameter.
+     * @param values The possible values of the {@link Param}.
+     * @param name The name of the {@link Param}.
+     */
     public Param(T value ,T[] values,String name) {
+        if(value == null)
+            value = values[0];
+        if(!Arrays.asList(values).contains(value))
+            throw new InvalidParameterValueException("Value not in valid value array.");
         this.name = name;
         this.dependencies = new LinkedList<>();
         this.dependencies.add(new ParameterDependency<T,T>(values));//first T could be Object, there is no boundary on it
@@ -207,26 +220,29 @@ public class Param<T> implements Cloneable, Comparable<Param>{
     }
 
     /**
-     * In case of finite value set returns the active set of values.
-     * @return
+     * In case of finite value set this returns those elements of the possible values that are available according the validity of boundings.
+     * @return Returns the active set of values.
      */
     public  T[] getActiveValueArray(){
         return (T[])this.getActiveRange().getValueArray();
     }
 
     /**
-     * In case of finite value set returns the set of all values.
-     * @return
+     * In case of finite value set (equivalently the {@link Param} is of enumerated type) returns the set of all values, that is the union of all valueset defined in the {@link ParameterDependency}s.
+     * @return The union of the values defined in the  {@link #dependencies}, and null if that is empty.
      */
     public  T[] getAllValueArray(){
-
         T[] out = null;
         for( ParameterDependency pd : this.dependencies)
             if(pd.getRangeOfThis()!=null&&pd.getRangeOfThis().getValueArray()!=null && ( out==null || out.length<pd.getRangeOfThis().getValueArray().length))
                 out = (T[]) pd.getRangeOfThis().getValueArray();
         return out;
     }
-    @Deprecated
+
+    /**
+     * Turns {@link #getActiveValueArray()} into a String in order to deliver to GUI.
+     * @return String representation of the  union of values defined in the different {@link Range}s of the {@link ParameterDependency}s.
+     */
     public  String getAllValueString(){
         T[] a = getAllValueArray();
         if(a == null)
@@ -435,17 +451,17 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     /**
      * Helper method to decide whether the Param wraps a numeric value.
-     * @return
+     * @return True id the generic type ( {@link #getParamGenericType()}) is {@link Integer} or {@link Float}, and  FALSE otherwise.
      */
     public boolean isNumeric() {
         if(this instanceof FunctionParam)
             return false;
-        return initValue instanceof Integer || initValue instanceof Float || initValue instanceof Double;
+        return initValue instanceof Integer || initValue instanceof Float;
     }
 
     /**
      * Helper method to decide whether the Param wraps a boolean value.
-     * @return
+     * @return True id the generic type ( {@link #getParamGenericType()}) is {@link Boolean}, and  FALSE otherwise.
      */
     public boolean isBoolean() {
         return initValue instanceof Boolean;
@@ -570,7 +586,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
      * @throws CloneNotSupportedException
      */
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Param clone() throws CloneNotSupportedException {
         Param p =   (Param)super.clone();
         p.dependencies = new LinkedList<>();
         for(ParameterDependency pd : this.dependencies)
@@ -581,7 +597,7 @@ public class Param<T> implements Cloneable, Comparable<Param>{
 
     /**
      * default String representation of the Param object.
-     * @return
+     * @return Some String representation of the {@link Param}
      */
     @Override
     public String toString() {

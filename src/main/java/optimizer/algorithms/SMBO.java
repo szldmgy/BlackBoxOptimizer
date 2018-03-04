@@ -126,12 +126,12 @@ public class SMBO extends AbstractAlgorithm {
 
     GaussianProcessRegressionWithVariance< double[] > buildModel(List<IterationResult> landscape) throws CloneNotSupportedException {
 
-        double[][] tests = new double[landscape.size()][landscape.get(0).getConfiguration().size()];
+        double[][] tests = new double[landscape.size()][landscape.get(0).getConfigurationClone().size()];
         double[] results = new double[landscape.size()];
 
         for(int i = 0; i < landscape.size(); ++i ) {
-            for(int j = 0; j < landscape.get(0).getConfiguration().size(); ++j) {
-                tests[i][j] = ((Number)landscape.get(i).getConfiguration().get(j).getValue()).doubleValue();
+            for(int j = 0; j < landscape.get(0).getConfigurationClone().size(); ++j) {
+                tests[i][j] = ((Number)landscape.get(i).getConfigurationClone().get(j).getValue()).doubleValue();
             }
             results[i] = ((Number)landscape.get(i).getFitness()).doubleValue();
         }

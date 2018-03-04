@@ -65,18 +65,18 @@ public class FishSchool extends AbstractAlgorithm {
             c = rand.nextInt(is.members.length-1);
 
             List<Param> xm = new ArrayList<>();
-            Param.refillList(xm,landscape.get(is.members[a]).getConfiguration());
+            Param.refillList(xm,landscape.get(is.members[a]).getConfigurationClone());
             for(int i = 0; i < xm.size(); ++i) {
-                /*xm.get(i).add((float)((double)((Number)landscape.get(is.members[b]).getConfiguration().get(i).getValue()).floatValue() -
-                        (double)landscape.get(is.members[c]).getConfiguration().get(i).getValue())*(double)optimizerParams.get(1).getValue());*/
+                /*xm.get(i).add((float)((double)((Number)landscape.get(is.members[b]).getConfigurationClone().get(i).getValue()).floatValue() -
+                        (double)landscape.get(is.members[c]).getConfigurationClone().get(i).getValue())*(double)optimizerParams.get(1).getValue());*/
                 xm.get(i).add(
                         (
-                                ((Number)landscape.get(is.members[b]).getConfiguration().get(i).getValue()).floatValue() -
-                                        ((Number)landscape.get(is.members[c]).getConfiguration().get(i).getValue()).floatValue()
+                                ((Number)landscape.get(is.members[b]).getConfigurationClone().get(i).getValue()).floatValue() -
+                                        ((Number)landscape.get(is.members[c]).getConfigurationClone().get(i).getValue()).floatValue()
                         )
                         *((Number)optimizerParams.get(1).getValue()).floatValue());
             }
-            Param.refillList(is.xc,landscape.get(is.members[is.actualIndividual]).getConfiguration());
+            Param.refillList(is.xc,landscape.get(is.members[is.actualIndividual]).getConfigurationClone());
 
             // // TODO: 23/09/17 index out of range
             //for(int i = 0; i < is.members.length; ++i) {
