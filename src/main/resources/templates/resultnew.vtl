@@ -1,4 +1,18 @@
-<!--<!doctype>-->
+<!--
+        Copyright 2018 Peter Kiss and David Fonyo
+
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+ -->
 <div id = "cont" class="container-fluid text-left">
     <div class="row content">
         <!--<div class="col-sm-2 sidenav">
@@ -347,12 +361,7 @@
 
 
                 )
-                /*series.forEach(function(s){
-                    delete s.time_iter_map[s.data[s.data.length-1]['x']];
-                    s.data[s.data.length-1]['x']= max_x;
-                    s.data[s.data.length-1]['timestamp']= max_x;
-                    s.time_iter_map[max_x] = s.data.length-1;
-                });*/
+
 
 
                 var graph = new Rickshaw.Graph( {
@@ -392,10 +401,7 @@
                             alert(data_no);
 
                         }
-                        /*for(var h in headers){
-                            var h = headers[i];
-                            labeltext += headers[i] +':&nbsp;'+data_element[h]+"<br>";
-                        }*/
+
 
                         for(var h in data_element){
                             //var h = headers[i];
@@ -407,10 +413,6 @@
                     graph: graph
                 } );
 
-               /* var slider = new Rickshaw.Graph.RangeSlider.Preview({
-                    graph: graph,
-                    element: document.querySelector('#slider')
-                });*/
 
                 var legend = new Rickshaw.Graph.Legend({
                     graph: graph,
@@ -423,10 +425,6 @@
                    //disabledColor: function() { return 'rgba(0, 0, 0, 0)' }
                 });
 
-               /* var highlighter = new Rickshaw.Graph.Behavior.Series.Toggle({
-                    graph: graph,
-                    legend: legend
-                });*/
 
                 var shelving = new Rickshaw.Graph.Behavior.Series.Toggle( {
                     graph: graph,
@@ -439,7 +437,6 @@
                 } );
 
 
-                //graph.renderer.unstack = true;
                 graph.render();
 
             }
