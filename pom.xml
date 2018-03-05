@@ -23,14 +23,6 @@
             </plugin>
            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <outputDirectory>${project.build.directory}/App</outputDirectory>
-                </configuration>
-            </plugin>-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.8</version>
                 <executions>
@@ -47,21 +39,8 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <!--<plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>-->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -101,10 +80,10 @@
                                         <!--<include name="*.class"/>-->
                                     </fileset>
                                 </copy>
-                                <copy file="src/optimizer.main/java/optimizer/algorithms/AlgorithmFI.java" tofile="${project.build.directory}/lib/algorithms/AlgorithmFI.java"/>
+                                <copy file="src/main/java/optimizer/algorithms/AbstractAlgorithm.java" tofile="${project.build.directory}/lib/algorithms/AbstractAlgorithm.java"/>
 
-                                <copy todir="${project.build.directory}/App/lib/optimizer.algorithms/">
-                                    <fileset dir="${project.build.directory}/classes/optimizer.algorithms">
+                                <copy todir="${project.build.directory}/App/lib/optimizer/algorithms/">
+                                    <fileset dir="${project.build.directory}/classes/optimizer/algorithms">
                                         <include name="*.class"/>
                                     </fileset>
                                 </copy>

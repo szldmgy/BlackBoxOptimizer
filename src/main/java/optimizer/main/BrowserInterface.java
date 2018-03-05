@@ -70,7 +70,7 @@ public class BrowserInterface {
     private static List<String> classList;
     private static List<String> objTypes;
     final String[] objectiveTypes = Arrays.stream(Relation.values()).map(v->v.toString()).toArray(String[]::new);
-    private  Boolean[] executionError= new Boolean[1];
+    private  Boolean[] executionError= new Boolean[]{false};
     private  String[] executionErrorMsg = new String[1];
 
 
@@ -124,7 +124,7 @@ public class BrowserInterface {
 
 
         get("/results", (req, res) ->{
-            Map<String, Object> model1 = getResultModel(config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]);
+            Map<String, Object> model1 = getResultModel(/*config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]*/);
             return new VelocityTemplateEngine().render(
                     new ModelAndView(model1, layout)
             );
@@ -547,13 +547,13 @@ public class BrowserInterface {
     }
 
 
-    private static Map<String, Object> getResultModel(List<Objective> objectives, String resFileName, String configFileName) {
-        final List<String> objectiveList = new LinkedList<String>();
+    private static Map<String, Object> getResultModel(/*List<Objective> objectives, String resFileName, String configFileName*/) {
+     /*   final List<String> objectiveList = new LinkedList<String>();
         objectives.forEach(o->objectiveList.add(o.getName()));
 
         final List<String> objectiveRelationList = new LinkedList<String>();
         objectives.forEach(o->objectiveRelationList.add(o.getRelation().equals(Relation.GREATER_THAN)||o.getRelation().equals(Relation.MAXIMIZE)?"increase":"decrease"));
-
+*/
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/resultnew.vtl");
 
@@ -573,12 +573,12 @@ public class BrowserInterface {
         Collections.sort(resFileList[0]);
         Collections.sort(setupFileList[0]);
         model1.put("failed",failedExperiments);
-        model1.put("filename",configFileName);
+        //model1.put("filename",configFileName);
         model1.put("resfilelist",resFileList[0]);
         model1.put("setupfilelist",setupFileList[0]);
-        model1.put("resultfile",resFileName);
-        model1.put("objective_relations", objectiveRelationList);
-        model1.put("objective_names", objectiveList);
+        //model1.put("resultfile",resFileName);
+       // model1.put("objective_relations", objectiveRelationList);
+       // model1.put("objective_names", objectiveList);
         return model1;
     }
 

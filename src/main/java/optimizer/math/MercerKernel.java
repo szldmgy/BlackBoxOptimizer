@@ -22,5 +22,5 @@ package optimizer.math;
  */
 
 public interface MercerKernel<T> {
-    public double k(T x, T y);
+     double k(T x, T y);
 }
