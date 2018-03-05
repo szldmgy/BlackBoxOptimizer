@@ -33,8 +33,8 @@ GUI menu
 -
 
 img{ margin:0 auto; }
+
  <img src="readmefiles/1_menu_and_cl.png" alt="Menu" width="600" >
-//![img](readmefiles/1_menu_and_cl.png )
 
 
 ## Start new BBO task 
@@ -68,7 +68,6 @@ Setup an experiment
 ## Command
  <img src="readmefiles/cl.png" alt="Menu" width="600" >
 
-![img](readmefiles/cl.png )
 
 
 - Specify the terminal command using `$<paramname>` at the params to be optimized.
@@ -78,16 +77,15 @@ Setup an experiment
 ## Params
  <img src="readmefiles/2_paramsetup1.png" alt="Menu" width="600" >
 
-![img](readmefiles/2_paramsetup1.png)
 
 - The params annotated with `$` must be defined in the **Params** section.
     
     - In order to specify a new parameter you have to push the **Add param** button in the **Params** section.
     
     - After you added your new parameter, you can change its name by simply editing it in the text input. Please note, that every parameter denoted by `$` in the **Command** section should have a corresponding entry in this section. After the two names matched, the GUI attempts to follow renaming and adjust the command automatically, nevertheless it is not always possible.  
- <img src="readmefiles/2_paramsetup1.png" alt="Menu" width="600" >
+ 
+ <img src="readmefiles/p_2param_change_name.png" alt="Menu" width="600" >
 
-![img](readmefiles/p_2param_change_name.png)
 
 - To add a **numeric** new param :
 
