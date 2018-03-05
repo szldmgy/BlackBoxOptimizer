@@ -31,7 +31,7 @@ Run the software with GUI
 
 GUI menu
 -
-
+<img src="url" alt="alt text" width="150" >
 ![img](readmefiles/1_menu_and_cl.png | width="50%")
 
 
