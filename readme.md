@@ -32,7 +32,7 @@ Run the software with GUI
 GUI menu
 -
 
-![](readmefiles/1_menu_and_cl.png | width="50%")
+![img](readmefiles/1_menu_and_cl.png | width="50%")
 
 
 ## Start new BBO task 
