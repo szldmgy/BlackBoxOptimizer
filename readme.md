@@ -181,9 +181,9 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - On the next page we can choose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be run, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
 
- <img src="readmefiles/dropdown_alg1.png" alt="Menu" width="600" >
+ <img src="readmefiles/dropdown_alg1.png" alt="Menu" width="300" > <img src="readmefiles/dropdown_alg2.png" alt="Menu" width="300" >
 
- <img src="readmefiles/dropdown_alg2.png" alt="Menu" width="600" >
+
 
 After choosing the algorithm, we can set the parameters of the optimizer, that will be executed after pushing the **`Run`** button.
  
