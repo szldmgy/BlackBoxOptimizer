@@ -32,9 +32,9 @@ Run the software with GUI
 GUI menu
 -
 
-[//]: # img{ margin:0 auto; }
-[//]: # <img src="readmefiles/1_menu_and_cl.png" alt="Menu" width="300" >
-![img](readmefiles/1_menu_and_cl.png )
+img{ margin:0 auto; }
+ <img src="readmefiles/1_menu_and_cl.png" alt="Menu" width="600" >
+//![img](readmefiles/1_menu_and_cl.png )
 
 
 ## Start new BBO task 
@@ -66,6 +66,7 @@ Setup an experiment
 -
 
 ## Command
+ <img src="readmefiles/cl.png" alt="Menu" width="600" >
 
 ![img](readmefiles/cl.png )
 
@@ -75,6 +76,7 @@ Setup an experiment
     - example: `python Rosenbrock1.py $firstParam $secondParam`
 
 ## Params
+ <img src="readmefiles/2_paramsetup1.png" alt="Menu" width="600" >
 
 ![img](readmefiles/2_paramsetup1.png)
 
@@ -83,6 +85,7 @@ Setup an experiment
     - In order to specify a new parameter you have to push the **Add param** button in the **Params** section.
     
     - After you added your new parameter, you can change its name by simply editing it in the text input. Please note, that every parameter denoted by `$` in the **Command** section should have a corresponding entry in this section. After the two names matched, the GUI attempts to follow renaming and adjust the command automatically, nevertheless it is not always possible.  
+ <img src="readmefiles/2_paramsetup1.png" alt="Menu" width="600" >
 
 ![img](readmefiles/p_2param_change_name.png)
 
@@ -125,20 +128,23 @@ Setup an experiment
 
 - To add such dependency to a parameter, you can click on the **New param dependency** button,
  
+ <img src="readmefiles/add_dep.png" alt="Menu" width="600" >
 
-![img](readmefiles/add_dep.png)
 
 - then you should choose the variable from the select on which our parameter depends.
+ 
+ <img src="readmefiles/choose_dependency.png" alt="Menu" width="600" >
 
-![img](readmefiles/choose_dependency.png)
 
  - After that we specify what is the range in that this **bounding parameter** has to be in order to influence the value of our **bounded** parameter. We have to tell as well, what should be the range of available values of the **bounded parameter** if the **bounding** one is in the **bounding range**. 
 
-![img](readmefiles/setup_dep_range.png)
+ <img src="readmefiles/setup_dep_range.png" alt="Menu" width="600" >
+
 
 - If there are more possible range/value what our parameter can take, we can add new ranges to the parameter for the different cases. If for one of the ranges we don't specify any dependencies, we can regard as that will be the default behaviour of the parameter for cases, in which none of the other dependencies complies.
 
-![img](readmefiles/add_default_range.png)
+ <img src="readmefiles/add_default_range.png" alt="Menu" width="600" >
+
 
 
 ## Objectives
@@ -151,11 +157,13 @@ Setup an experiment
 
 - and the characteristics of the objectives to be given similarly to the 'Param' descriptions. Here we can specify the type of the objective, 
 
-![img](readmefiles/objective_generic.png)
+ <img src="readmefiles/objective_generic.png" alt="Menu" width="600" >
+
 
 that can be: to be **minimized**, **maximized**, **less** or **greater than**  a specific value, of we can decide to stop the work  if the minimization or maximization task **converges**.
  
-![img](readmefiles/objectiveType.png)
+  <img src="readmefiles/objectiveType.png" alt="Menu" width="600" >
+
  
  
 We allow to use a linear combination of multiple objectives, in this case we can specify the importance of the target function at the **Weight** parameter.
@@ -166,7 +174,7 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - If the **Safe mode** option at the bottom of the page is checked, the software will save the state of the optimization at a frequency given in the next input(per iterations).
 
-![img](readmefiles/safe_mode_options.png)
+ <img src="readmefiles/safe_mode_options.png" alt="Menu" width="600" >
 
 
 - If we want to repeat a task or just continue an interrupted one, at the top of the page we can browse a backup or a setup file, in which the setup or the last state of the interrupted optimization task is stored. These files should be in the `backup` or in the `experiments` folder inside the software's working directory.
@@ -175,17 +183,20 @@ We allow to use a linear combination of multiple objectives, in this case we can
 
 - On the next page we can choose what algorithm we want to use to optimize the parameters. From the drop-down list you can choose between the available algorithms. (the list can depend on the characteristics of the task to be run, the majority of the implemented algorithms for example are designed for handling simple floating parameter types)
 
-![](readmefiles/dropdown_alg1.png)    
-![](readmefiles/dropdown_alg2.png)
-After choosing the algorithm, we can set the parameters of the optimizer, that will be executed after pushing the **`Run`** button.
+ <img src="readmefiles/dropdown_alg1.png" alt="Menu" width="600" >
 
-![img](readmefiles/algorithm_param_setup.png)
+ <img src="readmefiles/dropdown_alg2.png" alt="Menu" width="600" >
+
+After choosing the algorithm, we can set the parameters of the optimizer, that will be executed after pushing the **`Run`** button.
+ 
+ <img src="readmefiles/algorithm_param_setup.png" alt="Menu" width="600" >
+
 
 # Results (beta)
 
 After the optimzation task terminated, the results are stored in a `.csv` file, that contains the parameter setup and the result objective values. On the GUI, after the termination you will be redirected to a result page, where in a simple chart the evolution of the objective values is visualized in function of time.
 
-![img](readmefiles/res.png)
+ <img src="readmefiles/res.png" alt="Menu" width="600" >
 
 
 
