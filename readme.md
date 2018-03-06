@@ -2,7 +2,7 @@
 BlaBoO
 =======
 
-Weclome to BlaBoO!
+Welcome to BlaBoO!
 
 BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest range of algorithms one may want to run.  
 
@@ -22,9 +22,9 @@ Run the software with GUI
 
 - Start the server (this might require administrator rights):
     
-    1. simple double click on the jar .
+    1. simple double click on the jar (On some OSs might not work properly).
                     
-    2. from command line in the `App` folder execute `sudo java -jar BlaBoO-1.0-SNAPSHOT-shaded.jar`
+    2. (RECOMMENDED)from command line in the `App` folder execute `sudo java -jar BlaBoO-1.0-SNAPSHOT-shaded.jar`
 
 - go to `http://localhost:4567/hello` to access the GUI.
 
@@ -221,10 +221,10 @@ Examples
 
 You cen find some examples [here](readmefiles/example.md)
 
-User support
+User support, developer support
 -
 
-If you have any question, remark or suggestion regarding the project, please contact us at: axx6v4(at)inf.elte.hu. We are happy to get any feedback or contribution.
+If you have any question, remark or suggestion regarding the project, please  don't hesitate to use the [issue tracker](https://github.com/kppeterkiss/BlackBoxOptimizer/issues), or contact us directly at: axx6v4(at)inf.elte.hu. We are happy to get any feedback or contribution, and if you need to address problems related to parameter tuning, we would like to make sure that we can help you!
 
 
 
