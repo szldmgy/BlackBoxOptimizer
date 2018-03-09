@@ -64,6 +64,11 @@ Since there is nothing more to do here push **Run**.
 
 ##Results
 
+<img src="readmefiles/examples/Rosenbrock_res.png" alt="Rosenbrock" width="600" >
+
+In this slightly strange chart we can see the evolution of our objective value in function of time. the reason why we cant see any nice convergence process here is that in on hand we only guess randomly that is without taking into consideration past values making the chart fluctuating. The second thing here that due to this random guessing the process can be run fully parallel, so we get  the results in waves, ehere the fluctuation is big in short time, then we are waiting for the nexr wave making the chart smooth inbetween.
+
+
 R -  (https://cran.r-project.org)
 
 to start 
