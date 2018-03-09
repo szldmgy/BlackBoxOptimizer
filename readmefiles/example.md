@@ -1,1 +1,69 @@
-hello
+Examples
+-
+
+In the `examples` folder within the project home directory you can find a couple of example project, that conatin a file  corresponding to BBF (can be multiple files for instance when BBF processes an input file) , and the setup `json` file. The test codes are implementesd innvarious languages for the sake of variety: C,C++,Python,R, and Java.
+
+Examples include a couple of simple function widely used at testing various optimization techniques, as Rastrigin and Rosenbrock functions,  and also a number of machine learning problems, where performance of learning process can be infuenced by some parameters of the learning process, that are the **hyperparameters**.  
+
+Simple mathematical functions
+
+Rosenbrock
+-
+
+## BBF setup
+The setup for finding the minimum for the Rosenbrock function ([Wiki](https://en.wikipedia.org/wiki/Rosenbrock_function)) will appear when you start your GUI, that looks something like this:
+
+
+<img src="readmefiles/examples/Rosenbrock.png" alt="Rosenbrock" width="600" >
+
+In this screen you can fnd the following items:
+
+1. The format the BBF function should be called from terminal, that is you can execute from the following command from the home directory of the BlaboO:
+
+```sh
+$ python Examples/Rosenbrock/Rosenbrock.py 1.0 2.0
+ ['Examples/Rosenbrock/Rosenbrock.py', '1.0', '2.0']
+ rosen 100.0
+$ 
+```
+This will execute a [python script](/../examples/Rosenbrock/Rosenbrock.py) at the given location, that computes the values for the function at coordinates given as arguments.
+
+Note however that in the setup page of the GUI, the concrete float values are replaced by two variables, denoted by `$` :  `$firstParam $secondParam`
+Values for these two parameters will be inserted by the BlaBoO optimizer. 
+
+2. As soon as we use a variable (=parameter) in the 1. part, we have to give a description, what are the possible values that can get there.
+In the image under at number 2 we can see a specification of these two parameters in the framework.
+ 
+<img src="readmefiles/examples/Rosenbrock_param.png" alt="Rosenbrock" width="600" >
+
+A section corresponding to a parameter at first place contains a text input for the name of the parameter(**a**),and  a selector for the type (**b**). The name should be agree with one of those in the command line, without the `$` symbol.
+Once a match happened between the command line and a parameter section, the GUI tries to detect changes in any of those and apply it on the other. 
+
+As type we can choose between `java.lang.Float`,`java.lang.Integer`,`java.lang.Boolean`,`Enumeration` and `Function`. The first three possibly have a clear meaning to the others we will return later.
+
+After we have chosen the type of the parameter, we should set its  initial value(**c**), and the lower and upper bounds (**d** and **e**) where the value can be varied by the BlaBoO.(That is it might not make sense to test the value at -12124214532 for a function)
+ 
+3. Afer the above steps, we have to specify what is the goal of our optimization task. In our case we would like to find the minimum of the function. By default we expect from the BBF to print the value of interest on the standard output, in a form that after the name of the objectives comes its value, in our case:
+
+```sh
+ rosen 100.0
+``` 
+In this section we have to give the name(**a**) BlaBoO has the search for between the possibly thousands of printed out lines. Now this is `rosen`. After that give its type(**b**), that can be `integer` or `float`, here is `float`. Naturally we have to tell what we want from this objective, value e.g minimize or maximize. Here we are looking for the minimum so we set the type of the objective to `MINIMIZE`(**c**).
+
+4. At the end of this screen we have to specify how long we want to run the optimization. If we want to maximize or minimize the BBF, we must give an iteration number, that is how many times we want to run the task. Here since we just want to try out the system can setup a very moderate 10 for this value.
+
+Now we are done here, so we can push **OK** to go to the next phase where we can choose between optimization strategies.
+
+## Algorithm setup
+
+<img src="readmefiles/examples/Rosenbrock_algsel.png" alt="Rosenbrock" width="600" >
+
+Here just for sake of simplicity from the algorithm selector we choose **RandomSearch**, which doesn't requires any further setup, merely makes random guesses within the range of the variables and execute the BBF with those.
+ 
+Since there is nothing more to do here push **Run**. 
+
+##Results
+
+R -  (https://cran.r-project.org)
+
+to start 
