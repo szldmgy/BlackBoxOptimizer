@@ -14,7 +14,7 @@ Rosenbrock
 The setup for finding the minimum for the Rosenbrock function ([Wiki](https://en.wikipedia.org/wiki/Rosenbrock_function)) will appear when you start your GUI, that looks something like this:
 
 
-<img src="readmefiles/examples/Rosenbrock.png" alt="Rosenbrock" width="600" >
+<img src="examples/Rosenbrock.png" alt="Rosenbrock" width="600" >
 
 In this screen you can fnd the following items:
 
@@ -26,7 +26,7 @@ $ python Examples/Rosenbrock/Rosenbrock.py 1.0 2.0
  rosen 100.0
 $ 
 ```
-This will execute a [python script](/../examples/Rosenbrock/Rosenbrock.py) at the given location, that computes the values for the function at coordinates given as arguments.
+This will execute a [python script](/examples/Rosenbrock/Rosenbrock.py) at the given location, that computes the values for the function at coordinates given as arguments.
 
 Note however that in the setup page of the GUI, the concrete float values are replaced by two variables, denoted by `$` :  `$firstParam $secondParam`
 Values for these two parameters will be inserted by the BlaBoO optimizer. 
@@ -34,7 +34,7 @@ Values for these two parameters will be inserted by the BlaBoO optimizer.
 2. As soon as we use a variable (=parameter) in the 1. part, we have to give a description, what are the possible values that can get there.
 In the image under at number 2 we can see a specification of these two parameters in the framework.
  
-<img src="readmefiles/examples/Rosenbrock_param.png" alt="Rosenbrock" width="600" >
+<img src="examples/Rosenbrock_param.png" alt="Rosenbrock" width="600" >
 
 A section corresponding to a parameter at first place contains a text input for the name of the parameter(**a**),and  a selector for the type (**b**). The name should be agree with one of those in the command line, without the `$` symbol.
 Once a match happened between the command line and a parameter section, the GUI tries to detect changes in any of those and apply it on the other. 
@@ -56,7 +56,7 @@ Now we are done here, so we can push **OK** to go to the next phase where we can
 
 ## Algorithm setup
 
-<img src="readmefiles/examples/Rosenbrock_algsel.png" alt="Rosenbrock" width="600" >
+<img src="examples/Rosenbrock_algsel.png" alt="Rosenbrock" width="600" >
 
 Here just for sake of simplicity from the algorithm selector we choose **RandomSearch**, which doesn't requires any further setup, merely makes random guesses within the range of the variables and execute the BBF with those.
  
@@ -64,9 +64,9 @@ Since there is nothing more to do here push **Run**.
 
 ##Results
 
-<img src="readmefiles/examples/Rosenbrock_res.png" alt="Rosenbrock" width="600" >
+<img src="examples/Rosenbrock_res.png" alt="Rosenbrock" width="600" >
 
-In this slightly strange chart we can see the evolution of our objective value in function of time. the reason why we cant see any nice convergence process here is that in on hand we only guess randomly that is without taking into consideration past values making the chart fluctuating. The second thing here that due to this random guessing the process can be run fully parallel, so we get  the results in waves, ehere the fluctuation is big in short time, then we are waiting for the nexr wave making the chart smooth inbetween.
+In this slightly strange chart we can see the evolution of our objective value in function of time. Why we cant see any nice convergence process here has two reasons. On one hand we only guess randomly that is without taking into consideration past values making the chart fluctuating. The second thing here that due to this random guessing the process can be run fully parallel, so we get  the results in waves, ehere the fluctuation is big in short time, then we are waiting for the nexr wave making the chart smooth inbetween.
 
 
 R -  (https://cran.r-project.org)
