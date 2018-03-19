@@ -3,14 +3,13 @@ Examples
 
 In the `examples` folder within the project home directory you can find a couple of example project, that conatin a file  corresponding to BBF (can be multiple files for instance when BBF processes an input file) , and the setup `json` file. The test codes are implementesd innvarious languages for the sake of variety: C,C++,Python,R, and Java.
 
-Examples include a couple of simple function widely used at testing various optimization techniques, as Rastrigin and Rosenbrock functions,  and also a number of machine learning problems, where performance of learning process can be infuenced by some parameters of the learning process, that are the **hyperparameters**.  
-
-Simple mathematical functions
-
-Rosenbrock
--
+Examples include a couple of simple function widely used at testing various optimization techniques, as Rastrigin and Rosenbrock functions,  and also a number of machine learning problems, where performance of learning process can be infuenced by some parameters of the learning process, that are the **hyperparameters**.
 
 ## BBF setup
+-
+
+## Rosenbrock
+
 The setup for finding the minimum for the Rosenbrock function ([Wiki](https://en.wikipedia.org/wiki/Rosenbrock_function)) will appear when you start your GUI, that looks something like this:
 
 
@@ -53,6 +52,27 @@ In this section we have to give the name(**a**) BlaBoO has the search for betwee
 4. At the end of this screen we have to specify how long we want to run the optimization. If we want to maximize or minimize the BBF, we must give an iteration number, that is how many times we want to run the task. Here since we just want to try out the system can setup a very moderate 10 for this value.
 
 Now we are done here, so we can push **OK** to go to the next phase where we can choose between optimization strategies.
+
+##Random forest with R
+
+In this example we will show how to use BlaBoO for an ML algorithm written in R. We will optimize a script which use random forests for predicting attributes of a given dataset. For our data, we're going to use the Wine Quality data set from the UCI Machine Learning Repository.
+
+The setup for finding the optimal hyper-paremeter combination for a random forest will appear when you start your GUI, that looks  like this:
+
+<img src="examples/rforest.png" alt="Rosenbrock" width="600" >
+
+The format the BBF function should be called from terminal, that is you can execute from the following command from the home directory of the BlaboO:
+
+```sh
+$  Rscript Examples/Random_forest_R/randomforest.R $ntree $mtry $nodesize $maxnodes
+ accuracy 15.63267
+$
+```
+This will execute an [R script](/examples/Random_forest_R/randomforest.R) at the given location, that computes the values for the function at coordinates given as arguments.
+
+Note however that in the setup page of the GUI, the exact numeric values are replaced by four variables, denoted by `$` :  `$ntree $mtry $nodesize $maxnodes`
+Values for these two parameters will be inserted by the BlaBoO optimizer. For more information about the meaning of these parameters see https://cran.r-project.org/web/packages/randomForest/randomForest.pdf .
+
 
 ## Algorithm setup
 
