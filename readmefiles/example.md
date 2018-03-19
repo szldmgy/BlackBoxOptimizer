@@ -84,7 +84,7 @@ Lasso regression performs L1 regularization, penalizing complextity,
 in this particular case coefficients of high absolute value. Controlling how to what extent we want to penalize 
 complexity in Lasso regression is carried out through setting the value of an **alpha** parameter.
 
-The code and the idea of this example is taken form:
+The code and the idea of this example is taken form [analyticsvidhya.com](https://www.analyticsvidhya.com/blog/2016/01/complete-tutorial-ridge-lasso-regression-python/).
 
 To generate the dataset we can use the following command from the home directory opf BlaBoO:
 
