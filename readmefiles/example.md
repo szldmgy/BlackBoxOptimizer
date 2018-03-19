@@ -50,6 +50,8 @@ After we have chosen the type of the parameter, we should set its  initial value
 ``` 
 In this section we have to give the name(**a**) BlaBoO has the search for between the possibly thousands of printed out lines. Now this is `rosen`. After that give its type(**b**), that can be `integer` or `float`, here is `float`. Naturally we have to tell what we want from this objective, value e.g minimize or maximize. Here we are looking for the minimum so we set the type of the objective to `MINIMIZE`(**c**).
 
+<img src="examples/Rosenbrock_obj.png" alt="Rosenbrock" width="600" >
+
 4. At the end of this screen we have to specify how long we want to run the optimization. If we want to maximize or minimize the BBF, we must give an iteration number, that is how many times we want to run the task. Here since we just want to try out the system can setup a very moderate 10 for this value.
 
 Now we are done here, so we can push **OK** to go to the next phase where we can choose between optimization strategies.
@@ -69,6 +71,42 @@ Since there is nothing more to do here push **Run**.
 In this slightly strange chart we can see the evolution of our objective value in function of time. Why we cant see any nice convergence process here has two reasons. On one hand we only guess randomly that is without taking into consideration past values making the chart fluctuating. The second thing here that due to this random guessing the process can be run fully parallel, so we get  the results in waves, ehere the fluctuation is big in short time, then we are waiting for the nexr wave making the chart smooth inbetween.
 
 
-R -  (https://cran.r-project.org)
+An ML use-case: Lasso regression
+-
 
-to start 
+This example demonstrates a use case that is  a bit closer to real ML scenarios, here we try to approximate with a polynomial function a part of a perturbed sinus curve, using [Lasso (Least Absolute Shrinkage and Selection Operator)](https://en.wikipedia.org/wiki/Lasso_(statistics))regression. Lasso regression performs L1 regularization, penalizing complextity, in this particular case coefficients of high absolute value. Controlling how to what extent we want to penalize complexity in Lasso regression is carried out through setting the value of an alpha parameter.
+
+To generate the dataset we can use the following command from the home directory opf BlaBoO:
+
+```sh
+python3 examples/Lasso_Python/generate_sin_data.py
+```
+Then the experiment for ```alpha = 0.01``` looks like :
+
+```sh
+ python3 examples/Lasso_Python/Lasso_poli_reg_on_sinus_curve.py 0.01
+```
+Now we seek to find an optimal alpha value, so we will substitute `0.01` with a variable `alpha`, so the command line will look as follows:
+
+<img src="examples/Lasso_cl.png" alt="Lasso" width="600" >
+
+In the **Param** section then have to define the `alpha` param with the range we want to search in.
+
+<img src="examples/Lasso_param.png" alt="Lasso" width="600" >
+
+Finally we specify what is our target variable and what we want from that:
+
+<img src="examples/Lasso_obj.png" alt="Lasso" width="600" >
+
+Here we would like to try values evenly distributed in the given range of `alpha`. Therefore we can choose `GridSearch` from the algorithm page, and set the 'stepsize' belonging to `alpha` to the length of the range of `alpha`, devided by the number of trials we want to run (that is the iteration count we gave in the **Objective** section)
+
+
+SVM - Dependent parameters
+
+
+
+
+
+<!--R -  (https://cran.r-project.org)
+
+to start -->
