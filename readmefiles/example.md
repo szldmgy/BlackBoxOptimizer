@@ -86,7 +86,7 @@ complexity in Lasso regression is carried out through setting the value of an **
 
 The code and the idea of this example is taken form [analyticsvidhya.com](https://www.analyticsvidhya.com/blog/2016/01/complete-tutorial-ridge-lasso-regression-python/).
 
-To generate the dataset we can use the following command from the home directory opf BlaBoO:
+To generate the dataset we can use the following command from the home directory of BlaBoO:
 
 ```sh
 python3 examples/Lasso_Python/generate_sin_data.py
@@ -116,6 +116,54 @@ When the execution of trials is completed we can see a result chart (again a bit
 
 <img src="examples/Lasso_res.png" alt="Lasso objectives" width="600" >
 
+
+Dependent parameters - SVM
+-
+
+In certain cases parameters are used only in specified circumstances, namely if another parameter fulfills some conditions. We call those parameter **dependent** or **bounded parameters**, while the other one is the  **bounding parameter**. 
+The problem with the bounded parameters is, if we could not define these dependencies for the tuning process, the optimizer can keep trying to modify these parameters and run potentially hundred of trials without any effect, since that doesn't change the behaviour of the BBF.
+
+This example serves as an illustration for this problem, where we want to play around with parameters of [Support Vector Machine (SVM)](https://en.wikipedia.org/wiki/Support_vector_machine). In the example we wan to perform classification on a [heart desease dataset](/examples/SVM_with_Python/heart-disease-processed-hungarian.arff) with a [python script](/examples/SVM_with_Python/SVM_with_Python.py) that uses the [scikit-learn](http://scikit-learn.org/stable/modules/svm.html) implementation of SVM.
+SVM finds the maximum-margin hyperplane that separates classes in the data. If the data points are not linearly separable, we can use the kernel trick, that transform the data into some higher dimensional space where separation is expected to be easier. Different kernels however have different parameters, and that is where we will apply parameter dependence.
+In the example script we tzry to separate classes using **linear** and **rbf kernels**. Both kernel expexts some `C` penalty parameter for misclassification, that works similarly than in the Lasso example, but in **rbf** kernel we also can set a `gamma` parameter whoser effect can be described as specifying to what extent a given training example infuences the learning.
+
+Now if we are using **rbf** we can play with `gamma` parameter, that on other hand is in vain in case of **linear** kernel and would result in a number of superfluous trials. 
+
+So now we want to setup an experiment like this. First we specify the parameters (`kernel`, `gamma` and `c` ) with their types (`Enum`,`Float`and `Float` respectively), as previously, along with the command to execute and the objective `acccuracy` that we want to minimize:
+
+<img src="examples/SVM_base.png" alt="SVM bounding parameter" width="600" >
+
+Now we add the dependency to the parameter `gamma`, pushing the button **New parameter dependency**,
+
+<img src="examples/SVM_new_dependency.png" alt="SVM bounding parameter" width="600" >
+
+Then we chose from the list of other parameters the one that will bound `gamma`, that is `kernel`.  
+
+<img src="examples/SVM_bounding_parameter_sel.png" alt="SVM bounding parameter" width="600" >
+
+After this we give the range the bounding parameter should be to use the bounded one(`gamma`), that is now contains only `rbf`, so as lower and upper bound we set that.
+
+<img src="examples/SVM_bounding_range.png" alt="SVM bounding range" width="600" >
+
+After that we can go on with as usually with choosing the algorithm and run the experiments.
+
+## Note 1 - Bounded parameters
+
+When we specifying dependencies, it is possible to give multiple ranges for the bounded parameter. If it would make sense we could use another range for the case when the `kernel` is `linear`,
+
+<img src="examples/SVM_multi_range.png" alt="Multi range" width="600" >
+
+or when we want to use a default range if none of the bounding conditions is not met. 
+
+<img src="examples/SVM_default_range.png" alt="Default range" width="600" >
+
+
+## Note 2 - Algorithm selection
+
+Since in the setup we used a special parameter type, namely `Enum`, we can use only the algorithms that are prepared to handle these types. For now therefore we can choose between `GridSearch` and `RandomSearch`. 
+  
+<img src="examples/SVM_alg.png" alt="Lasso objectives" width="300" >
+  
 
 Random forest with R
 -
