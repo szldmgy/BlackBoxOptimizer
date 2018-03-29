@@ -4,7 +4,7 @@ BlaBoO
 
 Welcome to BlaBoO!
 
-BlaBoO is a leightweight optimization framework, that in current state aims to help user to optimize, or test the widest range of algorithms one may want to run.  
+BlaBoO is a leightweight optimization framework that, in current state, aims to help users to optimize or test the widest range of algorithms one may want to run.  
 
 Install BlaBoO
 --------------
