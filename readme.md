@@ -32,8 +32,6 @@ Run the software with the GUI
 GUI menu
 -
 
-img{ margin:0 auto; }
-
  <img src="readmefiles/1_menu_and_cl.png" alt="Menu" width="600" >
 
 
