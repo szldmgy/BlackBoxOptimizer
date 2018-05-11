@@ -181,6 +181,9 @@ public class BrowserInterface {
 
         post("/updateconfig", (request, response) -> {
             try{
+                // against crashes after restart the server
+                if(config[0]==null)
+                    config[0]=new TestConfig();
                 String safeModeString = request.queryParams("safe_mode");
                 if(safeModeString != null) {
                     config[0].setSavingFrequence(Integer.parseInt(request.queryParams("frequency")));
@@ -200,7 +203,7 @@ public class BrowserInterface {
                 List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
 
 
-                if(config[0].getLandscapeReference().size()>0) {
+                if(config[0].getLandscapeReference()!= null && config[0].getLandscapeReference().size()>0) {
                     recoveryMode[0] = true;
                     landscape = config[0].getLandscapeReference();
                     counter = config[0].getIterationCounter();
@@ -641,7 +644,16 @@ public class BrowserInterface {
                 //iterate over all range given for any param
                 for(String prdn : param_div_range_ids) {
                     //filter what belongs to the param we are examining
-                    if (!prdn.equals("") && prdn.contains(paramId)) {
+                    // this disaster for finding proprly one letter parameters, and the same for alg params where we start with alg name
+                    String[] prdl_part_list = prdn.split("_");
+                    String[] x = new String[prdl_part_list.length-1];
+                    for( int i =1; i <prdl_part_list.length;++i)
+                        x[i-1] = prdl_part_list[i];
+
+                    String prdn_without_alg = String.join("_",x);
+                    // should be something like n
+             //       if (!prdn.equals("") && (prdl_part_list[0].equals(paramId)||prdl_part_list[0].equals(paramId)) ) {
+                    if (!prdn.equals("") && (prdn.startsWith(paramId+'_')||prdn_without_alg.startsWith(paramId)) ) {
                         System.out.println("PRDN: "+prdn);
                         System.out.println("PDN:"+pdn);
                         System.out.println("PNAME:"+paramname);

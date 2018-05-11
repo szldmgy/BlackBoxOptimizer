@@ -121,6 +121,7 @@ public class ParamTest {
         p2.setInitValue("3");
         assertTrue(!p.getValue().equals(p2.getValue()));
         assertTrue(p.getActiveRange().equals(new Range(new String[]{"1","2","3"})));
+
     }
 
     @Test

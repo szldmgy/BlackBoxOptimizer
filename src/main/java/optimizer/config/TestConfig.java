@@ -366,7 +366,7 @@ public class TestConfig {
             setConfig.invoke(algorithmObj,this);
 
             Method updateConfigFromAlgorithmParamsMethod= optimizerClass.getMethod("updateConfigFromAlgorithmParams",List.class);
-        updateConfigFromAlgorithmParamsMethod.invoke( algorithmObj,this.getScriptParametersReference());
+            updateConfigFromAlgorithmParamsMethod.invoke( algorithmObj,this.getScriptParametersReference());
 
             Method getOptConfig= optimizerClass.getMethod("getOptimizerParams");
             List<Param> ol = ( List<Param>) getOptConfig.invoke(algorithmObj);

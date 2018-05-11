@@ -1,0 +1,110 @@
+{
+  "baseCommand": " python3 examples/Wormhole/wh_det_alg_2.py 1.2  $probability 1 $k_num $lambda 1000",
+  "algorithmName": "GridSearch",
+  "iterationCounter": 0,
+  "optimizerParameters": [],
+  "iterationCount": {
+    "value": 8400
+  },
+  "savingFrequence": -1,
+  "optimizerClasses": {},
+  "objectiveContainer": {
+    "objectives": [
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "true_positives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "false_negatives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "false_positives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MAXIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "true_negatives",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "avg_degree",
+        "dummy": 0.0,
+        "target": 0.0,
+        "typeName": "java.lang.Float"
+      },
+      {
+        "relation": "MINIMIZE",
+        "terminator": false,
+        "weight": 100.0,
+        "name": "max_degree",
+        "dummy": 0,
+        "target": 0,
+        "typeName": "java.lang.Integer"
+      }
+    ]
+  },
+  "scriptParameters": [
+    {
+      "name": "probability",
+      "typeName": "java.lang.Float",
+      "initValue": 0.3,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 1.0,
+            "lowerBound": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "name": "k_num",
+      "typeName": "java.lang.Integer",
+      "initValue": 5,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 15,
+            "lowerBound": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "lambda",
+      "typeName": "java.lang.Float",
+      "initValue": 2.0,
+      "dependencies": [
+        {
+          "rangeOfThis": {
+            "upperBound": 10.0,
+            "lowerBound": 2.0
+          }
+        }
+      ]
+    }
+  ]
+}
