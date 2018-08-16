@@ -142,15 +142,7 @@ public class TestConfig {
         List<String> s =new LinkedList<>();
         s.add(null);
         Scanner sc = new Scanner(this.getBaseCommand());
-        while (sc.hasNext()) {
-            s.set(0,sc.next());
-            if(s.get(0).charAt(0) == '$') {
-
-                command += scriptParameters.stream().filter(e -> e.getName().equals(s.get(0).substring(1))).findFirst().get().getValue().toString();
-            }else
-                command += s.get(0);
-            command += " ";
-        }
+        command = replaceVariablesWithValues(scriptParameters, command, s, sc);
         return  command;
     }
 
@@ -165,17 +157,22 @@ public class TestConfig {
         List<String> s =new LinkedList<>();
         s.add(null);
         Scanner sc = new Scanner(basecommand);
+        command = replaceVariablesWithValues(scriptParameters, command, s, sc);
+        return  command;
+    }
+
+    private static String replaceVariablesWithValues(List<Param> scriptParameters, String command, List<String> s, Scanner sc) {
         while (sc.hasNext()) {
             s.set(0,sc.next());
             if(s.get(0).charAt(0) == '$') {
-
                 command += scriptParameters.stream().filter(e -> e.getName().equals(s.get(0).substring(1))).findFirst().get().getValue().toString();
             }else
                 command += s.get(0);
             command += " ";
         }
-        return  command;
+        return command;
     }
+
 
     /**
      * Returns the CSV formatted {@link java.lang.String} that containsth erunned setups and the corresponding {@link Objective#value}.
@@ -393,10 +390,6 @@ public class TestConfig {
         runMethod.invoke( algorithmObj,experimentDir,backupDir,saveFileName);
 
 
-
-        /*Method getLandsCapeCSVMethod = optimizerClass.getMethod("getLandscapeCSVString");
-        Object result1 = getLandsCapeCSVMethod.invoke(algorithmObj);*/
-
         return (String)this.getLandscapeCSVString();
     }
     /**
@@ -456,8 +449,6 @@ public class TestConfig {
      */
     public static TestConfig readConfigJSON(File configFile) throws FileNotFoundException {
         GsonBuilder gsonBuilder = new GsonBuilder();
-        //gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
-        //gsonBuilder.registerTypeAdapter(ObjectiveContainer.Objective.class, new ObjectiveDeserializer());
         gsonBuilder.registerTypeAdapter(TestConfig.class, new TestConfigDeserializer());
         Gson gson = gsonBuilder.create();
         JsonReader reader = new JsonReader(new FileReader(configFile));
@@ -481,9 +472,6 @@ public class TestConfig {
 
                 Method setConfig = optimizerClass.getMethod("setConfiguration", TestConfig.class);
                 setConfig.invoke(algorithmObj, this);
-
-                    /*Method setConfigFromFile= optimizerClass.getMethod("loadConfigFromJsonFile",String.class);
-                    setConfig.invoke(algorithmObj,"test.json");*/
 
                 Method setParams = optimizerClass.getMethod("updateConfigFromAlgorithmParams", List.class);
                 setParams.invoke(algorithmObj, this.getScriptParametersReference());

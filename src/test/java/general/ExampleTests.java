@@ -37,12 +37,20 @@ import static org.junit.Assert.fail;
 
 /**
  * Created by peterkiss on 2018. 01. 22..
+ *
+ */
+/**
+ * This class belongs to  stresstests, that tries to run all the example projects. Those projects first requires to have a range of different execution environments,
+ * some of them will mopst probably fail at building the application, and second running them takes a lot of time. Therefore by default these test are unabled. If you want to run them,
+ * switch  "StressTestBase.runStressTests" true.
  */
 public class ExampleTests extends StressTestBase {
 
     //testing all the example setups with all  applicable optimizer.algorithms
     @Test
     public void runAll1() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException, CloneNotSupportedException {
+        if(!runStressTests)
+            return;
         optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
         File[] files = new File("Examples/").listFiles();
         testFiles(files);
@@ -97,7 +105,8 @@ public class ExampleTests extends StressTestBase {
 
     @Test
     public void complicatedTest() throws IOException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, OptimizerException, CloneNotSupportedException {
-
+        if(!runStressTests)
+            return;
 
         optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
         File[] files = new File(testResourcesPath+"/Test/").listFiles();
@@ -107,7 +116,8 @@ public class ExampleTests extends StressTestBase {
     //test command_line usage for all setup generated in runAll1
     @Test
     public void runAll2(){
-
+        if(!runStressTests)
+            return;
         File[] files = new File(testExpPath+"/").listFiles();
         testClFiles(files);
 
@@ -115,7 +125,8 @@ public class ExampleTests extends StressTestBase {
 
     @Test
     public void runAll3(){
-
+        if(!runStressTests)
+            return;
         File[] files = new File(testBackupPath+"/").listFiles();
         testRecovery(files);
 

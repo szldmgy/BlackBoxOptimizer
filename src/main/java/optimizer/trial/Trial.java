@@ -79,6 +79,7 @@ public class Trial implements Callable<IterationResult> {
     @Override
     public IterationResult call() throws Exception {
         String command = TestConfig.getCommand(this.config,baseCommand);
+        System.out.println("Executing: "+command);
         BufferedReader outputReader, errorReader;
         Runtime rt = Runtime.getRuntime();
         Process pr = rt.exec(command);

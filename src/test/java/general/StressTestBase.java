@@ -26,7 +26,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class is the base class all the stresstests, that tries to run all the example projects. Those projects first requires to have a range of different execution environments,
+ * some of them will mopst probably fail at building the application, and second running them takes a lot of time. Therefore by default these test are unabled. If you want to run them,
+ * switch  "StressTestBase.runStressTests" true.
+ */
 public class StressTestBase {
+
+    static boolean runStressTests = false;
 
     final static String[] setupsToTest={
             "Rosenbrock_DifferentialEvolution_cl.json",

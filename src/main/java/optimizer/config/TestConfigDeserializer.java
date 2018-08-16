@@ -46,7 +46,8 @@ public class TestConfigDeserializer  implements JsonDeserializer<TestConfig>
         List<Param> pl = t.getScriptParametersReference();
         if(t.getOptimizerParameters() == null )
             return t;
-       for(Param p : t.getOptimizerParameters()) {
+        List<Param> op = t.getOptimizerParameters();
+       for(Param p : op) {
            for (Object pdo : p.getDependencies()) {
                ParameterDependency pd = (ParameterDependency)pdo;
                if(pd.getP()!=null)

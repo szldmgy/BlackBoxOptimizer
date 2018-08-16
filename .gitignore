@@ -17,3 +17,5 @@ experiments/*
 logs/*
 results/*
 upload/*
+examples/Wormhole/*
+examples/Wormhole 2/*

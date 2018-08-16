@@ -149,13 +149,16 @@ public abstract class AbstractAlgorithm {
                     Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
                     try {
                         for (int i = 0; i < this.config.getIterationCount().get(); ++i) {
-                            if (!configAllowed(config.getScriptParametersReference())) {
-                                config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
-                                config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(), startTime, timeDelta));
+                            synchronized (this) {
+                                if (!configAllowed(config.getScriptParametersReference())) {
+                                    config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
+                                    config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(), startTime, timeDelta));
+                                }
+                                set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
+                                System.out.println();
+                                updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
+                                Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
-                            set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
-                            updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
-                            Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                         }
                         for (Future<IterationResult> future : set) {
                             IterationResult ir = future.get();
