@@ -3,7 +3,7 @@ import sys
 
 #Importing libraries. The same will be used throughout the article.
 import pandas as pd
-i
+
 #Define input array with angles from 60deg to 300deg converted to radians
 
 
