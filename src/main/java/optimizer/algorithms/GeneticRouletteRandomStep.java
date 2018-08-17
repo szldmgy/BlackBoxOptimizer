@@ -92,12 +92,7 @@ public class GeneticRouletteRandomStep extends Genetic {
             }
             double c = (Double) optimizerParams.get(2).getValue();
 
-            for (int i = 0; i < s.length; ++i) {
-                if (s[i] > 0 && ((Number) result.get(i).getUpperBound()).doubleValue() - ((Number) result.get(i).getValue()).doubleValue() < c * s[i])
-                    c = (((Number) result.get(i).getUpperBound()).doubleValue() - ((Number) result.get(i).getValue()).doubleValue()) / s[i];
-                if (s[i] < 0 && ((Number) result.get(i).getValue()).doubleValue() - ((Number) result.get(i).getLowerBound()).doubleValue() < c * s[i])
-                    c = (((Number) result.get(i).getValue()).doubleValue() - ((Number) result.get(i).getLowerBound()).doubleValue()) / s[i];
-            }
+            c = HitAndRun.adjustC(s, c, result);
 
             c *= rand.nextDouble();
             for (int i = 0; i < s.length; ++i) {

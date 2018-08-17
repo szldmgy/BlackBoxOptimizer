@@ -56,19 +56,16 @@ public class RandomSearch extends AbstractAlgorithm {
                     float r = rand.nextFloat();
                     float newVal = lb + r * (ub - lb);
                     entry.setInitValue(newVal);
-                    //optimizer.main.Main.log(Level.INFO,newVal);
                 }
                 else if (entry.getValue() instanceof Integer) {
                     Integer u = (Integer) entry.getUpperBound();
                     Integer l = (Integer) entry.getLowerBound();
                     int newVal = l + rand.nextInt(u-l) ;
                    entry.setInitValue(newVal);
-                    //optimizer.main.Main.log(Level.INFO,newVal);
                 }
                 else if (entry.getValue() instanceof Boolean) {
                     boolean newVal = rand.nextBoolean();
                    entry.setInitValue(newVal);
-                    //optimizer.main.Main.log(Level.INFO,newVal);
                 }
 
             }

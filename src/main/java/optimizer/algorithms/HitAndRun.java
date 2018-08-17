@@ -45,10 +45,18 @@ public class HitAndRun extends AbstractAlgorithm {
         this.optimizerParams.add(new Param(5,Integer.MAX_VALUE,Integer.MIN_VALUE,"max_number_of_runs"));
     }
 
+    /**
+     * 1. Select a starting point Xo from S and set i =O.
+     * 2. Generate a random direction di+l uniformly distributed over a direction set D ~ Rn. Find the line set L = S intersetion with {x|x =Xi + lambda di +l , lambda a real scalar} and generate a random point Xi+l uniformly distributed over L.
+     * 3. If i=N,stop. Otherwise,set i=i+1 and return to 2.
+     * @param parameterMap contains the description of the {@link Param Param} values their ranges {@link Param#getDependencies()} and their dependencies. The system expects to change the parametervalues here using set
+     * @param landscape readonly, contains the history of executions of the algorithm to be optimized
+     */
     @Override
     public void updateParameters( List<Param> parameterMap, List<IterationResult> landscape) {
 
         try {
+            //last setup is better than
             if (is.hits != 0 && landscape.get(landscape.size() - 1).betterThan(landscape.get(landscape.size() - 1 - is.hits))) {
                 is.hits = 0;
                 updateParameters(parameterMap, landscape);
@@ -56,29 +64,23 @@ public class HitAndRun extends AbstractAlgorithm {
             }
             else {
                 if(is.hits == (int)optimizerParams.get(1).getValue()) {
+                    //????
                     this.iterationCounter = this.config.getIterationCount().get();
                     return;
                 }
-                double[] s = new double[parameterMap.size()];
-                Random gen = new Random();
-                for (int i = 0; i < s.length; ++i) {
-                    s[i] = (2 * gen.nextDouble()) - 1;
-                }
+                // s vector of direction where to move
+                int dimension = parameterMap.size();
+
+                double[] s = getRandomVector(dimension);
+                // c will be the stepsize
                 double c = ((Float) optimizerParams.get(0).getValue()).doubleValue();
+                // pick the center point in searchspace
                 List<Param> center = landscape.get(landscape.size()-1-is.hits).getConfigurationClone();
 
-                for (int i = 0; i < s.length; ++i) {
-                    if (s[i] > 0 && ((Number) center.get(i).getUpperBound()).doubleValue() - ((Number) center.get(i).getValue()).doubleValue() < c * s[i])
-                        c = (((Number) center.get(i).getUpperBound()).doubleValue() - ((Number) center.get(i).getValue()).doubleValue()) / s[i];
-                    if (s[i] < 0 && ((Number) center.get(i).getValue()).doubleValue() - ((Number) center.get(i).getLowerBound()).doubleValue() < c * s[i])
-                        c = (((Number) center.get(i).getValue()).doubleValue() - ((Number) center.get(i).getLowerBound()).doubleValue()) / s[i];
-                }
-
-                c *= gen.nextDouble();
-                for (int i = 0; i < s.length; ++i) {
-                    center.get(i).add(new Double(c * s[i]).floatValue());
-                }
+                c = adjustC(s, c, center);
+                moveVector(s, c, center);
                 Param.refillList(parameterMap,center);
+
                 ++is.hits;
             }
 
@@ -87,6 +89,57 @@ public class HitAndRun extends AbstractAlgorithm {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * shifts the vector in a given direction on a specified scale
+     * @param s direction of the shift
+     * @param c maximal shift
+     * @param center the vector to shift
+     */
+    private void moveVector(double[] s, double c, List<Param> center) {
+        Random gen = new Random();
+        c *= gen.nextDouble();
+        for (int i = 0; i < s.length; ++i) {
+            center.get(i).add(new Double(c * s[i]).floatValue());
+        }
+    }
+
+    /**
+     * Generates a vector of the given length in unit cube.
+     * @param dimension dimension of the vector to be generated.
+     * @return generated vector
+     */
+    private double[] getRandomVector(int dimension) {
+        double[] s = new double[dimension];
+        Random gen = new Random();
+        for (int i = 0; i < s.length; ++i) {
+            s[i] = (2 * gen.nextDouble()) - 1;
+        }
+        return s;
+    }
+
+    //wis this ok???
+
+    /**
+     * starting from the maximal stepsize, iterating over the coordinates of the vector of move.
+     * If the move would bring out from the searchspace, we scale it down to the extent it would only bring us to the edge of the space.
+     * @param s direction vector
+     * @param c the maximal step size
+     * @param center actual position in the space
+     * @return the downscaled stepsize, taht ensures that after the update we stay within the search space
+     */
+    static double adjustC(double[] s, double c, List<Param> center) {
+        for (int i = 0; i < s.length; ++i) {
+            //
+            double distanceFromUpperEdge = ((Number) center.get(i).getUpperBound()).doubleValue() - ((Number) center.get(i).getValue()).doubleValue();
+            if (s[i] > 0 && distanceFromUpperEdge < c * s[i])
+                c = (distanceFromUpperEdge) / s[i];
+            double distanceFromLowerEdge = ((Number) center.get(i).getValue()).doubleValue() - ((Number) center.get(i).getLowerBound()).doubleValue();
+            if (s[i] < 0 && distanceFromLowerEdge < c * s[i])
+                c = (distanceFromLowerEdge) / s[i];
+        }
+        return c;
     }
 
 
