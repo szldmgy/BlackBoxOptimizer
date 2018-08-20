@@ -76,8 +76,8 @@ public class GeneticTournamentRandomStep extends Genetic {
     }
 
     @Override
-    protected List<Param> crossover(List<IterationResult> landscape, int mother, int father) {
-        List<Param> result = new ArrayList<>();
+    protected List<Param> crossover(List<IterationResult> landscape, int mother, int father) throws CloneNotSupportedException {
+        List<Param> result = new ArrayList<>(landscape.get(0).getConfigurationClone());
 
         Random rand = new Random();
         try {
@@ -91,12 +91,12 @@ public class GeneticTournamentRandomStep extends Genetic {
             for (int i = 0; i < s.length; ++i) {
                 s[i] = (2 * rand.nextDouble()) - 1;
             }
-            double c = (Double) optimizerParams.get(2).getValue();
+            double c = (float)optimizerParams.get(2).getValue();
 
             for (int i = 0; i < s.length; ++i) {
-                if (s[i] > 0 &&((Number) result.get(i).getUpperBound()).doubleValue() - ((Number) result.get(i).getValue()).doubleValue() < c * s[i])
+                if (s[i] > 0 && ((Number) result.get(i).getUpperBound()).doubleValue() - ((Number) result.get(i).getValue()).doubleValue() < c * s[i])
                     c = (((Number) result.get(i).getUpperBound()).doubleValue() - ((Number) result.get(i).getValue()).doubleValue()) / s[i];
-                if (s[i] < 0 &&((Number) result.get(i).getValue()).doubleValue() - ((Number) result.get(i).getLowerBound()).doubleValue() < c * s[i])
+                if (s[i] < 0 && ((Number) result.get(i).getValue()).doubleValue() - ((Number) result.get(i).getLowerBound()).doubleValue() < c * s[i])
                     c = (((Number) result.get(i).getValue()).doubleValue() - ((Number) result.get(i).getLowerBound()).doubleValue()) / s[i];
             }
 

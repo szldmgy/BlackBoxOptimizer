@@ -52,7 +52,7 @@ public abstract class Genetic extends AbstractAlgorithm {
         Random rand = new Random();
 
         try {
-            if(is.generation == 0) {
+            if(is.generation == 0 && is.population < (int)optimizerParams.get(0).getValue()) {
                 for(Param p : parameterMap) {
                     float lb = ((Number)p.getLowerBound()).floatValue();
                     float ub = ((Number)p.getUpperBound()).floatValue();
@@ -83,7 +83,7 @@ public abstract class Genetic extends AbstractAlgorithm {
     }
 
     protected abstract void select(List<IterationResult> landscape);
-    protected abstract List<Param> crossover(List<IterationResult> landscape, int mother, int father);
+    protected abstract List<Param> crossover(List<IterationResult> landscape, int mother, int father) throws CloneNotSupportedException;
 
 
     @Override
@@ -128,7 +128,7 @@ public abstract class Genetic extends AbstractAlgorithm {
     class InternalState {
 
         int generation = 0;
-        int population = 0;
+        int population = 1;
 
         int bestChromosome = 0;
 

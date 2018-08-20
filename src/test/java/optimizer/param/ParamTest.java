@@ -358,6 +358,26 @@ public class ParamTest {
 
     }
 
+    @Test
+    public void compareParamListsTest() {
+        List<Param> L1 = new LinkedList<>();
+        List<Param> L2 = new LinkedList<>();
+
+        assertTrue(Param.compareParamLists(L1,L2));
+
+        L1.add(new Param(0f, 1f, 0f, "L1_0"));
+        assertTrue(!Param.compareParamLists(L1,L2));
+
+        L2.add(new Param(0f, 1f, 0f, "L2_0"));
+        assertTrue(Param.compareParamLists(L1,L2));
+
+        L1.add(new Param(1f, 1f, 0f, "L1_1"));
+        L2.add(new Param(0f, 1f, 0f, "L2_1"));
+        assertTrue(!Param.compareParamLists(L1,L2));
+
+
+    }
+
 
 
 

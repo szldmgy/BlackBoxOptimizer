@@ -623,6 +623,20 @@ public class Param<T> implements Cloneable, Comparable<Param>{
                 ", initValue=" + initValue +
                 '}';
     }
+
+    /**
+     * Check whether L1 equals L2.
+     */
+    public static boolean compareParamLists( List<Param> L1, List<Param> L2) {
+        if(L1.size() != L2.size())
+            return false;
+        for(int i = 0; i < L1.size(); ++i) {
+            if(!L1.get(i).getValue().equals(L2.get(i).getValue()))
+                return false;
+        }
+        return true;
+    }
+
 }
 
 
