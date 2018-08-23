@@ -12,7 +12,7 @@ Install BlaBoO
 
 1. Download the source and navigate in the home directory (BlackBoxOptimizer).
 
-2. Execute the following command: `$mvn package`.
+2. Execute the following command: `$mvn package -DskipTests`.
 
 3. In the `target` folder, you will find an `App` folder that contains the necessary folder structure with the single runnable `jar` file. You can copy this folder any place wherever you want in your directory structure.
 
