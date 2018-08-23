@@ -43,9 +43,6 @@ import java.util.Random;
  * Created by david on 2017. 07. 10..
  */
 
-// optimizerParams[0] : max step size
-// optimizerParams[1] : max number of runs
-// optimizerParams[i] : T_{i-2}
 
 public class SimulatedAnnealing extends AbstractAlgorithm {
 

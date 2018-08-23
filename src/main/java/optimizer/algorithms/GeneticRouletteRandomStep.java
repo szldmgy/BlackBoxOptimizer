@@ -75,8 +75,8 @@ public class GeneticRouletteRandomStep extends Genetic {
     }
 
     @Override
-    protected List<Param> crossover(List<IterationResult> landscape, int mother, int father) {
-        List<Param> result = new ArrayList<>();
+    protected List<Param> crossover(List<IterationResult> landscape, int mother, int father) throws CloneNotSupportedException {
+        List<Param> result = new ArrayList<>(landscape.get(0).getConfigurationClone());
 
         Random rand = new Random();
         try {
@@ -90,7 +90,7 @@ public class GeneticRouletteRandomStep extends Genetic {
             for (int i = 0; i < s.length; ++i) {
                 s[i] = (2 * rand.nextDouble()) - 1;
             }
-            double c = (Double) optimizerParams.get(2).getValue();
+            double c = (float)optimizerParams.get(2).getValue();
 
             c = HitAndRun.adjustC(s, c, result);
 
