@@ -16,6 +16,7 @@
 
 package optimizer.main;
 
+import lib.Com;
 import optimizer.algorithms.AbstractAlgorithm;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -23,9 +24,11 @@ import optimizer.utils.*;
 import optimizer.config.TestConfig;
 import optimizer.exception.OptimizerException;
 
+import java.applet.Applet;
 import java.lang.reflect.*;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -54,31 +57,55 @@ public class Main {
         System.out.println(msg);
     }
 
+    public static void setDistributedRun(boolean d){
+        Main.distributedRun[0] = d;
+    }
+
+    public static void setComObject(Com c){Main.comObj[0]=c;}
+
     /**
      * development path for the {@link AbstractAlgorithm} .class files
      */
-    final static String defaultOptimizerClassLocation =  "target/classes/optimizer/algorithms/";
+    static String defaultOptimizerClassLocation =  "target"+File.separator+"classes"+File.separator+"optimizer"+File.separator+"algorithms"+File.separator;
 
     //final static String outputfile =  "BlackBoxOptimizer/target/classes/optimizer.algorithms/";
 
-    /**
-     * deployment path for the {@link AbstractAlgorithm} .class files
-     */
-    final static String defaultJarOptimizerClassLocation =  "lib/optimizer/algorithms/";
 
     /**
      * {@link java.util.Map} storing available optimizer.algorithms, along with some predefined parametrization of them -this latter will be removed.
      */
     static Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses = new HashMap<Class<? extends AbstractAlgorithm>,String>();
 
+    // TODO: 2018. 10. 19. path hack
+    static String sourcePublicLoc = new File(".."+File.separator+"BlackBoxOptimizer"+File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public").getAbsolutePath();
+    static String relativeSourcePublicLoc = "src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public";
+    final static String publicFolderLocation = Files.exists(Paths.get(sourcePublicLoc)) && System.getProperty("user.dir").endsWith("BlackBoxOptimizer")?relativeSourcePublicLoc: "public";
+    //static String s = new File("public").getAbsolutePath();
+    //final static String publicFolderLocation = Files.exists(Paths.get(s))? "public":sourcePublicLoc;
 
-    final static String outputDir = "results";
-    final static String experimentDir = "experiments";
-    final static String backupDir = "backup";
-    final static String uploadDir = "upload";
+    /**
+     * deployment path for the {@link AbstractAlgorithm} .class files
+     */
+    static String defaultJarOptimizerClassLocation =  publicFolderLocation+File.separator+"lib"+File.separator+"optimizer"+File.separator+"algorithms"+File.separator;
+
+
+    final static String outputDirName = "results";
+    final static String experimentDirName = "experiments";
+    final static String backupDirName = "backup";
+    final static String uploadDirName = "upload";
+
+
+    final static String outputDir = publicFolderLocation+File.separator+outputDirName;
+    final static String experimentDir = publicFolderLocation+File.separator+experimentDirName;
+    final static String backupDir = publicFolderLocation+File.separator+backupDirName;
+    final static String uploadDir = publicFolderLocation+File.separator+uploadDirName;
 
     //commandline usage
     final static boolean  inmediateRun[] = new boolean[1];
+    //distributed usage
+    final static boolean  distributedRun[] = new boolean[1];
+    //communication object for distributed execution
+    final static Com comObj[]= new Com[1];
     //save state in each iteration
     final static boolean[] safeMode = new boolean[1];
     //use optimizer settings defined in a separated file
@@ -89,7 +116,7 @@ public class Main {
     final static Integer[] savingFrequence = new Integer[]{-1};
     //indicates whether we reloaded the config, if did so we should keep the landscape
     static boolean recoveryMode = false;
-    static String[] configFileName = {"examples/Rosenbrock/Rosenbrock.json"};
+    static String[] configFileName = {publicFolderLocation+File.separator+"examples"+File.separator+"Rosenbrock"+File.separator+"Rosenbrock.json"};
 
     public static String getSaveFileName() {
         return saveFileName[0];
@@ -109,34 +136,20 @@ public class Main {
      */
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
+
+        URL u = new Main().getClass().getProtectionDomain().getCodeSource().getLocation();
         System.out.println("Working Directory = " +
                 System.getProperty("user.dir"));
-
+        System.out.println("CODEBASE = "+u.toString());
         if(args.length==1)
             configFileName[0] = args[0];
-        String projectDir = System.getProperty("user.dir");
-        String staticDir = "";
 
-        File directory = new File(outputDir);
-        if (! directory.exists()){
-            directory.mkdir();
-         }
-        directory = new File(experimentDir);
-        if (! directory.exists()) {
-            directory.mkdir();
-        }
-        directory = new File(backupDir);
-        if (! directory.exists()){
-            directory.mkdir();
-        }
-        directory = new File(uploadDir);
-        if (! directory.exists()){
-            directory.mkdir();
-        }
 
         boolean testmode=false;
         for(int i = 0; i< args.length;i++)
         {
+            // TODO: 2018. 10. 02. remove
+            System.out.println("ARG" + i+" : "+args[i]);
             String s = args[i];
             if(s.equals("-r"))
                 inmediateRun[0]=true;
@@ -147,6 +160,24 @@ public class Main {
             else if(s.equals("-sp")) {
                 safeMode[0] = true;
                 savingFrequence[0] = Integer.parseInt(args[++i]);
+            }
+            else if(s.equals("-apath")) {
+                // TODO: 2018. 10. 03.
+                System.setProperty("user.dir", System.getProperty("user.dir")+"/modules/coordinator/");
+                System.out.println("jar opt loc: "+defaultJarOptimizerClassLocation);
+                Main.distributedRun[0]= true;
+                i++;
+
+                /*defaultJarOptimizerClassLocation = args[++i]+ defaultJarOptimizerClassLocation;
+                System.out.println(defaultJarOptimizerClassLocation);
+                System.out.println(defaultOptimizerClassLocation);
+
+                defaultOptimizerClassLocation = args[i]+ defaultOptimizerClassLocation;
+                System.out.println(defaultOptimizerClassLocation);
+                configFileName[0] = args[i] + configFileName[0];
+                System.out.println(configFileName[0]);*/
+               // safeMode[0] = true;
+               // savingFrequence[0] = Integer.parseInt(args[++i]);
             }
             /*else if(s.equals("-o")) {
                 saveFileName[0] = args[++i];
@@ -160,10 +191,28 @@ public class Main {
 
             }
 
-            if(configFileName[0].contains("test"))
-                testmode = true;
         }
+        String projectDir = System.getProperty("user.dir");
+        String staticDir = "";
 
+        File directory = new File(outputDir);
+        if (! directory.exists()){
+            directory.mkdir();
+        }
+        directory = new File(experimentDir);
+        if (! directory.exists()) {
+            directory.mkdir();
+        }
+        directory = new File(backupDir);
+        if (! directory.exists()){
+            directory.mkdir();
+        }
+        directory = new File(uploadDir);
+        if (! directory.exists()){
+            directory.mkdir();
+        }
+        if(configFileName[0].contains("test"))
+            testmode = true;
 
         final TestConfig[] config = new TestConfig[1];
 
@@ -171,6 +220,8 @@ public class Main {
 
 
         //find all availible optimizer optimizer.algorithms
+        System.out.println(defaultJarOptimizerClassLocation);
+        System.out.println(defaultOptimizerClassLocation);
         optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
 
         //load config from json file - this branch supposed to be the only path now
@@ -191,6 +242,8 @@ public class Main {
                     }
                     config[0].setOptimizerClasses(optimizerClasses);
                     config[0].setSavingFrequence(savingFrequence[0]);
+                    config[0].setDistributedMode(Main.distributedRun[0]);
+                    config[0].setCommunicationObject(Main.comObj[0]);
 
                     String experimentName = Utils.getExperimentUniqueName(configFileName[0],experimentDir+locationModifier);
                     //String expFileName = Utils.getExpJSONFileName(experimentName,experimentDir) ;
@@ -214,7 +267,7 @@ public class Main {
             }
             else {
                 saveFileName[0] = Utils.getExperimentUniqueName(configFileName[0],experimentDir);
-                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,saveFileName[0]);
+                BrowserInterface bi = new BrowserInterface(configFileName[0], optimizerClasses, projectDir, staticDir, experimentDir, outputDir, backupDir,uploadDir,saveFileName[0],Main.distributedRun[0],Main.comObj[0],experimentDirName,outputDirName,backupDirName,uploadDirName,publicFolderLocation);
                 bi.run();
             }
 

@@ -16,19 +16,21 @@
 
 package optimizer.config;
 
+import lib.Com;
 import optimizer.algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import optimizer.exception.JSONReadException;
+import optimizer.objective.ObjectiveDeserializer;
 import optimizer.objective.Relation;
+import optimizer.param.*;
 import org.apache.log4j.Logger;
 import optimizer.trial.IterationResult;
 import optimizer.exception.OptimizerException;
 import optimizer.utils.Utils;
 import optimizer.objective.Objective;
 import optimizer.objective.ObjectiveContainer;
-import optimizer.param.Param;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +42,22 @@ import java.util.*;
  * Created by peterkiss on 14/10/16.
  */
 public class TestConfig {
+    /**variable describing wether the execution is in a distributed fashion */
+    private boolean distribution;
+
+    // TODO: 2018. 10. 09. not the most clear location for these
+    transient private Com communicationObject;
+
+    public String getPublicFolderLocation() {
+        return publicFolderLocation;
+    }
+
+    public void setPublicFolderLocation(String publicFolderLocation) {
+        this.publicFolderLocation = publicFolderLocation;
+    }
+
+    private String  publicFolderLocation;
+
     /**input from html or config file, to be modified by new parameter values, should not be modified*/
     private String baseCommand;
 
@@ -85,7 +103,8 @@ public class TestConfig {
 
     final static Logger logger = Logger.getLogger(TestConfig.class);
 
-
+    public void setCommunicationObject(Com  c){this.communicationObject= c;}
+    public void setDistributedMode(boolean b){this.distribution = b;}
     public void setBaseCommand(String baseCommand) {
         this.baseCommand = baseCommand;
     }
@@ -111,6 +130,8 @@ public class TestConfig {
         this.customParamFileName = customParamFileName;
     }
 
+    public boolean getDistributedMode(){ return this.distribution;}
+    public Com getCommunicationObject(){return this.communicationObject;}
 
     public String getAlgorithmName() {        return algorithmName;    }
     public String getBaseCommand() { return baseCommand; }
@@ -410,7 +431,9 @@ public class TestConfig {
         this.wirteExperimentDescriptionFile(expFileName);
 
         String result = this.runOptimizer(experimentDir,backupDir,expFileName);
-        String resultFilePath =  resFileName;
+        // TODO: 2018. 10. 11. hack
+        System.out.println("RESULTFILE = "+new File(resFileName).getAbsolutePath().replace("//","/"));
+        String resultFilePath =  new File(resFileName).getAbsolutePath().replace("//","/");
         try (Writer writer = new FileWriter(resultFilePath)) {
             writer.write(result);
         }
@@ -438,7 +461,9 @@ public class TestConfig {
      */
     public static TestConfig readConfigJSON(String configFileName) throws FileNotFoundException {
         File f = new File(configFileName);
-        return readConfigJSON(f);
+
+
+        return readConfigJSON1(f);
     }
 
     /**
@@ -457,6 +482,32 @@ public class TestConfig {
         }catch (Exception e){
             throw new JSONReadException("Error during deserialization of JSON");
         }
+
+    }
+
+    public static TestConfig readConfigJSON1(File configFile) throws FileNotFoundException {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Range.class,new RangeDeserializer());
+        gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
+        gsonBuilder.registerTypeAdapter(Objective.class, new ObjectiveDeserializer());
+        Gson gson = gsonBuilder.create();
+        TestConfig t = gson.fromJson(new FileReader(configFile), TestConfig.class);
+
+        //TestConfig modified = null;
+        List<Param> pl = t.getScriptParametersReference();
+        if(t.getOptimizerParameters() == null )
+            return t;
+        List<Param> op = t.getOptimizerParameters();
+        for(Param p : op) {
+            for (Object pdo : p.getDependencies()) {
+                ParameterDependency pd = (ParameterDependency)pdo;
+                if(pd.getP()!=null)
+                    for(Param p1: t.getOptimizerParameters())
+                        if(p1.equals(pd.getP()))
+                            pd.setP(p1);
+            }
+        }
+        return t;
 
     }
 
@@ -503,7 +554,13 @@ public class TestConfig {
      * @param expFileName the name of the setup JSON file to be created
      */
     public void wirteExperimentDescriptionFile(String expFileName) {
-        try (Writer writer = new FileWriter(expFileName)) {
+        // TODO: 2018. 10. 11. hack
+       // while(expFileName.startsWith("/"))
+       //     expFileName = expFileName.substring(1);
+
+        System.out.println("EXFILENAME = "+(new File(expFileName)).getAbsolutePath().replace("//","/"));
+
+        try (Writer writer = new FileWriter((new File(expFileName)).getAbsolutePath().replace("//","/"))) {
             List<IterationResult> ls = this.getLandscapeReference();
             this.setLandscape(null);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
