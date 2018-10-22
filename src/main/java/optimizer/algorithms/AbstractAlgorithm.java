@@ -21,24 +21,28 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import optimizer.config.TestConfig;
 import optimizer.exception.AlgorithmException;
 import optimizer.exception.ImplementationException;
-import org.apache.log4j.Level;
 import optimizer.main.Main;
-import optimizer.utils.*;
-import optimizer.config.TestConfig;
 import optimizer.objective.ObjectiveContainer;
 import optimizer.param.Param;
 import optimizer.trial.IterationResult;
 import optimizer.trial.Trial;
+import optimizer.utils.Utils;
+import org.apache.log4j.Level;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 
 /**
@@ -62,6 +66,8 @@ public abstract class AbstractAlgorithm {
      * False by default, since a lot of parameter optimization algortihms build on the result of previous trials.  execution of parallelizable can be switched on by setting this member to true in the subclasses.
      */
     protected boolean parallelizable = false;
+
+
 
     /**
      * Getter for parameters of the optimizer.
@@ -147,6 +153,7 @@ public abstract class AbstractAlgorithm {
                     int threads = Runtime.getRuntime().availableProcessors();
                     ExecutorService pool = Executors.newFixedThreadPool(threads);
                     Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
+                    List<Trial> toSend = new LinkedList<>();
                     try {
                         for (int i = 0; i < this.config.getIterationCount().get(); ++i) {
                             synchronized (this) {
@@ -154,12 +161,32 @@ public abstract class AbstractAlgorithm {
                                     config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
                                     config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(), startTime, timeDelta));
                                 }
-                                set.add(pool.submit(new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta)));
+                                Trial t = new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta/*,this.config.getPublicFolderLocation()*/);
+                              //  if(config.getDistributedMode())
+                              //      toSend.add(t);
+                              //  else
+                                    set.add(pool.submit(t));
                                 System.out.println();
                                 updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
                                 Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
                         }
+                        /*if(config.getDistributedMode()){
+                            for(Trial t :toSend) {
+                                Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
+                                this.config.getCommunicationObject().send(gson1.toJson(t, Trial.class),"cord");
+                            }
+                            while(config.getLandscapeReference().size()<toSend.size()) {
+                                // TODO: 2018. 10. 05. hardcoded id
+                                config.getLandscapeReference().addAll(config.getCommunicationObject().receive("cord").stream().map(t -> IterationResult.deserializeIterationResults(t)).collect(Collectors.toList()));
+                                System.out.println("COORD RECIEVING "+toSend.size() +" / "+config.getLandscapeReference().size());
+                                Thread.sleep(500);
+                                this.config.setIterationCounter(config.getLandscapeReference().size());
+                            }
+                            this.config.getCommunicationObject().send("STOP","cord");
+
+                        }*/
+
                         for (Future<IterationResult> future : set) {
                             IterationResult ir = future.get();
                             Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
@@ -170,6 +197,7 @@ public abstract class AbstractAlgorithm {
                                 writeResultFile(saveFileName1);
                             }
                         }
+
                     }catch (ExecutionException e){
                         throw new ImplementationException("Parallelizetion failed : "+e.getStackTrace() );
                     }finally {

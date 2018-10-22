@@ -16,6 +16,7 @@
 
 package optimizer.main;
 
+import lib.Com;
 import optimizer.algorithms.AbstractAlgorithm;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,8 +24,12 @@ import optimizer.exception.AlgorithmException;
 import optimizer.exception.ImplementationException;
 import optimizer.objective.Relation;
 import optimizer.param.*;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 import spark.ModelAndView;
 import spark.Request;
+import spark.Service;
+import spark.Spark;
 import spark.template.velocity.VelocityTemplateEngine;
 import optimizer.utils.*;
 import optimizer.config.TestConfig;
@@ -38,12 +43,14 @@ import javax.servlet.http.Part;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.net.JarURLConnection;
 
 import static spark.Spark.*;
 
@@ -55,23 +62,36 @@ public class BrowserInterface {
 
 
     private  Thread optimizationRunnerThread;
-    private final static String layout = "templates/layout.vtl";
-    private final static String resultTemplate = "templates/resultnew.vtl";
+    //private final VelocityTemplateEngine velocityEngine = new VelocityTemplateEngine();
+
+
+
+
+    private final static String layout = "templates"+File.separator+"layout.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"layout.vtl").getPath().toString();
+    private final static String resultTemplate = "templates"+File.separator+"resultnew.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"resultnew.vtl").getPath().toString();
     private final String[] algoritmhs;
     private final Boolean[] safeMode= {false};
     private final boolean[] recoveryMode = {false};
+    private final boolean[] distributedMode = {false};
+    private final Com[] comObj= new Com[1];
     private final String[] initialConfigFileName = new String[1];
     private final String[] configFileName= new String[1];
     private final String[] saveFileName= new String[1];
+    private final String[] publicFolderLocation = new String[1];
     private static String outputDir;
     private static String experimentDir ;
     private static String uploadDir ;
     private static String backupDir ;
+    private static String outputDirName;
+    private static String experimentDirName ;
+    private static String uploadDirName ;
+    private static String backupDirName ;
     private static List<String> classList;
     private static List<String> objTypes;
     final String[] objectiveTypes = Arrays.stream(Relation.values()).map(v->v.toString()).toArray(String[]::new);
     private  Boolean[] executionError= new Boolean[]{false};
     private  String[] executionErrorMsg = new String[1];
+    Service sparkserverservice;
 
 
     //available optimizer.algorithms
@@ -82,30 +102,80 @@ public class BrowserInterface {
 
     public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
 
+
+        //this.velocityEngine.init();
         this.initialConfigFileName[0] = initialConfigFileName;
         this.optimizerClasses = optimizerClasses;
         this.algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);
         this.saveFileName[0] =saveFileName;
+        //this.distributedMode[0] = distributedMode;
+        //this.comObj[0] = comobj;
+        //this.publicFolderLocation[0] = publicFolderLocation;
 
         BrowserInterface.uploadDir = uploadDir;
         BrowserInterface.outputDir = outputDir;
         BrowserInterface.experimentDir = experimentDir;
         BrowserInterface.backupDir = backupDir;
 
+        BrowserInterface.uploadDirName = uploadDirName;
+        BrowserInterface.outputDirName = outputDirName;
+        BrowserInterface.experimentDirName = experimentDirName;
+        BrowserInterface.backupDirName = backupDirName;
+
         BrowserInterface.classList=  Arrays.asList(Integer.class.getName(),Float.class.getName(),Boolean.class.getName(),"Enum","Function");
         BrowserInterface.objTypes=  Arrays.asList(Integer.class.getName(),Float.class.getName()/*,Boolean.class.getName(),"Enum","Function"*/);
 
 
-        staticFiles.externalLocation(projectDir + staticDir);
-        staticFiles.externalLocation(uploadDir);
-        staticFileLocation("/public");
-
+        //staticFileLocation(Utils.publicIFPath());
 
     }
 
-    public void run(){
 
-        get("/progress", (req, res) ->{
+    public void run() throws IOException {
+
+        Properties properties = new Properties();
+        String u = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath().toString();
+        System.out.println("U ---"+u);
+        if(u.contains("file:")&&u.contains(".jar")) {
+            URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
+            JarURLConnection jarURLConnection = (JarURLConnection)u1.openConnection();
+            u = jarURLConnection.getJarFileURL().toString();
+            properties.setProperty("resource.loader", "jar");
+
+            properties.setProperty(
+                    "jar.resource.loader.class",
+                    "org.apache.velocity.runtime.resource.loader.JarResourceLoader");
+            properties.setProperty(
+                    "jar.resource.loader.path",
+                    u1.toString());
+        }
+        else {
+            properties.setProperty("resource.loader", "class");
+            properties.setProperty(
+                    "class.resource.loader.class",
+                    "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        }
+
+        //properties.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH, u);
+
+        VelocityEngine velocityEngine = new VelocityEngine(properties);
+        System.out.println("FILE_RESOURCE_LOADER_PATH " + velocityEngine.getProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH));
+        velocityEngine.init();
+        sparkserverservice =Service.ignite().port(4567).threadPool(8);
+        //staticFiles.externalLocation(projectDir + staticDir);
+        sparkserverservice.staticFiles.externalLocation(Utils.publicIFPath());
+        sparkserverservice.staticFiles.location("public");
+        //sparkserverservice.staticFileLocation("public" +File.separator);
+
+
+        sparkserverservice.exception(Exception.class, (e, request, response) -> {
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw, true);
+            e.printStackTrace(pw);
+            System.err.println(sw.getBuffer().toString());
+        });
+
+        sparkserverservice.get("/progress", (req, res) ->{
             if(executionError[0])
                 return "error";
             if(optimizationRunnerThread.getState()==Thread.State.TERMINATED){
@@ -115,40 +185,43 @@ public class BrowserInterface {
 
         });
 
-        get("/error", (req, res) ->{
-            return new VelocityTemplateEngine().render(
+        sparkserverservice.get("/error", (req, res) ->{
+            return new VelocityTemplateEngine( velocityEngine).render(
                     new ModelAndView(getErrorMode(executionErrorMsg[0]), layout)
             );
 
         });
 
 
-        get("/results", (req, res) ->{
+        sparkserverservice.get("/results", (req, res) ->{
             Map<String, Object> model1 = getResultModel(/*config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]*/);
-            return new VelocityTemplateEngine().render(
+            return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model1, layout)
             );
         });
 
-        get("/stop", (req, res) ->{
+        sparkserverservice.get("/stop", (req, res) ->{
             Map<String, Object> model = getGoodBye();
             stop();
-            return new VelocityTemplateEngine().render(
+            return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model, layout)
             );
         });
 
-        get("/hello", (req, res) ->{
-            this.config[0] = TestConfig.readConfigJSON(this.initialConfigFileName[0]);
+        sparkserverservice.get("/hello", (req, res) ->{
+            // TODO: 2018. 10. 04. remove
+            System.out.println(System.getProperty("user.dir"));
+            System.out.println(this.config[0] == null);
+            this.config[0] = TestConfig.readConfigJSON(Utils.normalizePath(this.initialConfigFileName[0]));
 
             Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
-            return new VelocityTemplateEngine().render(
+            return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model, layout)
             );
         });
 
 
-        post("/loadsetup","multipart/form-data",(req,res)->{
+        sparkserverservice.post("/loadsetup","multipart/form-data",(req,res)->{
             // TODO: 28/08/17 check if exists
             config[0] = new TestConfig();
             File uploadDir = new File(BrowserInterface.uploadDir);
@@ -167,11 +240,11 @@ public class BrowserInterface {
                     config[0] = TestConfig.readConfigJSON(tempFile.toFile());
                 Files.delete(tempFile);
                 Map<String, Object> model = getBBSetupModel(saveFileName[0], config, classList, objectiveTypes, algoritmhs, objTypes);
-                return new VelocityTemplateEngine().render(
+                return new VelocityTemplateEngine(velocityEngine).render(
                         new ModelAndView(model, layout)
                 );
             }catch (Exception e){
-                return new VelocityTemplateEngine().render( new ModelAndView(getErrorMode("Error in setup file: "+configFileName[0]),layout));
+                return new VelocityTemplateEngine(velocityEngine).render( new ModelAndView(getErrorMode("Error in setup file: "+configFileName[0]),layout));
             }
 
 
@@ -179,7 +252,7 @@ public class BrowserInterface {
 
 
 
-        post("/updateconfig", (request, response) -> {
+        sparkserverservice.post("/updateconfig", (request, response) -> {
             try{
                 // against crashes after restart the server
                 if(config[0]==null)
@@ -305,7 +378,7 @@ public class BrowserInterface {
 
                 model1.put("algorithmname",config[0].getAlgorithmName());
                 model1.put("filename",saveFileName[0]);
-                model1.put("template","templates/algorithm.vtl");
+                model1.put("template","templates"+File.separator+"algorithm.vtl");
                 model1.put("algParamMap",algParamMap);
                 model1.put("parametertypes",classList);
 
@@ -317,9 +390,9 @@ public class BrowserInterface {
             }
 
 
-        }, new VelocityTemplateEngine());
+        }, new VelocityTemplateEngine(velocityEngine));
 
-        post("/updatealgorithmconfig", (request, response) -> {
+        sparkserverservice.post("/updatealgorithmconfig", (request, response) -> {
             try{
                 Map<String, Object> model = new HashMap<String, Object>();
 
@@ -409,7 +482,7 @@ public class BrowserInterface {
 
 
                 model1.put("filename",saveFileName[0]);
-                model1.put("template","templates/algorithm.vtl");
+                model1.put("template","templates"+File.separator+"algorithm.vtl");
                 model1.put("algParamMap",algParamMap);
                 model1.put("parametertypes",classList);
 
@@ -418,9 +491,9 @@ public class BrowserInterface {
 
                 return  new ModelAndView(getErrorMode(e.getMessage()+" "+ Arrays.toString(e.getStackTrace())), layout);
             }
-        }, new VelocityTemplateEngine());
+        }, new VelocityTemplateEngine(velocityEngine));
 
-        post("/run", (request, response) ->{
+        sparkserverservice.post("/run", (request, response) ->{
             String algorithmname = request.queryParams("algorithm_names");
             List<Param> lp = readParams(request, algorithmname);
             config[0].setAlgorithmName(algorithmname);
@@ -430,6 +503,7 @@ public class BrowserInterface {
                 config[0].setIterationCounter(0);
                 config[0].clearLandscape();
 
+
             }
 
 
@@ -437,6 +511,9 @@ public class BrowserInterface {
             String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
             String[] errormsg = new String[1];
             boolean[] faliure = new boolean[]{false};
+            //config[0].setDistributedMode(this.distributedMode[0]);
+            //config[0].setCommunicationObject(this.comObj[0]);
+            //config[0].setPublicFolderLocation(publicFolderLocation[0]);
             Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
                 public void uncaughtException(Thread th, Throwable ex) {
                     errormsg[0] = ex.getMessage();
@@ -447,18 +524,28 @@ public class BrowserInterface {
             this.optimizationRunnerThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                   /* System.out.println("base user.dir "+System.getProperty("user.dir"));
 
+                    String workingDir = System.getProperty("user.dir");
+                    System.setProperty("user.dir", publicFolderLocation[0]);
+                    System.out.println("NEW user.dir "+System.getProperty("user.dir"));*/
                     //save only the setup = without landscape
 
                     //String[] errormsg = new String[1];
                     //boolean[] faliure = new boolean[]{false};
                     try {
+
                         config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
                     } catch (Exception e) {
                         executionError[0] = true;
                         executionErrorMsg[0] ="Error in optimization process: (are the command to execute correct?)<br>"+ e.getMessage() + Arrays.toString(e.getStackTrace());
                         throw new AlgorithmException("Error in optimization process: "+executionErrorMsg[0]);
                     }
+                    /*finally {
+                        System.setProperty("user.dir", workingDir);
+                        System.out.println("RESET user.dir "+System.getProperty("user.dir"));
+
+                    }*/
                 }
             });
             this.optimizationRunnerThread.setUncaughtExceptionHandler(h);
@@ -466,13 +553,13 @@ public class BrowserInterface {
             this.optimizationRunnerThread.start();
 
             if(faliure[0])
-                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(errormsg[0]), layout));
+                return new VelocityTemplateEngine(velocityEngine).render(  new ModelAndView(getErrorMode(errormsg[0]), layout));
 
 
 
             Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
 
-            return new VelocityTemplateEngine().render(
+            return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model1, layout)
             );
 
@@ -528,13 +615,13 @@ public class BrowserInterface {
         Map<String, Object> model = new HashMap<>();
         model.put("filename",file.replace("experiments/",""));
         model.put("parametertypes",classList);
-        model.put("template","templates/param.vtl");
+        model.put("template","templates"+File.separator+"param.vtl");
         model.put("paramlist",config[0].getScriptParametersReference());
         model.put("command",config[0].getBaseCommand());
         model.put("objlist",config[0].getObjectiveContainerReference().getObjectiveListClone());
         model.put("objectivetypes", objectiveTypes);
         model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
-        model.put("optimizer/algorithms",algoritmhs);
+        model.put("optimizer"+File.separator+"algorithms",algoritmhs);
         model.put("objtypes",objtypes);
         model.put("obj_filename", config[0].getObjectiveFileName());
         model.put("iteration_count", config[0].getIterationCount().isPresent()?config[0].getIterationCount().get():0);
@@ -563,15 +650,15 @@ public class BrowserInterface {
         List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
-            resFileList[0] =Files.list(Paths.get(outputDir))
-                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
-            setupFileList[0] = Files.list(Paths.get(experimentDir))
-                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".json")).map(f->experimentDir+"/"+f.getFileName().toString()).collect(Collectors.toList());
+            resFileList[0] =Files.list(Paths.get(new File(outputDir).getAbsolutePath().replace("//","/")))
+                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
+            setupFileList[0] = Files.list(Paths.get(new File(experimentDir).getAbsolutePath().replace("//","/")))
+                    .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".json")).map(f->experimentDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
         List<String> failedExperiments = new LinkedList<>();
-        setupFileList[0].stream().filter(sfn->!resFileList[0].contains(sfn.replace(".json",".csv").replace(experimentDir+"/",outputDir+"/"))).forEach(sfn->{failedExperiments.add(sfn);});
+        setupFileList[0].stream().filter(sfn->!resFileList[0].contains(sfn.replace(".json",".csv").replace(experimentDirName+"/",outputDirName+"/"))).forEach(sfn->{failedExperiments.add(sfn);});
         failedExperiments.stream().forEach(sfn->setupFileList[0].remove(sfn));
         Collections.sort(resFileList[0]);
         Collections.sort(setupFileList[0]);

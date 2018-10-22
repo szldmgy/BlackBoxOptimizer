@@ -50,6 +50,8 @@ public class ParamDeserializer implements JsonDeserializer<Param> {
         }
 
         Param p = new Gson().fromJson(jsonElement,Param.class);
+        System.out.println("Call Param des");
+
         Param modified = p;
              if(p.getValueTypeName()!=null&&!p.getValueTypeName().equals(p.getParamGenericTypeName())) {
                 if(p.getValueTypeName().equals(Integer.class.getCanonicalName()))

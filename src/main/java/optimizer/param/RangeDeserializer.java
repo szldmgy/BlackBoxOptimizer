@@ -28,7 +28,7 @@ public class RangeDeserializer implements JsonDeserializer<Range> {
        /* if(jsonElement.toString().contains("functionString")) {
             return new Gson().fromJson(jsonElement, FunctionParam.class);
         }*/
-
+        System.out.println("Call Range des");
         Range p = new Gson().fromJson(jsonElement, Range.class);
         if (p.getValueArray() != null) {
                if(p.getValueArray()[0] instanceof Double){

@@ -24,7 +24,7 @@ package optimizer.param;
 import optimizer.exception.ImplementationException;
 import optimizer.exception.InvalidParameterValueException;
 import optimizer.utils.Utils;
-import org.apache.commons.lang.NotImplementedException;
+//import org.apache.commons.lang.NotImplementedException;
 
 import javax.script.ScriptException;
 import java.util.*;

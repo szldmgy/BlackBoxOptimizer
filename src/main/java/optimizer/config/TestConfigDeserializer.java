@@ -35,6 +35,7 @@ public class TestConfigDeserializer  implements JsonDeserializer<TestConfig>
     @SuppressWarnings("unchecked")
     @Override
     public TestConfig deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        System.out.println("Call deserialize");
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Range.class,new RangeDeserializer());
         gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
@@ -42,7 +43,7 @@ public class TestConfigDeserializer  implements JsonDeserializer<TestConfig>
         Gson gson = gsonBuilder.create();
         TestConfig t = gson.fromJson(jsonElement, TestConfig.class);
 
-        TestConfig modified = null;
+        //TestConfig modified = null;
         List<Param> pl = t.getScriptParametersReference();
         if(t.getOptimizerParameters() == null )
             return t;
