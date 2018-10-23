@@ -16,12 +16,19 @@
 
 package optimizer.trial;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import optimizer.config.TestConfig;
+import optimizer.config.TestConfigDeserializer;
+import optimizer.exception.JSONReadException;
 import optimizer.objective.Relation;
 import optimizer.objective.Objective;
 import optimizer.objective.ObjectiveContainer;
 import optimizer.param.Param;
 import optimizer.utils.Utils;
 
+import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -32,6 +39,19 @@ import java.util.StringJoiner;
  * Created by peterkiss on 20/04/17.
  */
 public class IterationResult implements Comparable<IterationResult>{
+
+    public static IterationResult deserializeIterationResults(String s){
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(IterationResult.class, new IterationResultDeserializer());
+        Gson gson = gsonBuilder.create();
+        try {
+            return gson.fromJson(s, IterationResult.class);
+        }catch (Exception e){
+            throw new JSONReadException("Error during deserialization of JSON");
+        }
+
+
+    }
 
     /**
      * Recent parametrization of the BBF .

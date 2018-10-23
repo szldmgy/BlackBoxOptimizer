@@ -44,6 +44,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -100,7 +101,7 @@ public class BrowserInterface {
     private  TestConfig[] config = new TestConfig[1];
 
 
-    public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName) throws CloneNotSupportedException, FileNotFoundException {
+    public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName, boolean distributedMode, Com comobj, String experimentDirName, String outputDirName, String backupDirName, String uploadDirName,String publicFolderLocation) throws CloneNotSupportedException, FileNotFoundException {
 
 
         //this.velocityEngine.init();
@@ -108,9 +109,9 @@ public class BrowserInterface {
         this.optimizerClasses = optimizerClasses;
         this.algoritmhs =  optimizerClasses.keySet().stream().map(a->a.getName()).toArray(String[]::new);
         this.saveFileName[0] =saveFileName;
-        //this.distributedMode[0] = distributedMode;
-        //this.comObj[0] = comobj;
-        //this.publicFolderLocation[0] = publicFolderLocation;
+        this.distributedMode[0] = distributedMode;
+        this.comObj[0] = comobj;
+        this.publicFolderLocation[0] = publicFolderLocation;
 
         BrowserInterface.uploadDir = uploadDir;
         BrowserInterface.outputDir = outputDir;
@@ -133,13 +134,12 @@ public class BrowserInterface {
 
     public void run() throws IOException {
 
+        String s = Utils.getSourceHome();
         Properties properties = new Properties();
-        String u = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath().toString();
-        System.out.println("U ---"+u);
-        if(u.contains("file:")&&u.contains(".jar")) {
+        if(Utils.runningInJar()){
             URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
             JarURLConnection jarURLConnection = (JarURLConnection)u1.openConnection();
-            u = jarURLConnection.getJarFileURL().toString();
+            //u = jarURLConnection.getJarFileURL().toString();
             properties.setProperty("resource.loader", "jar");
 
             properties.setProperty(
@@ -193,7 +193,8 @@ public class BrowserInterface {
         });
 
 
-        sparkserverservice.get("/results", (req, res) ->{
+        sparkserverservice.get("/getresults", (req, res) ->{
+            System.out.println("RESULT");
             Map<String, Object> model1 = getResultModel(/*config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]*/);
             return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model1, layout)
@@ -202,16 +203,13 @@ public class BrowserInterface {
 
         sparkserverservice.get("/stop", (req, res) ->{
             Map<String, Object> model = getGoodBye();
-            stop();
+            sparkserverservice.stop();
             return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model, layout)
             );
         });
 
         sparkserverservice.get("/hello", (req, res) ->{
-            // TODO: 2018. 10. 04. remove
-            System.out.println(System.getProperty("user.dir"));
-            System.out.println(this.config[0] == null);
             this.config[0] = TestConfig.readConfigJSON(Utils.normalizePath(this.initialConfigFileName[0]));
 
             Map<String, Object> model = getBBSetupModel(saveFileName[0],config, classList, objectiveTypes, algoritmhs,objTypes);
@@ -511,9 +509,9 @@ public class BrowserInterface {
             String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
             String[] errormsg = new String[1];
             boolean[] faliure = new boolean[]{false};
-            //config[0].setDistributedMode(this.distributedMode[0]);
-            //config[0].setCommunicationObject(this.comObj[0]);
-            //config[0].setPublicFolderLocation(publicFolderLocation[0]);
+            config[0].setDistributedMode(this.distributedMode[0]);
+            config[0].setCommunicationObject(this.comObj[0]);
+            config[0].setPublicFolderLocation(publicFolderLocation[0]);
             Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
                 public void uncaughtException(Thread th, Throwable ex) {
                     errormsg[0] = ex.getMessage();
@@ -644,6 +642,8 @@ public class BrowserInterface {
         final List<String> objectiveRelationList = new LinkedList<String>();
         objectives.forEach(o->objectiveRelationList.add(o.getRelation().equals(Relation.GREATER_THAN)||o.getRelation().equals(Relation.MAXIMIZE)?"increase":"decrease"));
 */
+
+        System.out.println("GETRESULTMODEL");
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/resultnew.vtl");
 

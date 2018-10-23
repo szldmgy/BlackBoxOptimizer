@@ -32,7 +32,7 @@ function checkProgress() {
         // String result here
         success: function(res) {
             if(res == 'done') {
-                window.location = "http://localhost:4567/results";
+                window.location = "http://localhost:4567/getresults";
             }else if(res == 'error')
                 window.location = "http://localhost:4567/error";
             else {

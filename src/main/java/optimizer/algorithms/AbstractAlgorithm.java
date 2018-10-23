@@ -161,17 +161,17 @@ public abstract class AbstractAlgorithm {
                                     config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
                                     config.getLandscapeReference().add(new IterationResult(config.getScriptParametersReference(), config.getObjectiveContainerReference(), startTime, timeDelta));
                                 }
-                                Trial t = new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta/*,this.config.getPublicFolderLocation()*/);
-                              //  if(config.getDistributedMode())
-                              //      toSend.add(t);
-                              //  else
+                                Trial t = new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta,this.config.getPublicFolderLocation());
+                                if(config.getDistributedMode())
+                                    toSend.add(t);
+                                else
                                     set.add(pool.submit(t));
                                 System.out.println();
                                 updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
                                 Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
                         }
-                        /*if(config.getDistributedMode()){
+                        if(config.getDistributedMode()){
                             for(Trial t :toSend) {
                                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
                                 this.config.getCommunicationObject().send(gson1.toJson(t, Trial.class),"cord");
@@ -185,7 +185,7 @@ public abstract class AbstractAlgorithm {
                             }
                             this.config.getCommunicationObject().send("STOP","cord");
 
-                        }*/
+                        }
 
                         for (Future<IterationResult> future : set) {
                             IterationResult ir = future.get();

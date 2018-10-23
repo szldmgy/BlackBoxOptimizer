@@ -464,4 +464,25 @@ public class Utils {
             ret = ret.replace(doubleSep,File.separator);
         return ret;
     }
+
+    public static boolean runningInJar(){
+
+        String u = Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath().toString();
+        if(u.contains("file:")&&u.contains(".jar"))
+            return true;
+        return false;
+
+    }
+
+    public static String getSourceHome(){
+        return Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+    }
+
+    /*public static String getPublicFolderLocation(){
+        if(runningInJar())
+
+            return Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+    }*/
 }

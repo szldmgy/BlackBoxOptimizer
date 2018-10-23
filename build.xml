@@ -1,0 +1,100 @@
+<!--
+  ~   Copyright 2018 Peter Kiss and David Fonyo
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<!--
+  ~   Copyright 2018 Peter Kiss and David Fonyo
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+<project name="coordinator" default="dist_coord" basedir=".">
+    <description>
+        simple example build file
+    </description>
+    <!-- set global properties for this build -->
+    <property name="src" location="BlackBoxOptimizerDistCoordinator/src"/>
+    <property name="build" location="build"/>
+    <property name="dist" location="dist"/>
+
+    <target name="init">
+        <!-- Create the time stamp -->
+        <tstamp/>
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init"
+            description="compile the source">
+        <!-- Compile the Java code from ${src} into ${build} -->
+        <javac srcdir="${src}" destdir="${build}"/>
+    </target>
+
+    <target name="dist_coord"
+            description="generate the distribution">
+
+
+
+        <mkdir dir="./../BBCom/modules/coordinator/public"/>
+
+        <mkdir dir="./../BBCom/modules/coordinator/public/lib"/>
+        <mkdir dir="./../BBCom/modules/coordinator/public/lib/optimizer"/>
+        <copy todir="./../BBCom/modules/coordinator/public/lib/optimizer/algorithms">
+            <fileset dir="target/classes/optimizer/algorithms"/>
+        </copy>
+        <copy todir="./../BBCom/modules/coordinator/public">
+            <fileset dir="target/classes/public"/>
+        </copy>
+        <!--<mkdir dir="../BBCom/modules/coordinator/public/templates"/>
+        <copy todir="../BBCom/modules/coordinator/public/templates">
+            <fileset dir="target/classes/templates"/>
+        </copy>-->
+
+    </target>
+
+    <target name="dist_slave"
+            description="generate the distribution">
+
+
+
+        <mkdir dir="./../BBCom/modules/slave/public"/>
+        <mkdir dir="./../BBCom/modules/slave/public/lib"/>
+        <mkdir dir="./../BBCom/modules/slave/public/lib/optimizer"/>
+        <copy todir="./../BBCom/modules/slave/public/lib/optimizer/algorithms">
+            <fileset dir="target/classes/optimizer/algorithms"/>
+        </copy>
+        <copy todir="./../BBCom/modules/slave/public">
+            <fileset dir="target/classes/public"/>
+        </copy>
+
+    </target>
+
+
+    <target name="clean"
+            description="clean up">
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
+</project>

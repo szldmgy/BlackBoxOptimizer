@@ -46,8 +46,7 @@ import java.util.Random;
 public class SMBO extends AbstractAlgorithm {
     InternalState is = new InternalState();
 
-    /**
-     * @param number_of_random_points Number of random trials in the initial phase of the algorithm.
+    /**@param number_of_random_points Number of random trials in the initial phase of the algorithm.
      * @param sigma_of_Gaussian_kernel For fitting Gaussian processes we use Gaussian kernel.
      *                                 k(u,v) = exp(-||u-v||^2 / 2*sigma^2)
      * @param lambda For numerical stability, (A + lamda * I) is inverted instead of A

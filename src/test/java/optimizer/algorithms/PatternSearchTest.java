@@ -1,6 +1,5 @@
 package optimizer.algorithms;
 
-import com.sun.xml.internal.rngom.digested.DDataPattern;
 import optimizer.config.TestConfig;
 import optimizer.objective.Objective;
 import optimizer.objective.ObjectiveContainer;
@@ -9,7 +8,6 @@ import optimizer.param.Param;
 import optimizer.trial.IterationResult;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
