@@ -76,10 +76,16 @@ public class Main {
      */
     static Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses = new HashMap<Class<? extends AbstractAlgorithm>,String>();
 
-    // TODO: 2018. 10. 19. path hack
+    // TODO: 2018. 10. 19. path hack first may be removed, test it !
+    // this is for development, if we are out fromm BlaBoO project, and BlaBoO runs as jar.
     static String sourcePublicLoc = new File(".."+File.separator+"BlackBoxOptimizer"+File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public").getAbsolutePath();
+
+    // IDE run, resources as in maven project. This might exists if we raun the jar from another project
     static String relativeSourcePublicLoc = "src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public";
+
+    //if  on sourcepath of BlaBoO src/main/resources/public, otherwise jar mode -> /public
     final static String publicFolderLocation = Files.exists(Paths.get(sourcePublicLoc)) && System.getProperty("user.dir").endsWith("BlackBoxOptimizer")?relativeSourcePublicLoc: "public";
+
     //static String s = new File("public").getAbsolutePath();
     //final static String publicFolderLocation = Files.exists(Paths.get(s))? "public":sourcePublicLoc;
 
@@ -136,7 +142,7 @@ public class Main {
      */
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
-
+        System.out.println(publicFolderLocation);
         URL u = new Main().getClass().getProtectionDomain().getCodeSource().getLocation();
         System.out.println("Working Directory = " +
                 System.getProperty("user.dir"));
@@ -162,30 +168,14 @@ public class Main {
                 savingFrequence[0] = Integer.parseInt(args[++i]);
             }
             else if(s.equals("-apath")) {
-                // TODO: 2018. 10. 03.
+                // change working dir in order to enable correct execution of clack-box command
                 System.setProperty("user.dir", System.getProperty("user.dir")+"/modules/coordinator/");
                 System.out.println("jar opt loc: "+defaultJarOptimizerClassLocation);
                 Main.distributedRun[0]= true;
                 i++;
 
-                /*defaultJarOptimizerClassLocation = args[++i]+ defaultJarOptimizerClassLocation;
-                System.out.println(defaultJarOptimizerClassLocation);
-                System.out.println(defaultOptimizerClassLocation);
+            }
 
-                defaultOptimizerClassLocation = args[i]+ defaultOptimizerClassLocation;
-                System.out.println(defaultOptimizerClassLocation);
-                configFileName[0] = args[i] + configFileName[0];
-                System.out.println(configFileName[0]);*/
-               // safeMode[0] = true;
-               // savingFrequence[0] = Integer.parseInt(args[++i]);
-            }
-            /*else if(s.equals("-o")) {
-                saveFileName[0] = args[++i];
-            }
-            else if(s.equals("-p")) {
-                customParamFile[0] = true;
-                customParamFileName[0] = args[i++];
-            }*/
             else {
                 configFileName[0] = s;
 

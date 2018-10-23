@@ -2,11 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!--<parent>
+        <groupId>hu.elte.fds</groupId>
+        <artifactId>BBComInterface</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../BBComInterface/pom.xml</relativePath>
+    </parent>-->
     <modelVersion>4.0.0</modelVersion>
     <groupId>hu.elte.fds</groupId>
     <artifactId>BlaBoO</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
+
+    <!--<modules>
+        <module>BlackBoxOptimizerDistSlave</module>
+        <module>BlackBoxOptimizerDistCoordinator</module>
+    </modules>-->
+    <!--<packaging>pom</packaging>-->
     <build>
         <plugins>
             <plugin>
@@ -37,7 +49,7 @@
                                 </transformer>
                             </transformers>
                             <finalName>${project.artifactId}-${project.version}</finalName>
-                            <outputDirectory>${basedir}/target/App/</outputDirectory>
+                            <outputDirectory>${basedir}${file.separator}target${file.separator}App</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -52,17 +64,19 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <mkdir dir="${project.build.directory}/App/lib/algorithms" />
-                                <mkdir dir="${project.build.directory}/App/examples" />
-                                <copy todir="${project.build.directory}/App/examples/">
-                                    <fileset dir="examples">
+                                <mkdir dir="${project.build.directory}${file.separator}App${file.separator}public${file.separator}lib${file.separator}algorithms${file.separator}" />
+                                <mkdir dir="${project.build.directory}${file.separator}App${file.separator}public${file.separator}examples${file.separator}" />
+                                <!--<copy todir="${project.build.directory}${file.separator}App${file.separator}public${file.separator}examples${file.separator}">-->
+                                <copy todir="${project.build.directory}${file.separator}App${file.separator}public${file.separator}">
+                                    <!--<fileset dir="src${file.separator}main${file.separator}resources${file.separator}public${file.separator}examples">-->
+                                    <fileset dir="src${file.separator}main${file.separator}resources${file.separator}public${file.separator}">
                                         <!--<include name="*.class"/>-->
                                     </fileset>
                                 </copy>
-                                <copy file="src/main/java/optimizer/algorithms/AbstractAlgorithm.java" tofile="${project.build.directory}/lib/algorithms/AbstractAlgorithm.java"/>
+                                <copy file="src${file.separator}main${file.separator}java${file.separator}optimizer${file.separator}algorithms${file.separator}AbstractAlgorithm.java" tofile="${project.build.directory}${file.separator}public{file.separator}lib${file.separator}algorithms${file.separator}AbstractAlgorithm.java"/>
 
-                                <copy todir="${project.build.directory}/App/lib/optimizer/algorithms/">
-                                    <fileset dir="${project.build.directory}/classes/optimizer/algorithms">
+                                <copy todir="${project.build.directory}${file.separator}App${file.separator}public${file.separator}lib${file.separator}optimizer${file.separator}algorithms${file.separator}">
+                                    <fileset dir="${project.build.directory}${file.separator}classes${file.separator}optimizer${file.separator}algorithms">
                                         <include name="*.class"/>
                                     </fileset>
                                 </copy>
@@ -78,11 +92,18 @@
         </plugins>
     </build>
     <dependencies><!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+        <dependency>
+            <groupId>hu.elte.fds</groupId>
+            <artifactId>DistCommIF</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.0</version>
+            <version>2.8.5</version>
         </dependency>
 
        <dependency>
@@ -90,11 +111,13 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.sparkjava/spark-core -->
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
-            <version>2.5.5</version>
+            <version>2.8.0</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.apache.velocity/velocity -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
@@ -104,7 +127,7 @@
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-template-velocity</artifactId>
-            <version>2.5.5</version>
+            <version>2.7.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
@@ -140,9 +163,8 @@
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>

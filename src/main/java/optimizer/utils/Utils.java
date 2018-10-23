@@ -72,8 +72,8 @@ public class Utils {
                 if (p.getName().equals(p2.getName())) {
                     // TODO: 2018. 02. 14. Double again at smbo whaaat?? 
                     // if (p.getParamTypeName().equals(p2.getParamTypeName())) {
-                        numberOfMatches++;
-                        break;
+                    numberOfMatches++;
+                    break;
                     //}
                 }
             }
@@ -140,7 +140,7 @@ public class Utils {
     // TODO: 10/08/17 Should be run on server
 
     /**
-     * Finds the available  subclasses of parameter of type {{@link java.lang.Class}}, tghen collect them in a {@link java.util.Map},
+     * Finds the available  subclasses of parameter of type {{@link java.lang.Class}}, then collect them in a {@link java.util.Map},
      * key:  {@link java.lang.Class } that  extends {@code toFind},
      * value: setup files for the given class with the same name - to be removed.
      * @param toFind {@link java.lang.Class }, whose subclasses we want to find .
@@ -150,21 +150,40 @@ public class Utils {
      * @throws IOException
      */
     public static <T> Map<Class<? extends T>, String> findAllMatchingTypes(Class<T> toFind,String optimizerClassLocation) throws IOException {
-        Map<Class<? extends T>,String> foundClasses = new HashMap<Class<? extends T>, String>() ;
+        Map<Class<? extends T>, String> foundClasses = new HashMap<Class<? extends T>, String>();
+        System.out.println("CLASSPATH = " + System.getProperty("java.class.path"));
+        System.out.println(System.getProperty("user.dir"));
+        // TODO: 2018. 10. 03. hack for classloader
+        Class<T>[] toFind1 = new Class[1];
 
-        try(final Stream<Path> pathsStream = Files.walk(Paths.get(optimizerClassLocation))) {
+        URL url = new URL("file:/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/public/lib/");
+            ClassLoader cl = new URLClassLoader(new URL[]{url});
+            try {
+                toFind1[0] = (Class<T>) cl.loadClass("optimizer.algorithms.AbstractAlgorithm");
+            }catch (ClassNotFoundException e){
+                System.out.println("Superclass not found");
+                return foundClasses;
+            }
+
+        try(final Stream<Path> pathsStream = Files.walk(Paths.get("/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/public/lib/optimizer/algorithms/"/*optimizerClassLocation*/))) {
             pathsStream.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     if (filePath.toString().contains(".class")){
                         File f = filePath.toFile();
                         try {
-                            URL url = f.toURI().toURL();
-                            URL[] urls = new URL[]{url};
-                            ClassLoader cl = new URLClassLoader(urls);
-                            Class optimizerClass = cl.loadClass("optimizer.algorithms." + f.getName().split("\\.")[0]);
-                            if(isImplementedAlgorithm( optimizerClass))
+                            //URL url = f.toURI().toURL();
+                            //URL url = new URL("file:/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/target/classes/");
+                            //System.out.println("URL: "+url.toString());
+                            //URL[] urls = new URL[]{url};
+                            //ClassLoader cl = new URLClassLoader(urls);
+                            // TODO: 2018. 10. 02. remove
+                            System.out.println("to load: optimizer.algorithms." + f.getName().split("\\.")[0]);
+                            //Class optimizerClass = Class.forName("optimizer.algorithms." + f.getName().split("\\.")[0], true, cl);
+                            Class optimizerClass = Class.forName("optimizer.algorithms." + f.getName().split("\\.")[0]);//cl.loadClass("optimizer.algorithms." + f.getName().split("\\.")[0]);
+                            //Class optimizerClass = cl.loadClass( f.getName().split("\\.")[0]);
+                            if(isImplementedAlgorithm( optimizerClass,toFind1[0]))
                                 foundClasses.put(optimizerClass,null);
-                        } catch (ClassNotFoundException | MalformedURLException e) {
+                        } catch (ClassNotFoundException e) {
                             e.printStackTrace();
                         }
                     }
@@ -181,12 +200,14 @@ public class Utils {
      * @param optimizerClass the {@link java.lang.Class} we want to examione
      * @return
      */
-    public static boolean isImplementedAlgorithm(Class optimizerClass){
+    public static boolean isImplementedAlgorithm(Class optimizerClass,Class<?> superclass){
         if(Modifier.isAbstract(optimizerClass.getModifiers()))
             return false;
         Class C = optimizerClass;
         while (C != null) {
-            if(C.equals(AbstractAlgorithm.class))
+            // TODO: 2018. 10. 03. HACK !!!!!!!!!!
+//            if(C.equals(superclass))
+           if(C.toString().equals(superclass.toString()))
                 return true;
             C = C.getSuperclass();
         }
@@ -425,4 +446,43 @@ public class Utils {
         }
         return res;
     }
+
+    // TODO: 2018. 10. 08. ugly
+    public static String publicIFPath() {
+        //return "/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/public/";
+        String jarPublicLocation = System.getProperty("user.dir")+File.separator+ "public";
+        String resourcePublicLocation =System.getProperty("user.dir") +File.separator+"src" +File.separator+"main" +File.separator+"resources"+File.separator+ "public";
+
+        String ret =  Files.exists(Paths.get(jarPublicLocation))?jarPublicLocation:resourcePublicLocation;
+        return ret;
+    }
+
+    public static String normalizePath(String s) {
+        String ret = System.getProperty("user.dir")+File.separator+s;
+        String doubleSep = File.separator+File.separator;
+        while (ret.contains(doubleSep))
+            ret = ret.replace(doubleSep,File.separator);
+        return ret;
+    }
+
+    public static boolean runningInJar(){
+
+        String u = Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath().toString();
+        if(u.contains("file:")&&u.contains(".jar"))
+            return true;
+        return false;
+
+    }
+
+    public static String getSourceHome(){
+        return Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+    }
+
+    /*public static String getPublicFolderLocation(){
+        if(runningInJar())
+
+            return Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+    }*/
 }
