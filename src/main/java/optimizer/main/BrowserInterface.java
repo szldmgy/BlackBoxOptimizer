@@ -140,8 +140,8 @@ public class BrowserInterface {
         String s = Utils.getSourceHome();
         Properties properties = new Properties();
         if(Utils.runningInJar()){
-            URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
-            //JarURLConnection jarURLConnection = (JarURLConnection)u1.openConnection();
+            java.net.URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
+            //java.net.JarURLConnection jarURLConnection = (java.net.JarURLConnection)u1.openConnection();
             //u = jarURLConnection.getJarFileURL().toString();
             properties.setProperty("resource.loader", "jar");
 
@@ -150,7 +150,7 @@ public class BrowserInterface {
                     "org.apache.velocity.runtime.resource.loader.JarResourceLoader");
             properties.setProperty(
                     "jar.resource.loader.path",
-                    u1.toString());
+                    "jar:"+u1.toString());
         }
         else {
             properties.setProperty("resource.loader", "class");
