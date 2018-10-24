@@ -67,9 +67,10 @@ public class BrowserInterface {
 
 
 
+    private final static String[] resourceSeparator = new String[]{Utils.runningInJar()?"/":File.separator};
 
-    private final static String layout = "templates"+File.separator+"layout.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"layout.vtl").getPath().toString();
-    private final static String resultTemplate = "templates"+File.separator+"resultnew.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"resultnew.vtl").getPath().toString();
+    private final static String layout = "templates"+resourceSeparator[0]+"layout.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"layout.vtl").getPath().toString();
+    private final static String resultTemplate = "templates"+resourceSeparator[0]+"resultnew.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"resultnew.vtl").getPath().toString();
     private final String[] algoritmhs;
     private final Boolean[] safeMode= {false};
     private final boolean[] recoveryMode = {false};
@@ -376,7 +377,7 @@ public class BrowserInterface {
 
                 model1.put("algorithmname",config[0].getAlgorithmName());
                 model1.put("filename",saveFileName[0]);
-                model1.put("template","templates"+File.separator+"algorithm.vtl");
+                model1.put("template","templates"+resourceSeparator[0]+"algorithm.vtl");
                 model1.put("algParamMap",algParamMap);
                 model1.put("parametertypes",classList);
 
@@ -480,7 +481,7 @@ public class BrowserInterface {
 
 
                 model1.put("filename",saveFileName[0]);
-                model1.put("template","templates"+File.separator+"algorithm.vtl");
+                model1.put("template","templates"+resourceSeparator[0]+"algorithm.vtl");
                 model1.put("algParamMap",algParamMap);
                 model1.put("parametertypes",classList);
 
@@ -613,13 +614,13 @@ public class BrowserInterface {
         Map<String, Object> model = new HashMap<>();
         model.put("filename",file.replace("experiments/",""));
         model.put("parametertypes",classList);
-        model.put("template","templates"+File.separator+"param.vtl");
+        model.put("template","templates"+resourceSeparator[0]+"param.vtl");
         model.put("paramlist",config[0].getScriptParametersReference());
         model.put("command",config[0].getBaseCommand());
         model.put("objlist",config[0].getObjectiveContainerReference().getObjectiveListClone());
         model.put("objectivetypes", objectiveTypes);
         model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
-        model.put("optimizer"+File.separator+"algorithms",algoritmhs);
+        model.put("optimizer"+resourceSeparator[0]+"algorithms",algoritmhs);
         model.put("objtypes",objtypes);
         model.put("obj_filename", config[0].getObjectiveFileName());
         model.put("iteration_count", config[0].getIterationCount().isPresent()?config[0].getIterationCount().get():0);
