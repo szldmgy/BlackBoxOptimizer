@@ -156,7 +156,7 @@ public class Utils {
         // TODO: 2018. 10. 03. hack for classloader
         Class<T>[] toFind1 = new Class[1];
 
-        URL url = new URL("file:/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/public/lib/");
+        URL url = new URL("file:"+optimizerClassLocation);
             ClassLoader cl = new URLClassLoader(new URL[]{url});
             try {
                 toFind1[0] = (Class<T>) cl.loadClass("optimizer.algorithms.AbstractAlgorithm");
@@ -165,7 +165,7 @@ public class Utils {
                 return foundClasses;
             }
 
-        try(final Stream<Path> pathsStream = Files.walk(Paths.get("/Users/peterkiss/IdeaProjects/BBCom/modules/coordinator/public/lib/optimizer/algorithms/"/*optimizerClassLocation*/))) {
+        try(final Stream<Path> pathsStream = Files.walk(Paths.get(optimizerClassLocation))) {
             pathsStream.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     if (filePath.toString().contains(".class")){
@@ -180,7 +180,6 @@ public class Utils {
                             System.out.println("to load: optimizer.algorithms." + f.getName().split("\\.")[0]);
                             //Class optimizerClass = Class.forName("optimizer.algorithms." + f.getName().split("\\.")[0], true, cl);
                             Class optimizerClass = Class.forName("optimizer.algorithms." + f.getName().split("\\.")[0]);//cl.loadClass("optimizer.algorithms." + f.getName().split("\\.")[0]);
-                            //Class optimizerClass = cl.loadClass( f.getName().split("\\.")[0]);
                             if(isImplementedAlgorithm( optimizerClass,toFind1[0]))
                                 foundClasses.put(optimizerClass,null);
                         } catch (ClassNotFoundException e) {
