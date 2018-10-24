@@ -141,7 +141,7 @@ public class BrowserInterface {
         Properties properties = new Properties();
         if(Utils.runningInJar()){
             URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
-            JarURLConnection jarURLConnection = (JarURLConnection)u1.openConnection();
+            //JarURLConnection jarURLConnection = (JarURLConnection)u1.openConnection();
             //u = jarURLConnection.getJarFileURL().toString();
             properties.setProperty("resource.loader", "jar");
 
