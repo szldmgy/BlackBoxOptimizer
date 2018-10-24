@@ -10,9 +10,13 @@ Install BlaBoO
 --------------
 0. Install [JVM 8+](https://java.com/en/download/) and [maven](https://maven.apache.org/download.cgi)
 
-1. Download the source and navigate in the home directory (BlackBoxOptimizer).
+1. Download the source of [DistCommIF](https://github.com/kppeterkiss/DistCommIF), and navigate in the home directory (DistCommIF).
 
-2. Execute the following command: `$mvn package -DskipTests`.
+2. Execute the following command: `$mvn clean install`.
+
+3. Download the source and navigate in the home directory (BlackBoxOptimizer).
+
+4. Execute the following command: `$mvn package -DskipTests`.
 
 3. In the `target` folder, you will find an `App` folder that contains the necessary folder structure with the single runnable `jar` file. You can copy this folder any place wherever you want in your directory structure.
 
