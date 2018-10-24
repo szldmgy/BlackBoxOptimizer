@@ -104,6 +104,8 @@ public class BrowserInterface {
 
     public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName, boolean distributedMode, Com comobj, String experimentDirName, String outputDirName, String backupDirName, String uploadDirName,String publicFolderLocation) throws CloneNotSupportedException, FileNotFoundException {
 
+        System.out.println("JAR="+Utils.runningInJar());
+        System.out.println("RESOURCESEP="+resourceSeparator[0]);
 
         //this.velocityEngine.init();
         this.initialConfigFileName[0] = initialConfigFileName;
