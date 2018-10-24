@@ -467,8 +467,8 @@ public class Utils {
     public static boolean runningInJar(){
 
         String u = Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath().toString();
-        System.out.println("Source url="+u);
-        if(u.contains("file:")&&u.contains(".jar"))
+        //System.out.println("Source url="+u);
+        if(u.contains(".jar"))
             return true;
         return false;
 
