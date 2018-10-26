@@ -472,7 +472,7 @@ public class TestConfig {
      * @return the deserialized object
      * @throws FileNotFoundException
      */
-    public static TestConfig readConfigJSON(File configFile) throws FileNotFoundException {
+    public static TestConfig readConfigJSON(File configFile) throws IOException {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(TestConfig.class, new TestConfigDeserializer());
         Gson gson = gsonBuilder.create();
@@ -481,6 +481,8 @@ public class TestConfig {
             return gson.fromJson(reader, TestConfig.class);
         }catch (Exception e){
             throw new JSONReadException("Error during deserialization of JSON");
+        }finally {
+            reader.close();
         }
 
     }

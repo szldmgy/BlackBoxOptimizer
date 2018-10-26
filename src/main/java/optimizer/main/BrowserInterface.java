@@ -247,7 +247,7 @@ public class BrowserInterface {
             Part filePart = req.raw().getPart("chosenfile");
             this.configFileName[0] = filePart.getSubmittedFileName();
             //prepare base of the savefilename
-            String [] fnparts =  configFileName[0].split(Utils.platform_path_separator);
+            String [] fnparts =  Utils.getFilePathParts(this.configFileName[0] );
             saveFileName[0] =fnparts[fnparts.length-1];
             try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
                 Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
