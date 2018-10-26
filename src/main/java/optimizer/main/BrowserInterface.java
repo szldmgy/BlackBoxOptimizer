@@ -102,7 +102,23 @@ public class BrowserInterface {
     private  TestConfig[] config = new TestConfig[1];
 
 
-    public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName, boolean distributedMode, Com comobj, String experimentDirName, String outputDirName, String backupDirName, String uploadDirName,String publicFolderLocation) throws CloneNotSupportedException, FileNotFoundException {
+    public static String getOutputDir() {
+        return outputDir;
+    }
+
+    public static String getExperimentDir() {
+        return experimentDir;
+    }
+
+    public static String getUploadDir() {
+        return uploadDir;
+    }
+
+    public static String getBackupDir() {
+        return backupDir;
+    }
+
+    public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName, boolean distributedMode, Com comobj, String experimentDirName, String outputDirName, String backupDirName, String uploadDirName, String publicFolderLocation) throws CloneNotSupportedException, FileNotFoundException {
 
         System.out.println("JAR="+Utils.runningInJar());
         System.out.println("RESOURCESEP="+resourceSeparator[0]);
@@ -198,7 +214,7 @@ public class BrowserInterface {
 
         sparkserverservice.get("/getresults", (req, res) ->{
             System.out.println("RESULT");
-            Map<String, Object> model1 = getResultModel(/*config[0].getObjectiveContainerReference().getObjectiveListClone(), "experiment.csv",saveFileName[0]*/);
+            Map<String, Object> model1 = getResultModel(saveFileName[0]==null?"":saveFileName[0]);
             return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model1, layout)
             );
@@ -231,7 +247,7 @@ public class BrowserInterface {
             Part filePart = req.raw().getPart("chosenfile");
             this.configFileName[0] = filePart.getSubmittedFileName();
             //prepare base of the savefilename
-            String [] fnparts =  configFileName[0].split("/");
+            String [] fnparts =  configFileName[0].split(Utils.platform_path_separator);
             saveFileName[0] =fnparts[fnparts.length-1];
             try (InputStream input = filePart.getInputStream()) { // getPart needs to use same "name" as input field in form
                 Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -264,7 +280,7 @@ public class BrowserInterface {
                     safeMode[0] = true;
                 }
 
-
+                updateSaveFileName(request.queryParams("savefilename"));
                 saveFileName[0] = request.queryParams("savefilename");
                 String useIterationString = request.queryParams("use_iterations");
                 String iterationCountString = request.queryParams("iterationCount");
@@ -558,7 +574,7 @@ public class BrowserInterface {
 
 
 
-            Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
+            Map<String, Object> model1 = getProgressModel(saveFileName[0]);//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
 
             return new VelocityTemplateEngine(velocityEngine).render(
                     new ModelAndView(model1, layout)
@@ -601,6 +617,12 @@ public class BrowserInterface {
 
     }
 
+    private void updateSaveFileName(String savefilename) {
+        String filename = new File(savefilename.replace("\\","\\\\")).getName();
+        saveFileName[0] = getExperimentDir()+File.separator+File.separator+filename;
+
+    }
+
     private Map<String,Object> getErrorMode(String e) {
         Map res = new HashMap();
         res.put("template","templates/error.vtl");
@@ -630,15 +652,17 @@ public class BrowserInterface {
     }
 
 
-    private  static Map<String, Object> getProgressModel() {
+    private  static Map<String, Object> getProgressModel(String saveFileName) {
 
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", "templates/progress.vtl");
+        model1.put("filename",saveFileName);
+
         return model1;
     }
 
 
-    private static Map<String, Object> getResultModel(/*List<Objective> objectives, String resFileName, String configFileName*/) {
+    private static Map<String, Object> getResultModel(/*List<Objective> objectives, String resFileName, String configFileName*/String saveFileName) {
      /*   final List<String> objectiveList = new LinkedList<String>();
         objectives.forEach(o->objectiveList.add(o.getName()));
 
@@ -653,6 +677,7 @@ public class BrowserInterface {
         List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
+            //todo // -> / necessary?
             resFileList[0] =Files.list(Paths.get(new File(outputDir).getAbsolutePath().replace("//","/")))
                     .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
             setupFileList[0] = Files.list(Paths.get(new File(experimentDir).getAbsolutePath().replace("//","/")))
@@ -666,6 +691,7 @@ public class BrowserInterface {
         Collections.sort(resFileList[0]);
         Collections.sort(setupFileList[0]);
         model1.put("failed",failedExperiments);
+        model1.put("filename",saveFileName);
         //model1.put("filename",configFileName);
         model1.put("resfilelist",resFileList[0]);
         model1.put("setupfilelist",setupFileList[0]);

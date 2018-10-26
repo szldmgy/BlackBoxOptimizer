@@ -61,7 +61,7 @@ public class ParallelTests extends StressTestBase {
                 testFiles(file.listFiles()); // Calls same method again.
             } else {
                 if(file.getName().endsWith(".json")) {
-                    String tasknameparts[] = file.getName().replace(".json","").split("/");
+                    String tasknameparts[] = file.getName().replace(".json","").split(File.separator);
                     String tn = tasknameparts[tasknameparts.length-1];
                     TestConfig config = TestConfig.readConfigJSON(file);
                     config.setOptimizerClasses(optimizerClasses);

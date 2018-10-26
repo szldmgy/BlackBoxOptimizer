@@ -18,20 +18,20 @@ package optimizer.main;
 
 import lib.Com;
 import optimizer.algorithms.AbstractAlgorithm;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import optimizer.utils.*;
 import optimizer.config.TestConfig;
 import optimizer.exception.OptimizerException;
+import optimizer.utils.Utils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
-import java.applet.Applet;
-import java.lang.reflect.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -169,7 +169,7 @@ public class Main {
             }
             else if(s.equals("-apath")) {
                 // change working dir in order to enable correct execution of clack-box command
-                System.setProperty("user.dir", System.getProperty("user.dir")+"/modules/coordinator/");
+                System.setProperty("user.dir", System.getProperty("user.dir")+File.separator+"modules"+File.separator+"coordinator/");
                 System.out.println("jar opt loc: "+defaultJarOptimizerClassLocation);
                 Main.distributedRun[0]= true;
                 i++;
@@ -221,7 +221,7 @@ public class Main {
             if(inmediateRun[0])
             {
                 try {
-                    String locationModifier = testmode?"/tests":"";
+                    String locationModifier = testmode?File.separator+"tests":"";
 
                     try {
                         config[0] = TestConfig.readConfigJSON(configFileName[0]);

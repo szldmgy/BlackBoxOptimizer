@@ -49,6 +49,8 @@ import javax.script.ScriptException;
  */
 public class Utils {
 
+
+    public static String platform_path_separator = File.separator.equals("/")?File.separator:File.separator+File.separator+File.separator+File.separator;
     /**
      * checks whether the to list are exchangeable, specifically for checking user defined optimizersetups
      * @param l1
@@ -97,7 +99,7 @@ public class Utils {
      * @return The created relative path to the file
      */
     public static String getExpCSVFileName(String experimentName,String outputDir) {
-        return outputDir+"/"+experimentName+".csv";
+        return outputDir+File.separator+experimentName+".csv";
     }
 
     /**
@@ -107,7 +109,25 @@ public class Utils {
      * @return The created relative path to the file
      */
     public static String getExpJSONFileName(String experimentName,String experimentDir) {
-        return experimentDir +"/"+experimentName+".json";
+        return experimentDir +File.separator+experimentName+".json";
+    }
+
+    public static String[] getFilePathParts(String s){
+        while(s.startsWith(File.separator))
+            s = s.substring(1);
+        while(s.endsWith(File.separator))
+            s = s.substring(0,s.length()-2);
+        if(File.separator.equals("\\"))
+            s = s.replace(File.separator,File.separator+File.separator);
+        String[] test = s.split(File.separator+File.separator);
+        /*File f = new File(s);
+        LinkedList<String> result = new LinkedList<>();
+        result.push(f.getName());
+
+        while(!s.startsWith(result.peek()))
+            result.push(f.getParent());
+        return result.toArray(new String[result.size()]);*/
+        return test;
     }
 
     /**
@@ -116,7 +136,7 @@ public class Utils {
      * @return The inferred name of the experiment
      */
     public static String getExperimentName(String saveFileNameWithPath){
-        String[] fnparts = saveFileNameWithPath.split("/");
+        String[] fnparts = getFilePathParts(saveFileNameWithPath);//saveFileNameWithPath.split(Utils.platform_path_separator);
         String[] saveFileNameParts = fnparts[fnparts.length-1].split("\\.");
         return saveFileNameParts[0];
     }
@@ -131,7 +151,7 @@ public class Utils {
         String experimentName = getExperimentName( saveFileName);
         String experimentFileName=getExpJSONFileName(experimentName,experimentDir);
         if(new File(experimentFileName).exists()) { //here can be a problem
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
             experimentFileName = experimentFileName.replace(".json","_" + dateFormat.format(new Date())+".json");
         }
         return getExpJSONFileName(getExperimentName(experimentFileName),experimentDir);
