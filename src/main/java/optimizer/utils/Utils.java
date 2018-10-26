@@ -113,13 +113,16 @@ public class Utils {
     }
 
     public static String[] getFilePathParts(String s){
+        String separator = File.separator;
         while(s.startsWith(File.separator))
             s = s.substring(1);
         while(s.endsWith(File.separator))
             s = s.substring(0,s.length()-2);
-        if(File.separator.equals("\\"))
-            s = s.replace(File.separator,File.separator+File.separator);
-        String[] test = s.split(File.separator+File.separator);
+        if(File.separator.equals("\\")) {
+            s = s.replace(File.separator, File.separator + File.separator);
+            separator+=File.separator;
+        }
+        String[] test = s.split(separator);
         /*File f = new File(s);
         LinkedList<String> result = new LinkedList<>();
         result.push(f.getName());

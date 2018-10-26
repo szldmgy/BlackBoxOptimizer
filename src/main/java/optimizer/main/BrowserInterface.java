@@ -281,7 +281,7 @@ public class BrowserInterface {
                 }
 
                 updateSaveFileName(request.queryParams("savefilename"));
-                saveFileName[0] = request.queryParams("savefilename");
+                //saveFileName[0] = request.queryParams("savefilename");
                 String useIterationString = request.queryParams("use_iterations");
                 String iterationCountString = request.queryParams("iterationCount");
                 String command_input = request.queryParams("commandinput");
