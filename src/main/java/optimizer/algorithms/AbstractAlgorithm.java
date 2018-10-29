@@ -200,7 +200,7 @@ public abstract class AbstractAlgorithm {
                         }
 
                     }catch (ExecutionException e){
-                        throw new ImplementationException("Parallelizetion failed : "+e.getStackTrace() );
+                        throw new ImplementationException("Parallelization failed : "+e.getStackTrace() );
                     }finally {
                         pool.shutdown();
                     }
@@ -210,11 +210,19 @@ public abstract class AbstractAlgorithm {
                 }
                 else {
                     if (configAllowed(config.getScriptParametersReference())) {
-
-                        BufferedReader r = null;
+                        Trial t = new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta,this.config.getPublicFolderLocation());
+                        IterationResult ir = t.executeSequentially();
+                        Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
+                        this.config.setIterationCounter(this.config.getIterationCounter() + 1);
+                        this.config.getLandscapeReference().add(ir);
+                        if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
+                            String saveFileName1 = saveFileName.replace(experimetDir, backupDir).replace(".json", "_" + this.config.getIterationCounter() + ".json");
+                            writeResultFile(saveFileName1);
+                        }
+                        /*BufferedReader r = null;
                         r = executeAndGetResultBufferedReader(config);
                         ObjectiveContainer oc = ObjectiveContainer.readObjectives(r,null, config.getObjectiveContainerReference());
-                        config.setObjectiveContainer(oc);
+                        config.setObjectiveContainer(oc);*/
                     } else {
                         config.setObjectiveContainer(ObjectiveContainer.setBadObjectiveValue(config.getObjectiveContainerReference()));
 
