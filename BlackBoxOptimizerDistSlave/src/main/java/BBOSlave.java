@@ -73,14 +73,12 @@ import java.util.concurrent.Future;
 
 public class BBOSlave extends Node {
     boolean up = true;
-    //ProcessorThread pthread = new ProcessorThread(this.getProcessId());
     int threads = Runtime.getRuntime().availableProcessors();
 
     ExecutorService pool = Executors.newFixedThreadPool(threads/2);
     Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
 
 
-    // List<List<Param>> queue = new LinkedList<>();
 
     @Override
     public boolean stopNode(){
@@ -97,7 +95,7 @@ public class BBOSlave extends Node {
 
     @Override
     public void run() {
-        List<String> newmessages = new LinkedList<>();
+        List<String> newmessages;
         while (up) {
             try {
                 System.out.println("SLAVE READS");
@@ -107,7 +105,6 @@ public class BBOSlave extends Node {
                     System.out.println("shoting down slave");
                     continue;
                 }
-                //messages.addAll(newmessages);
                 if (!newmessages.isEmpty()) {
 
                     for (String s : newmessages) {
@@ -136,63 +133,8 @@ public class BBOSlave extends Node {
         System.out.println("shot down slave");
 
     }
-        public static void main(String[] s){
+    public static void main(String[] s){
 
-        }
-        /*class ProcessorThread extends Thread{
-            String nodeId = null;
-            int threads = Runtime.getRuntime().availableProcessors();
+    }
 
-            ExecutorService pool = Executors.newFixedThreadPool(threads/2);
-            Set<Future<IterationResult>> set = new HashSet<Future<IterationResult>>();
-
-            public ProcessorThread(String nodeId) {
-                this.nodeId = nodeId;
-            }
-            @Override
-            public void run(){
-                while (up){
-                    if(messa)
-                }
-
-                public void runEx(List<String> msgl) throws ExecutionException, InterruptedException {
-
-
-                    for(String s : msgl) {
-                        System.out.println("run "+s);
-                        Trial t = Trial.deserializeTrial(s);
-                        set.add(pool.submit(t));
-                        for (Future<IterationResult> future : set) {
-                            IterationResult ir = future.get();
-                            Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
-
-                            com.send(gson1.toJson(ir, IterationResult.class),this.nodeId);
-
-                        }
-
-                    }
-
-                }
-            }
-
-
-            public static List<List<Param>> readConfigJSON(File configFile) throws FileNotFoundException {
-                List<List<Param>> ret = new LinkedList<>();
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                gsonBuilder.registerTypeAdapter(Param.class, new ParamDeserializer());
-                Type listType = new TypeToken<List<Param>>() {}.getType();
-                Type listType2 = new TypeToken< List< List< Param>>>() {}.getType();
-
-                Gson gson = gsonBuilder.create();
-                JsonReader reader = new JsonReader(new FileReader(configFile));
-                try {
-                    ret.add(gson.fromJson(reader, listType));
-                    ret.addAll(gson.fromJson(reader, listType2));
-                    return ret;
-                }catch (Exception e){
-
-                    throw new JSONReadException("Error during deserialization of JSON");
-                }
-
-            }*/
-        }
+}

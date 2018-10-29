@@ -56,9 +56,7 @@ public class BBoCoordinator extends Coordinator{
 
     }
 
-    public void setArguments(String args){
 
-    }
 
     @Override
     public boolean stopNode() {

@@ -46,6 +46,33 @@
     <version>1.0-SNAPSHOT</version>
     <build>
     <plugins>
+        <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+                <execution>
+                    <phase>generate-sources</phase>
+                    <configuration>
+                        <tasks>
+
+                            <mkdir dir="./../../BBCom/modules/coordinator/public"/>
+
+                            <mkdir dir="./../../BBCom/modules/coordinator/public/lib"/>
+                            <mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer"/>
+                            <!--<mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms"/>-->
+                            <copy todir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms">
+                                <fileset dir="./../target/classes/optimizer/algorithms"/>
+                            </copy>
+                            <copy todir="./../../BBCom/modules/coordinator/public">
+                                <fileset dir="./../target/classes/public"/>
+                            </copy>
+                        </tasks>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions></plugin>
     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

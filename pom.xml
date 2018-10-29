@@ -80,6 +80,8 @@
                                         <include name="*.class"/>
                                     </fileset>
                                 </copy>
+
+
                             </tasks>
                         </configuration>
                         <goals>

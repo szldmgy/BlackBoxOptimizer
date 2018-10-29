@@ -23,10 +23,7 @@ import optimizer.exception.JSONReadException;
 import optimizer.objective.ObjectiveContainer;
 import optimizer.param.Param;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -102,6 +99,14 @@ public class Trial implements Callable<IterationResult> {
      */
     @Override
     public IterationResult call() throws Exception {
+      return executeSequentially();
+    }
+
+    /**
+     * Plainsequential execution of the BBF with parameters specified in {@link #config}.
+     * @return The result of the trial.
+     */
+    public IterationResult executeSequentially() throws InterruptedException, IOException, CloneNotSupportedException {
         String command = TestConfig.getCommand(this.config,baseCommand);
         BufferedReader outputReader, errorReader;
         //Runtime rt = Runtime.getRuntime();
@@ -113,7 +118,7 @@ public class Trial implements Callable<IterationResult> {
         Process pr = null;
         //builder.redirectOutput();
         try {
-             pr = builder.start();//= rt.exec(command);
+            pr = builder.start();//= rt.exec(command);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -129,8 +134,6 @@ public class Trial implements Callable<IterationResult> {
         System.out.println("RES = "+res);
 
         return new IterationResult(this.config, ObjectiveContainer.readObjectives(outputReader,errorReader,this.pattern),startTime,delta);
-
-
     }
 
 
