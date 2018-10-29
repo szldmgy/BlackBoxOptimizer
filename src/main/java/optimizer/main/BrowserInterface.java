@@ -29,7 +29,6 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Service;
-import spark.Spark;
 import spark.template.velocity.VelocityTemplateEngine;
 import optimizer.utils.*;
 import optimizer.config.TestConfig;
@@ -43,7 +42,6 @@ import javax.servlet.http.Part;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,9 +49,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.net.JarURLConnection;
 
-import static spark.Spark.*;
 
 /**
  * This class serves as the backend of the web browser GUI.
@@ -63,14 +59,13 @@ public class BrowserInterface {
 
 
     private  Thread optimizationRunnerThread;
-    //private final VelocityTemplateEngine velocityEngine = new VelocityTemplateEngine();
 
 
 
     private final static String[] resourceSeparator = new String[]{Utils.runningInJar()?"/":File.separator};
 
-    private final static String layout = "templates"+resourceSeparator[0]+"layout.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"layout.vtl").getPath().toString();
-    private final static String resultTemplate = "templates"+resourceSeparator[0]+"resultnew.vtl";//Main.class.getResource(File.separator+"templates"+File.separator+"resultnew.vtl").getPath().toString();
+    private final static String layout = "templates"+resourceSeparator[0]+"layout.vtl";
+    private final static String resultTemplate = "templates"+resourceSeparator[0]+"resultnew.vtl";
     private final String[] algoritmhs;
     private final Boolean[] safeMode= {false};
     private final boolean[] recoveryMode = {false};
@@ -90,10 +85,11 @@ public class BrowserInterface {
     private static String backupDirName ;
     private static List<String> classList;
     private static List<String> objTypes;
-    final String[] objectiveTypes = Arrays.stream(Relation.values()).map(v->v.toString()).toArray(String[]::new);
+    private final String[] objectiveTypes = Arrays.stream(Relation.values()).map(v->v.toString()).toArray(String[]::new);
     private  Boolean[] executionError= new Boolean[]{false};
     private  String[] executionErrorMsg = new String[1];
-    Service sparkserverservice;
+    private Service sparkserverservice;
+    private final String[] bestSetUp = new String[]{"Working..."} ;
 
 
     //available optimizer.algorithms
@@ -120,7 +116,7 @@ public class BrowserInterface {
 
     public BrowserInterface(String initialConfigFileName, Map<Class<? extends AbstractAlgorithm>,String> optimizerClasses, String projectDir, String staticDir, String experimentDir, String outputDir, String backupDir, String uploadDir, String saveFileName, boolean distributedMode, Com comobj, String experimentDirName, String outputDirName, String backupDirName, String uploadDirName, String publicFolderLocation) throws CloneNotSupportedException, FileNotFoundException {
 
-        System.out.println("JAR="+Utils.runningInJar());
+        System.out.println("JAR = "+Utils.runningInJar());
         System.out.println("RESOURCESEP="+resourceSeparator[0]);
 
         //this.velocityEngine.init();
@@ -146,14 +142,12 @@ public class BrowserInterface {
         BrowserInterface.objTypes=  Arrays.asList(Integer.class.getName(),Float.class.getName()/*,Boolean.class.getName(),"Enum","Function"*/);
 
 
-        //staticFileLocation(Utils.publicIFPath());
 
     }
 
+    @SuppressWarnings("unchecked")
+    public void run() {
 
-    public void run() throws IOException {
-
-        String s = Utils.getSourceHome();
         Properties properties = new Properties();
         if(Utils.runningInJar()){
             java.net.URL u1= this.getClass().getProtectionDomain().getCodeSource().getLocation();
@@ -175,16 +169,12 @@ public class BrowserInterface {
                     "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
         }
 
-        //properties.setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH, u);
-
         VelocityEngine velocityEngine = new VelocityEngine(properties);
         System.out.println("FILE_RESOURCE_LOADER_PATH " + velocityEngine.getProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH));
         velocityEngine.init();
         sparkserverservice =Service.ignite().port(4567).threadPool(8);
-        //staticFiles.externalLocation(projectDir + staticDir);
         sparkserverservice.staticFiles.externalLocation(Utils.publicIFPath());
         sparkserverservice.staticFiles.location("public");
-        //sparkserverservice.staticFileLocation("public" +File.separator);
 
 
         sparkserverservice.exception(Exception.class, (e, request, response) -> {
@@ -198,18 +188,15 @@ public class BrowserInterface {
             if(executionError[0])
                 return "error";
             if(optimizationRunnerThread.getState()==Thread.State.TERMINATED){
-                return "done";
+                return "done - "+bestSetUp[0];
             }
             return (float)config[0].getIterationCounter() / (float)config[0].getIterationCount().get()*100;
 
         });
 
-        sparkserverservice.get("/error", (req, res) ->{
-            return new VelocityTemplateEngine( velocityEngine).render(
-                    new ModelAndView(getErrorMode(executionErrorMsg[0]), layout)
-            );
-
-        });
+        sparkserverservice.get("/error", (req, res) -> new VelocityTemplateEngine( velocityEngine).render(
+                new ModelAndView(getErrorMode(executionErrorMsg[0]), layout)
+        ));
 
 
         sparkserverservice.get("/getresults", (req, res) ->{
@@ -281,13 +268,12 @@ public class BrowserInterface {
                 }
 
                 updateSaveFileName(request.queryParams("savefilename"));
-                //saveFileName[0] = request.queryParams("savefilename");
                 String useIterationString = request.queryParams("use_iterations");
                 String iterationCountString = request.queryParams("iterationCount");
                 String command_input = request.queryParams("commandinput");
 
                 int counter = 0;
-                List<IterationResult> landscape = new LinkedList<IterationResult>();
+                List<IterationResult> landscape = new LinkedList<>();
                 //followings needed for recovery(??)
                 //setup previous or predefined optimizer optimizer.algorithms it there is any -
                 List<Param> predefinedOptimizerParams = config[0].getOptimizerParameters();
@@ -303,7 +289,7 @@ public class BrowserInterface {
                     recoveryMode[0] = false;
                 TestConfig c = new TestConfig();
                 c.setAlgorithmName(config[0].getAlgorithmName());
-                // in case we have htem in the same file
+                // in case we have them in the same file
                 c.setOptimizerParameters(predefinedOptimizerParams);
                 c.setBaseCommand(command_input);
                 c.setIterationCounter(config[0].getIterationCounter()); //this is for recovery mode (??)
@@ -320,9 +306,7 @@ public class BrowserInterface {
                 c.setLandscape(landscape);
                 c.setIterationCounter(counter);
 
-                List<Param> paramList = null;
-
-                paramList = readParams(request,null);
+                List<Param> paramList  = readParams(request,null);
 
 
 
@@ -332,8 +316,8 @@ public class BrowserInterface {
                 config[0]= c;
                 String[] errormsg = new String[1];
                 boolean[] faliure = new boolean[]{false};
-                Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
-                optimizerClasses.forEach( (optimizerClass, configfile ) ->{
+                Map<String,List<Param>> algParamMap = new HashMap<>();
+                optimizerClasses.forEach( (Class<? extends AbstractAlgorithm> optimizerClass, String configfile) ->{
                     if(!faliure[0]){
 
                         try {
@@ -350,23 +334,15 @@ public class BrowserInterface {
 
                             Method getConfig= optimizerClass.getMethod("getConfig");
                             Object o = getConfig.invoke(algorithmObj);
-                            List<Param> pl = (List<Param>)o;
+
 
                             Method isApplyableMethod= optimizerClass.getMethod("isApplyableForParams");
                             if((Boolean)isApplyableMethod.invoke(algorithmObj))
-                                algParamMap.put(optimizerClass.getSimpleName(),(List<Param>)o);
+
+                                        algParamMap.put(optimizerClass.getSimpleName(),(List<Param>)o);
 
 
-                        } catch (InstantiationException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (IllegalAccessException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (NoSuchMethodException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (InvocationTargetException e) {
+                        } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                             faliure[0]= true;
                             errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         }
@@ -411,9 +387,8 @@ public class BrowserInterface {
 
         sparkserverservice.post("/updatealgorithmconfig", (request, response) -> {
             try{
-                Map<String, Object> model = new HashMap<String, Object>();
 
-                request.queryParams().stream().forEach(System.out::println);
+                request.queryParams().forEach(System.out::println);
 
                 String algorithmname = request.queryParams("algorithm_names");
                 config[0].setAlgorithmName(algorithmname);
@@ -441,9 +416,7 @@ public class BrowserInterface {
                     c.setLandscape(config[0].getLandscapeReference());
                     c.setIterationCounter(config[0].getIterationCounter());
                 }
-                List<Param> paramList = null;
-
-                paramList = readParams(request,algorithmname);
+                List<Param> paramList =  readParams(request,algorithmname);
 
 
 
@@ -455,7 +428,7 @@ public class BrowserInterface {
                 config[0]= c;
                 String[] errormsg = new String[1];
                 boolean[] faliure = new boolean[]{false};
-                Map<String,List<Param>> algParamMap = new HashMap<String, List<Param>>();
+                Map<String,List<Param>> algParamMap = new HashMap<>();
                 optimizerClasses.forEach( (optimizerClass, configfile ) ->{
                     if(!faliure[0]) {
                         try {
@@ -476,16 +449,7 @@ public class BrowserInterface {
                             algParamMap.put(optimizerClass.getSimpleName(), (List<Param>) o);
 
 
-                        } catch (InstantiationException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (IllegalAccessException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (NoSuchMethodException e) {
-                            faliure[0]= true;
-                            errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
-                        } catch (InvocationTargetException e) {
+                        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                             faliure[0]= true;
                             errormsg[0] = e.getMessage() + Arrays.toString(e.getStackTrace());
                         }
@@ -531,39 +495,22 @@ public class BrowserInterface {
             config[0].setDistributedMode(this.distributedMode[0]);
             config[0].setCommunicationObject(this.comObj[0]);
             config[0].setPublicFolderLocation(publicFolderLocation[0]);
-            Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
-                public void uncaughtException(Thread th, Throwable ex) {
-                    errormsg[0] = ex.getMessage();
-                    faliure[0] = true;
-                }
+            Thread.UncaughtExceptionHandler h = (th, ex) -> {
+                errormsg[0] = ex.getMessage();
+                faliure[0] = true;
             };
 
-            this.optimizationRunnerThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                   /* System.out.println("base user.dir "+System.getProperty("user.dir"));
+            this.optimizationRunnerThread = new Thread(() -> {
 
-                    String workingDir = System.getProperty("user.dir");
-                    System.setProperty("user.dir", publicFolderLocation[0]);
-                    System.out.println("NEW user.dir "+System.getProperty("user.dir"));*/
-                    //save only the setup = without landscape
+                try {
 
-                    //String[] errormsg = new String[1];
-                    //boolean[] faliure = new boolean[]{false};
-                    try {
-
-                        config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
-                    } catch (Exception e) {
-                        executionError[0] = true;
-                        executionErrorMsg[0] ="Error in optimization process: (are the command to execute correct?)<br>"+ e.getMessage() + Arrays.toString(e.getStackTrace());
-                        throw new AlgorithmException("Error in optimization process: "+executionErrorMsg[0]);
-                    }
-                    /*finally {
-                        System.setProperty("user.dir", workingDir);
-                        System.out.println("RESET user.dir "+System.getProperty("user.dir"));
-
-                    }*/
+                    bestSetUp[0] = config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
+                } catch (Exception e) {
+                    executionError[0] = true;
+                    executionErrorMsg[0] ="Error in optimization process: (are the command to execute correct?)<br>"+ e.getMessage() + Arrays.toString(e.getStackTrace());
+                    throw new AlgorithmException("Error in optimization process: "+executionErrorMsg[0]);
                 }
+
             });
             this.optimizationRunnerThread.setUncaughtExceptionHandler(h);
 
@@ -582,38 +529,7 @@ public class BrowserInterface {
 
 
         });
-        //this is the version without separated thred
-        /*post("/run", (request, response) ->{
 
-            try {
-
-                String algorithmname = request.queryParams("algorithm_names");
-                List<Param> lp = readParams(request, algorithmname);
-                //save only the setup = without landscape
-                config[0].setAlgorithmName(algorithmname);
-                config[0].setOptimizerParameters(lp);
-                config[0].setOptimizerClasses(optimizerClasses);
-                if (!recoveryMode[0]) {
-                    config[0].setIterationCounter(0);
-                    config[0].clearLandscape();
-
-                }
-
-
-                String expFileName = Utils.getExperimentUniqueName(saveFileName[0], experimentDir);
-                String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(expFileName), outputDir);
-
-                config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
-                Map<String, Object> model1 = getProgressModel();//getResultModel(this.config[0].getObjectiveContainerReference().getObjectiveContainerClone(), resFileName,saveFileName[0]);
-
-                return new VelocityTemplateEngine().render(
-                        new ModelAndView(model1, layout)
-                );
-            }catch (Exception e ){
-                return new VelocityTemplateEngine().render(  new ModelAndView(getErrorMode(e.getMessage()), layout));
-         }
-
-        });*/
 
     }
 
@@ -624,7 +540,7 @@ public class BrowserInterface {
     }
 
     private Map<String,Object> getErrorMode(String e) {
-        Map res = new HashMap();
+        Map<String,Object> res = new HashMap<>();
         res.put("template","templates/error.vtl");
         res.put("errormessage",e);
         return res;
@@ -643,7 +559,7 @@ public class BrowserInterface {
         model.put("command",config[0].getBaseCommand());
         model.put("objlist",config[0].getObjectiveContainerReference().getObjectiveListClone());
         model.put("objectivetypes", objectiveTypes);
-        model.put("parameternames",config[0].getScriptParametersReference().stream().map(par->par.getName()).toArray(String[]::new));
+        model.put("parameternames",config[0].getScriptParametersReference().stream().map(Param::getName).toArray(String[]::new));
         model.put("optimizer"+resourceSeparator[0]+"algorithms",algoritmhs);
         model.put("objtypes",objtypes);
         model.put("obj_filename", config[0].getObjectiveFileName());
@@ -672,12 +588,11 @@ public class BrowserInterface {
 
         System.out.println("GETRESULTMODEL");
         Map<String, Object> model1 = new HashMap<>();
-        model1.put("template", "templates/resultnew.vtl");
+        model1.put("template", resultTemplate);
 
         List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
-            //todo // -> / necessary?
             resFileList[0] =Files.list(Paths.get(new File(outputDir).getAbsolutePath().replace("//","/")))
                     .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
             setupFileList[0] = Files.list(Paths.get(new File(experimentDir).getAbsolutePath().replace("//","/")))
@@ -686,18 +601,15 @@ public class BrowserInterface {
             e.printStackTrace();
         }
         List<String> failedExperiments = new LinkedList<>();
-        setupFileList[0].stream().filter(sfn->!resFileList[0].contains(sfn.replace(".json",".csv").replace(experimentDirName+"/",outputDirName+"/"))).forEach(sfn->{failedExperiments.add(sfn);});
+        setupFileList[0].stream().filter(sfn->!resFileList[0].contains(sfn.replace(".json",".csv").replace(experimentDirName+"/",outputDirName+"/"))).forEach(failedExperiments::add);
         failedExperiments.stream().forEach(sfn->setupFileList[0].remove(sfn));
         Collections.sort(resFileList[0]);
         Collections.sort(setupFileList[0]);
         model1.put("failed",failedExperiments);
         model1.put("filename",saveFileName);
-        //model1.put("filename",configFileName);
         model1.put("resfilelist",resFileList[0]);
         model1.put("setupfilelist",setupFileList[0]);
-        //model1.put("resultfile",resFileName);
-       // model1.put("objective_relations", objectiveRelationList);
-       // model1.put("objective_names", objectiveList);
+
         return model1;
     }
 
@@ -725,7 +637,7 @@ public class BrowserInterface {
         String dep_div_idsString = request.queryParams("param_names");
         String dep_div_ids[] = dep_div_idsString.split(";");
 
-        List<Param> paramList = new LinkedList<Param>();
+        List<Param> paramList = new LinkedList<>();
 
         if(alg_name!=null) {
             param_div_ids = Arrays.stream(param_div_ids)
@@ -746,7 +658,7 @@ public class BrowserInterface {
         //iterate over all params - paramdiv one created to describe a param
         for(String pdn : param_div_ids){
             if(!pdn.equals("")){ // skip the removed ones
-                //todo we expect something like "param1_div", where param1 is the original name, but at optimizer.algorithms <algname>_<paramname>_div-> need de middle one
+                // we expect something like "param1_div", where param1 is the original name, but at optimizer.algorithms <algname>_<paramname>_div-> need de middle one
                 String paramId =  pdn.replace("_div","");
                 paramId = paramId.replace(alg_name+"_","");
 
@@ -790,7 +702,6 @@ public class BrowserInterface {
                         String upperStr = request.queryParams(prdn + "_upper"+typePostFix);
                         String enumStr = request.queryParams(pdn + "_enum_descriptor");
                         System.out.println(upperStr);
-                        //Class clazz = Class.forName(typeStr);
                         Param<?> param = null;
 
 
@@ -889,7 +800,6 @@ public class BrowserInterface {
             String obj_weight = request.queryParams(obj_div_name + "_weight");
             String obj_value = request.queryParams(obj_div_name + "_relation_value");
             String obj_type = request.queryParams(obj_div_name + "_type");
-            //Class<?> clazz = Class.forName("com.bla.TestActivity");
 
             Objective objective = null;
             Relation rel = Relation.valueOf(obj_relation);
@@ -898,7 +808,6 @@ public class BrowserInterface {
                 objective = new Objective(Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0:new Float(Float.parseFloat(obj_value)).intValue(),0,Float.parseFloat(obj_weight));
             else if (obj_type.equals("java.lang.Float"))
                 objective = new Objective(Relation.valueOf(obj_relation),false,obj_name,null,obj_value==null||!targetMakesSense?0.0:Float.parseFloat(obj_value ),0.0f,Float.parseFloat(obj_weight));
-            //else if (obj_type.equals("java.lang.Boolean "))
 
             if(!olist.contains(objective))
                 olist.add(objective);

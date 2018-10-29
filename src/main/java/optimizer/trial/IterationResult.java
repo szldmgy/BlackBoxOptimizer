@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.IntStream;
 
 /**
  * This class represents the important data regarding to a single run of the black box function:
@@ -195,6 +196,15 @@ public class IterationResult implements Comparable<IterationResult>{
      */
     public boolean betterThan(IterationResult other) throws CloneNotSupportedException {
         return getFitness() < other.getFitness();
+    }
+
+    public String getConfigurationString() throws CloneNotSupportedException {
+        String[] header = getCSVHeaderString().split(",");
+        String[] values = getCSVString().split(",");
+        String res[] = new String[header.length];
+
+        IntStream.range(0,header.length).forEach(i->res[i]=header[i]+" -> "+values[i]);
+        return String.join("; ",res);
     }
 
     public String getCSVString() throws CloneNotSupportedException {

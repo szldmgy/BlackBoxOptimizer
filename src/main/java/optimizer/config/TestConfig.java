@@ -197,7 +197,7 @@ public class TestConfig {
 
     /**
      * Returns the CSV formatted {@link java.lang.String} that containsth erunned setups and the corresponding {@link Objective#value}.
-     * @return String representation of the results of the Optimization task({@link #landscape})
+     * @return String representation of the results of the Optimization task({@link #landscape}), the last line is the best configuration what the optimizer found.
      * @throws CloneNotSupportedException
      */
     public String getLandscapeCSVString() throws CloneNotSupportedException {
@@ -205,15 +205,19 @@ public class TestConfig {
         sj.add("iteration,"+this.getLandscapeReference().get(0).getCSVHeaderString());
         int i =0;
         Collections.sort(this.getLandscapeReference());
-        for(IterationResult ir :this.getLandscapeReference()){
+        IterationResult best = null;
+        for(final IterationResult ir :this.getLandscapeReference()){
             try {
-                if(!ir.badConfig())
-                    sj.add(i++ +","+ir.getCSVString());
+                if(!ir.badConfig()) {
+                    sj.add(i++ + "," + ir.getCSVString());
+                    if(best == null || ir.betterThan(best));
+                        best = ir;
+                }
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
         }
-        return sj.toString();
+        return sj.toString()+ "\nBest - " + best.getConfigurationString();
     }
 
     @Override
@@ -427,7 +431,7 @@ public class TestConfig {
      * @throws OptimizerException
      * @throws CloneNotSupportedException
      */
-    public void runAndGetResultfiles(String expFileName, String resFileName, String experimentDir,String backupDir) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, IOException, OptimizerException, CloneNotSupportedException {
+    public String runAndGetResultfiles(String expFileName, String resFileName, String experimentDir,String backupDir) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException, IOException, OptimizerException, CloneNotSupportedException {
         this.wirteExperimentDescriptionFile(expFileName);
 
         String result = this.runOptimizer(experimentDir,backupDir,expFileName);
@@ -437,6 +441,9 @@ public class TestConfig {
         try (Writer writer = new FileWriter(resultFilePath)) {
             writer.write(result);
         }
+
+        String best = result.substring(result.lastIndexOf('\n'));
+        return best;
     }
 
     /**

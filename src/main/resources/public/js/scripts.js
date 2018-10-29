@@ -31,7 +31,8 @@ function checkProgress() {
         type: 'GET',
         // String result here
         success: function(res) {
-            if(res == 'done') {
+            if(res.split(" - ")[0] == 'done') {
+                alert('Best configuration: '+res.split(" - ")[2]);
                 window.location = "http://localhost:4567/getresults";
             }else if(res == 'error')
                 window.location = "http://localhost:4567/error";

@@ -171,6 +171,7 @@ public abstract class AbstractAlgorithm {
                                 Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
                         }
+                        //distributed mode branch
                         if(config.getDistributedMode()){
                             for(Trial t :toSend) {
                                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
