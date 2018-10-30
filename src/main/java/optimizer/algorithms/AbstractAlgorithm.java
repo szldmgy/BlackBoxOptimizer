@@ -30,7 +30,6 @@ import optimizer.param.Param;
 import optimizer.trial.IterationResult;
 import optimizer.trial.Trial;
 import optimizer.utils.Utils;
-import org.apache.log4j.Level;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -168,7 +167,7 @@ public abstract class AbstractAlgorithm {
                                     set.add(pool.submit(t));
                                 System.out.println();
                                 updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
-                                Main.log(Level.INFO, "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
+                                Main.getLogger().info( "PARAMETERS Parallel EXEC" + config.getScriptParametersReference().toString());
                             }
                         }
                         //distributed mode branch
@@ -190,7 +189,7 @@ public abstract class AbstractAlgorithm {
 
                         for (Future<IterationResult> future : set) {
                             IterationResult ir = future.get();
-                            Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
+                            Main.getLogger().info( "GETTING RESULT FROM " + ir.getCSVString());
                             this.config.setIterationCounter(this.config.getIterationCounter() + 1);
                             this.config.getLandscapeReference().add(ir);
                             if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
@@ -212,7 +211,7 @@ public abstract class AbstractAlgorithm {
                     if (configAllowed(config.getScriptParametersReference())) {
                         Trial t = new Trial(config.getBaseCommand(), false, "", config.getObjectiveContainerReference(), Param.cloneParamList(this.config.getScriptParametersReference()), startTime, timeDelta,this.config.getPublicFolderLocation());
                         IterationResult ir = t.executeSequentially();
-                        Main.log(Level.INFO, "GETTING RESULT FROM " + ir.getCSVString());
+                        Main.getLogger().info(  "GETTING RESULT FROM " + ir.getCSVString());
                         this.config.setIterationCounter(this.config.getIterationCounter() + 1);
                         this.config.getLandscapeReference().add(ir);
                         if (this.config.getSavingFrequence() != -1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0) {
@@ -234,13 +233,13 @@ public abstract class AbstractAlgorithm {
 
 
                 if(!terminated) {
-                    Main.log(Level.INFO,"OLD PARAMETERS" + config.getScriptParametersReference().toString());
+                    Main.getLogger().info( "OLD PARAMETERS" + config.getScriptParametersReference().toString());
                     try {
                         updateParameters(config.getScriptParametersReference(), config.getLandscapeReference()/*, config.getOptimizerParameters()*/);
                     }  catch (Exception e){
                         throw new AlgorithmException("Algorithm error");
                     }
-                    Main.log(Level.INFO,"NEW PARAMETERS" + config.getScriptParametersReference().toString());
+                    Main.getLogger().info( "NEW PARAMETERS" + config.getScriptParametersReference().toString());
                 }
 
                 if(this.config.getSavingFrequence()!=-1 && this.config.getIterationCounter() % this.config.getSavingFrequence() == 0|| terminated) {
@@ -259,7 +258,7 @@ public abstract class AbstractAlgorithm {
                 e.printStackTrace();
             }
             this.config.setIterationCounter(this.config.getIterationCounter()+1);
-            Main.log(Level.INFO,this.config.toString());
+            Main.getLogger().info(this.config.toString());
         }
 
     }
@@ -276,7 +275,7 @@ public abstract class AbstractAlgorithm {
         BufferedReader r;
         String command = config.getCommand();
         Runtime rt = Runtime.getRuntime();
-        Main.log(Level.INFO,"Executing : " + command);
+        Main.getLogger().info( "Executing : " + command);
 
         Process pr = rt.exec(command);
         pr.waitFor();
@@ -439,8 +438,8 @@ public abstract class AbstractAlgorithm {
     public void loadConfigFromJsonFile(String configFileName){
         if(configFileName == null)
             return;
-        Main.log(Level.INFO,System.getProperty("user.dir"));
-        Main.log(Level.INFO,"ConfigFile = " + configFileName);
+        Main.getLogger().info( System.getProperty("user.dir"));
+        Main.getLogger().info( "ConfigFile = " + configFileName);
         try {
             if (configFileName.contains(".json")) {
                 Gson gson = new Gson();
@@ -451,7 +450,7 @@ public abstract class AbstractAlgorithm {
                 //this.config = new TestConfig(configFileName);
             }
         }catch (IOException e){
-            Main.log(Level.INFO,"File not found:  "+ configFileName);
+            Main.getLogger().info( "File not found:  "+ configFileName);
             return;
         }
 

@@ -21,8 +21,6 @@ import optimizer.algorithms.AbstractAlgorithm;
 import optimizer.config.TestConfig;
 import optimizer.exception.OptimizerException;
 import optimizer.utils.Utils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +31,12 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 
 /**
- * Main class of BlaBoO -  starts a standalone optimization task, or instanitate a {@link BrowserInterface} object.
+ * Main class of BlaBoO -  starts a standalone optimization task, or instantiate a {@link BrowserInterface} object.
  * Created by peterkiss on 14/10/16.
  *
  */
@@ -43,18 +44,16 @@ import java.util.Map;
 
 public class Main {
 
-    static Logger logger = Logger.getLogger(Main.class);
 
 
-    private static Logger getLogger(){
+    static Logger logger = LogManager.getLogger(Main.class);
+
+
+    public static Logger getLogger(){
         if(logger == null){
             new Main();
         }
         return logger;
-    }
-    public static void log(Level level, String msg){
-        getLogger().log(level, msg);
-        System.out.println(msg);
     }
 
     public static void setDistributedRun(boolean d){
@@ -68,7 +67,6 @@ public class Main {
      */
     static String defaultOptimizerClassLocation =  "target"+File.separator+"classes"+File.separator+"optimizer"+File.separator+"algorithms"+File.separator;
 
-    //final static String outputfile =  "BlackBoxOptimizer/target/classes/optimizer.algorithms/";
 
 
     /**
@@ -142,11 +140,14 @@ public class Main {
      */
     public static void main(String[] args) throws IOException, CloneNotSupportedException {
 
-        System.out.println(publicFolderLocation);
+
+
+
+        getLogger().info(publicFolderLocation);
         URL u = new Main().getClass().getProtectionDomain().getCodeSource().getLocation();
-        System.out.println("Working Directory = " +
+        getLogger().info("Working Directory = " +
                 System.getProperty("user.dir"));
-        System.out.println("CODEBASE = "+u.toString());
+        getLogger().info("CODEBASE = "+u.toString());
         if(args.length==1)
             configFileName[0] = args[0];
 
@@ -154,8 +155,7 @@ public class Main {
         boolean testmode=false;
         for(int i = 0; i< args.length;i++)
         {
-            // TODO: 2018. 10. 02. remove
-            System.out.println("ARG" + i+" : "+args[i]);
+
             String s = args[i];
             if(s.equals("-r"))
                 inmediateRun[0]=true;
@@ -170,7 +170,6 @@ public class Main {
             else if(s.equals("-apath")) {
                 // change working dir in order to enable correct execution of clack-box command
                 System.setProperty("user.dir", System.getProperty("user.dir")+File.separator+"modules"+File.separator+"coordinator/");
-                System.out.println("jar opt loc: "+defaultJarOptimizerClassLocation);
                 Main.distributedRun[0]= true;
                 i++;
 
@@ -206,12 +205,9 @@ public class Main {
 
         final TestConfig[] config = new TestConfig[1];
 
-        String[] algorithmName = new String[1];
 
 
         //find all availible optimizer optimizer.algorithms
-        System.out.println(defaultJarOptimizerClassLocation);
-        System.out.println(defaultOptimizerClassLocation);
         optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
 
         //load config from json file - this branch supposed to be the only path now
@@ -236,7 +232,6 @@ public class Main {
                     config[0].setCommunicationObject(Main.comObj[0]);
 
                     String experimentName = Utils.getExperimentUniqueName(configFileName[0],experimentDir+locationModifier);
-                    //String expFileName = Utils.getExpJSONFileName(experimentName,experimentDir) ;
                     String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(experimentName),outputDir+locationModifier);
 
 

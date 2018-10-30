@@ -19,7 +19,6 @@ package optimizer.objective;
 
 import optimizer.exception.ImplementationException;
 import optimizer.main.Main;
-import org.apache.log4j.Level;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,20 +142,20 @@ public class ObjectiveContainer implements Cloneable {
         for (String sn : objNameList) map.put(sn,null);
         String objLine = "";
         while ((objLine = resultBufferedReader.readLine())!=null) {
-            Main.log(Level.INFO,"Readed from sout of runned alg: "+ objLine);
+            Main.getLogger().info("Readed from sout of runned alg: "+ objLine);
             if(objLine.trim().split(" ").length==2) {
                 Scanner s1 = new Scanner(objLine);
                 String objectiveName = s1.next().trim();
                 String objectiveValue = s1.next().trim();
                 if(map.containsKey(objectiveName)) {
                     map.put(objectiveName, objectiveValue);
-                    Main.log(Level.INFO,"Objective recognized: "+ objLine);
+                    Main.getLogger().info("Objective recognized: "+ objLine);
                 }
             }
         }
         if(errorReader!=null) {
             while ((objLine = errorReader.readLine()) != null) {
-                Main.log(Level.INFO, "Readed from stderr of runned alg: " + objLine);
+                Main.getLogger().info( "Readed from stderr of runned alg: " + objLine);
             }
         }
         for(Map.Entry<String,String> element : map.entrySet()) {
@@ -170,7 +169,7 @@ public class ObjectiveContainer implements Cloneable {
             else
                 continue;
             if(objectiveValue == null) {
-                Main.log(Level.INFO, "Missing objective: " + objectiveName);
+                Main.getLogger().info("Missing objective: " + objectiveName);
                 objectiveValue = "0";
             }
             Double readedval = Double.parseDouble(objectiveValue);
@@ -183,7 +182,7 @@ public class ObjectiveContainer implements Cloneable {
             }
 
             else
-                Main.log(Level.ERROR,"Type error!!!!!!");
+                Main.getLogger().error("Type error!!!!!!");
         }
         return lastObjectiveContainer;
     }

@@ -25,7 +25,6 @@ import optimizer.exception.JSONReadException;
 import optimizer.objective.ObjectiveDeserializer;
 import optimizer.objective.Relation;
 import optimizer.param.*;
-import org.apache.log4j.Logger;
 import optimizer.trial.IterationResult;
 import optimizer.exception.OptimizerException;
 import optimizer.utils.Utils;
@@ -36,6 +35,8 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * This class represents the entire optimization task, that can be either build using the GUI, or manually following samples
@@ -101,7 +102,7 @@ public class TestConfig {
 
 
 
-    final static Logger logger = Logger.getLogger(TestConfig.class);
+    final static Logger logger = LogManager.getLogger(TestConfig.class);
 
     public void setCommunicationObject(Com  c){this.communicationObject= c;}
     public void setDistributedMode(boolean b){this.distribution = b;}
