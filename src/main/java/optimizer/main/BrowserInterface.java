@@ -591,12 +591,16 @@ public class BrowserInterface {
         Map<String, Object> model1 = new HashMap<>();
         model1.put("template", resultTemplate);
 
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String outputdir1 = userDir.resolve(outputDir).toString();
+        String experimentDir1 = userDir.resolve(experimentDir).toString();
+
         List<String>[] resFileList = new List[1];
         List<String>[] setupFileList = new List[1];
         try {
-            resFileList[0] =Files.list(Paths.get(new File(outputDir).getAbsolutePath().replace("//","/")))
+            resFileList[0] =Files.list(Paths.get(new File(outputdir1).getAbsolutePath().replace("//","/")))
                     .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".csv") ).map(f->outputDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
-            setupFileList[0] = Files.list(Paths.get(new File(experimentDir).getAbsolutePath().replace("//","/")))
+            setupFileList[0] = Files.list(Paths.get(new File(experimentDir1).getAbsolutePath().replace("//","/")))
                     .filter(f -> Files.isRegularFile(f) && f.toString().endsWith(".json")).map(f->experimentDirName+"/"+f.getFileName().toString()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
