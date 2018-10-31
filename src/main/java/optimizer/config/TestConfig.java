@@ -438,9 +438,10 @@ public class TestConfig {
         this.wirteExperimentDescriptionFile(expFileName);
 
         String result = this.runOptimizer(experimentDir,backupDir,expFileName);
-        // TODO: 2018. 10. 11. hack
-        System.out.println("RESULTFILE = "+new File(resFileName).getAbsolutePath().replace("//","/"));
-        String resultFilePath =  new File(resFileName).getAbsolutePath().replace("//","/");
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String s1 = userDir.resolve(resFileName).toString();
+        System.out.println("RESULTFILE = "+new File(s1).getAbsolutePath().replace("//","/"));
+        String resultFilePath =  new File(s1).getAbsolutePath().replace("//","/");
         try (Writer writer = new FileWriter(resultFilePath)) {
             writer.write(result);
         }
