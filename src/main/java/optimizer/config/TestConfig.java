@@ -34,6 +34,8 @@ import optimizer.objective.ObjectiveContainer;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -567,10 +569,11 @@ public class TestConfig {
         // TODO: 2018. 10. 11. hack
        // while(expFileName.startsWith("/"))
        //     expFileName = expFileName.substring(1);
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String s1 = userDir.resolve(expFileName).toString();
+        System.out.println("EXFILENAME = "+ s1.replace("//","/"));
 
-        System.out.println("EXFILENAME = "+(new File(expFileName)).getAbsolutePath().replace("//","/"));
-
-        try (Writer writer = new FileWriter((new File(expFileName)).getAbsolutePath().replace("//","/"))) {
+        try (Writer writer = new FileWriter(s1.replace("//","/"))) {
             List<IterationResult> ls = this.getLandscapeReference();
             this.setLandscape(null);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
