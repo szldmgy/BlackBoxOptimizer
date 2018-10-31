@@ -25,6 +25,7 @@ import optimizer.param.Param;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -111,7 +112,9 @@ public class Trial implements Callable<IterationResult> {
         BufferedReader outputReader, errorReader;
         //Runtime rt = Runtime.getRuntime();
         ProcessBuilder builder = new ProcessBuilder( command.split(" "));
-        builder.directory(new File(this.workingDir).getAbsoluteFile());
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String s1 = userDir.resolve(this.workingDir).toString();
+        builder.directory(new File(s1).getAbsoluteFile());
         builder.redirectErrorStream(true);
         //builder.inheritIO();
         System.out.println("Executing1: "+builder.command());
