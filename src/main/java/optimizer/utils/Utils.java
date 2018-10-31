@@ -187,8 +187,10 @@ public class Utils {
                 System.out.println("Superclass not found");
                 return foundClasses;
             }
-
-        try(final Stream<Path> pathsStream = Files.walk(Paths.get(optimizerClassLocation))) {
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String s =     Paths.get(System.getProperty("user.dir")+File.separator+optimizerClassLocation+File.separator+"optimizer"+File.separator+"algorithms").toAbsolutePath().toString();
+        String s1 = userDir.resolve(optimizerClassLocation+File.separator+"optimizer"+File.separator+"algorithms").toString();
+        try(final Stream<Path> pathsStream = Files.walk(userDir.resolve(optimizerClassLocation+File.separator+"optimizer"+File.separator+"algorithms"))) {
             pathsStream.forEach(filePath -> {
                 if (Files.isRegularFile(filePath)) {
                     if (filePath.toString().contains(".class")){

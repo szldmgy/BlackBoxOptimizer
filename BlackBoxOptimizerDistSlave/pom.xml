@@ -43,12 +43,53 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <transformers>
+                                <transformer implementation=
+                                                     "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>BBOSlave</mainClass>
+                                </transformer>
+                            </transformers>
+                            <finalName>${project.artifactId}-${project.version}</finalName>
+                            <outputDirectory>${basedir}${file.separator}target${file.separator}slave</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.7</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <phase>install</phase>
                         <configuration>
+                            <tasks>
+
+                                <mkdir dir="${project.build.directory}${file.separator}slave${file.separator}public"/>
+
+                                <mkdir dir="${project.build.directory}${file.separator}slave${file.separator}public/lib"/>
+                                <mkdir dir="${project.build.directory}${file.separator}slave${file.separator}public/lib/optimizer"/>
+                                <!--<mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms"/>-->
+                                <copy todir="${project.build.directory}${file.separator}slave${file.separator}public/lib/optimizer/algorithms">
+                                    <fileset dir="./../target/classes/optimizer/algorithms"/>
+                                </copy>
+                                <copy todir="${project.build.directory}${file.separator}slave${file.separator}public">
+                                    <fileset dir="./../target/classes/public"/>
+                                </copy>
+                                <copy todir="./../../BBCom/modules/slave${file.separator}">
+                                    <fileset dir="${project.build.directory}${file.separator}slave${file.separator}"/>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <!--<configuration>
                             <tasks>
 
                                 <mkdir dir="./../../BBCom/modules/slave/public"/>
@@ -61,7 +102,7 @@
                                     <fileset dir="./../target/classes/public"/>
                                 </copy>
                             </tasks>
-                        </configuration>
+                        </configuration>-->
                         <goals>
                             <goal>run</goal>
                         </goals>

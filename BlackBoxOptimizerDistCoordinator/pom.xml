@@ -28,6 +28,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>hu.elte.fds</groupId>
@@ -50,24 +51,50 @@
     <build>
     <plugins>
         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <shadedArtifactAttached>true</shadedArtifactAttached>
+                        <transformers>
+                            <transformer implementation=
+                                                 "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <mainClass>BBoCoordinator</mainClass>
+                            </transformer>
+                        </transformers>
+                        <finalName>${project.artifactId}-${project.version}</finalName>
+                        <outputDirectory>${basedir}${file.separator}target${file.separator}coordinator</outputDirectory>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <version>1.7</version>
             <executions>
                 <execution>
-                    <phase>generate-sources</phase>
+                    <!--<phase>generate-sources</phase>-->
+                    <phase>install</phase>
                     <configuration>
                         <tasks>
 
-                            <mkdir dir="./../../BBCom/modules/coordinator/public"/>
+                            <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public"/>
 
-                            <mkdir dir="./../../BBCom/modules/coordinator/public/lib"/>
-                            <mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer"/>
+                            <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib"/>
+                            <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib/optimizer"/>
                             <!--<mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms"/>-->
-                            <copy todir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms">
+                            <copy todir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib/optimizer/algorithms">
                                 <fileset dir="./../target/classes/optimizer/algorithms"/>
                             </copy>
-                            <copy todir="./../../BBCom/modules/coordinator/public">
+                            <copy todir="${project.build.directory}${file.separator}coordinator${file.separator}public">
                                 <fileset dir="./../target/classes/public"/>
+                            </copy>
+                            <copy todir="./../../BBCom/modules/coordinator${file.separator}">
+                                <fileset dir="${project.build.directory}${file.separator}coordinator${file.separator}"/>
                             </copy>
                         </tasks>
                     </configuration>

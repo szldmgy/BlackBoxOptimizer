@@ -65,7 +65,7 @@ public class Main {
     /**
      * development path for the {@link AbstractAlgorithm} .class files
      */
-    static String defaultOptimizerClassLocation =  "target"+File.separator+"classes"+File.separator+"optimizer"+File.separator+"algorithms"+File.separator;
+    static String defaultOptimizerClassLocation =  "target"+File.separator+"classes"+File.separator;//+"optimizer"+File.separator+"algorithms"+File.separator;
 
 
 
@@ -90,7 +90,7 @@ public class Main {
     /**
      * deployment path for the {@link AbstractAlgorithm} .class files
      */
-    static String defaultJarOptimizerClassLocation =  publicFolderLocation+File.separator+"lib"+File.separator+"optimizer"+File.separator+"algorithms"+File.separator;
+    static String defaultJarOptimizerClassLocation =  publicFolderLocation+File.separator+"lib"+File.separator;//+"optimizer"+File.separator+"algorithms"+File.separator;
 
 
     final static String outputDirName = "results";
@@ -205,10 +205,11 @@ public class Main {
 
         final TestConfig[] config = new TestConfig[1];
 
+        String optimizerClassPath = Utils.runningInJar()?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation;
 
 
         //find all availible optimizer optimizer.algorithms
-        optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,Files.exists(Paths.get(defaultJarOptimizerClassLocation))?defaultJarOptimizerClassLocation:defaultOptimizerClassLocation);
+        optimizerClasses = Utils.findAllMatchingTypes(AbstractAlgorithm.class,optimizerClassPath);
 
         //load config from json file - this branch supposed to be the only path now
         if (configFileName[0].contains(".json")) {
