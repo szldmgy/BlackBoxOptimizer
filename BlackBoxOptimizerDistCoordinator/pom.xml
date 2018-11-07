@@ -86,6 +86,8 @@
 
                             <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib"/>
                             <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib/optimizer"/>
+                            <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/experiments"/>
+                            <mkdir dir="${project.build.directory}${file.separator}coordinator${file.separator}public/results"/>
                             <!--<mkdir dir="./../../BBCom/modules/coordinator/public/lib/optimizer/algorithms"/>-->
                             <copy todir="${project.build.directory}${file.separator}coordinator${file.separator}public/lib/optimizer/algorithms">
                                 <fileset dir="./../target/classes/optimizer/algorithms"/>
