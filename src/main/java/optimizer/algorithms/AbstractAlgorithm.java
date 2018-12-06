@@ -174,16 +174,16 @@ public abstract class AbstractAlgorithm {
                         if(config.getDistributedMode()){
                             for(Trial t :toSend) {
                                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
-                                this.config.getCommunicationObject().send(gson1.toJson(t, Trial.class),"cord");
+                                this.config.getCommunicationObject().publish(gson1.toJson(t, Trial.class),Main.getDistributedApplicationId());
                             }
                             while(config.getLandscapeReference().size()<toSend.size()) {
                                 // TODO: 2018. 10. 05. hardcoded id
-                                config.getLandscapeReference().addAll(config.getCommunicationObject().receive("cord").stream().map(t -> IterationResult.deserializeIterationResults(t)).collect(Collectors.toList()));
+                                config.getLandscapeReference().addAll(config.getCommunicationObject().receive(Main.getDistributedApplicationId()).stream().map(t -> IterationResult.deserializeIterationResults(t)).collect(Collectors.toList()));
                                 System.out.println("COORD RECIEVING "+toSend.size() +" / "+config.getLandscapeReference().size());
                                 Thread.sleep(500);
                                 this.config.setIterationCounter(config.getLandscapeReference().size());
                             }
-                            this.config.getCommunicationObject().send("STOP","cord");
+                            this.config.getCommunicationObject().publish("STOP",Main.getDistributedApplicationId());
 
                         }
 

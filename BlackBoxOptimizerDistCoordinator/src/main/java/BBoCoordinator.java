@@ -32,17 +32,31 @@
 
 import lib.Coordinator;
 import optimizer.main.Main;
+import optimizer.utils.Utils;
 
 import java.io.IOException;
 
 public class BBoCoordinator extends Coordinator{
 
 
+    public BBoCoordinator(String name) {
+        super(name);
+    }
 
+    @Override
+    public String getResourceRoot() {
+       return Main.getPublicFolderLocation();
+    }
+
+    @Override
+    public String getSourceHome() {
+        return Utils.getSourceHome();
+    }
     @Override
     public boolean start(String[] args) {
         try {
             Main.setComObject(this.com);
+            Main.setDistributedApplicationId(this.getName());
             Main.main(args);
             return true;
         } catch (IOException e) {

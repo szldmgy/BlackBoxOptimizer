@@ -59,6 +59,16 @@ public class TestConfig {
         this.publicFolderLocation = publicFolderLocation;
     }
 
+    public String getDistributedApplicationId() {
+        return distributedApplicationId;
+    }
+
+    public void setDistributedApplicationId(String distributedApplicationId) {
+        this.distributedApplicationId = distributedApplicationId;
+    }
+
+    private String distributedApplicationId;
+
     private String  publicFolderLocation;
 
     /**input from html or config file, to be modified by new parameter values, should not be modified*/

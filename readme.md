@@ -61,7 +61,7 @@ GUI menu
 
 - In the browser, as soon as the work finished, the results will appear also in a chart that displays the objectives of the last computations. In this chart, the diagrams visualize the results stored in the `.csv` files recently located in the `results` folder. To get rid of not interesting results from the chart, you should remove the irrelevant files from the `results` folder . If you want only the visualization of one specific task/experiment, you can click on the description in the legend, what temporally removes the other charts.
 
-- To display the recent results, if the server is running, you can use the `http://localhost:4567/results` url address in your browser as well.
+- To display the recent results, if the server is running, you can use the `http://localhost:4567/results` url httpAddress in your browser as well.
 
 
 Setup an experiment
@@ -226,7 +226,7 @@ You cen find some examples [here](readmefiles/example.md)
 User support, developer support
 -
 
-If you have any question, remark or suggestion regarding the project, please don't hesitate to use the [issue tracker](https://github.com/kppeterkiss/BlackBoxOptimizer/issues) or contact us directly at axx6v4(at)inf(dot)elte(dot)hu. We are happy to get any feedback or contribution, and if you need to address problems related to parameter tuning, we would like to make sure that we can help you!
+If you have any question, remark or suggestion regarding the project, please don't hesitate to use the [issue tracker](https://github.com/kppeterkiss/BlackBoxOptimizer/issues) or contact us directly at axx6v4(at)inf(dot)elte(dot)hu. We are happy to get any feedback or contribution, and if you need to httpAddress problems related to parameter tuning, we would like to make sure that we can help you!
 
 
 

@@ -138,6 +138,19 @@ public class Trial implements Callable<IterationResult> {
 
         return new IterationResult(this.config, ObjectiveContainer.readObjectives(outputReader,errorReader,this.pattern),startTime,delta);
     }
+    //todo docker integration
 
+    public void setBaseCommand(String baseCommand) {
+        this.baseCommand = baseCommand;
+    }
 
+    public String getBaseCommand() {
+        return baseCommand;
+    }
+    public String getCodeHome(){
+        String fileToRun = getBaseCommand().trim();
+         fileToRun=       fileToRun.split(" ")[1];
+        System.out.println("FTR: "+fileToRun);
+        return fileToRun.substring(0,fileToRun.lastIndexOf("/"));
+    }
 }

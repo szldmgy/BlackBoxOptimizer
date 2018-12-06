@@ -184,14 +184,16 @@ public class BrowserInterface {
             e.printStackTrace(pw);
             System.err.println(sw.getBuffer().toString());
         });
-
+//todo Nuulpointer
         sparkserverservice.get("/progress", (req, res) ->{
             if(executionError[0])
                 return "error";
-            if(optimizationRunnerThread.getState()==Thread.State.TERMINATED){
-                return "done - "+bestSetUp[0];
-            }
-            return (float)config[0].getIterationCounter() / (float)config[0].getIterationCount().get()*100;
+
+                if (optimizationRunnerThread!=null && optimizationRunnerThread.getState() == Thread.State.TERMINATED) {
+                    return "done - " + bestSetUp[0];
+
+
+            }return (float)config[0].getIterationCounter() / (float)config[0].getIterationCount().get()*100;
 
         });
 
@@ -500,19 +502,21 @@ public class BrowserInterface {
                 errormsg[0] = ex.getMessage();
                 faliure[0] = true;
             };
+//            synchronized (optimizationRunnerThread) {
+                this.optimizationRunnerThread = new Thread(() -> {
 
-            this.optimizationRunnerThread = new Thread(() -> {
+                    try {
 
-                try {
+                        bestSetUp[0] = config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
+                    } catch (Exception e) {
+                        executionError[0] = true;
+                        executionErrorMsg[0] = "Error in optimization process: (are the command to execute correct?)<br>" + e.getMessage() + Arrays.toString(e.getStackTrace());
+                        throw new AlgorithmException("Error in optimization process: " + executionErrorMsg[0]);
+                    }
 
-                    bestSetUp[0] = config[0].runAndGetResultfiles(expFileName, resFileName, experimentDir, backupDir);
-                } catch (Exception e) {
-                    executionError[0] = true;
-                    executionErrorMsg[0] ="Error in optimization process: (are the command to execute correct?)<br>"+ e.getMessage() + Arrays.toString(e.getStackTrace());
-                    throw new AlgorithmException("Error in optimization process: "+executionErrorMsg[0]);
-                }
+                });
+        //    }
 
-            });
             this.optimizationRunnerThread.setUncaughtExceptionHandler(h);
 
             this.optimizationRunnerThread.start();

@@ -47,6 +47,7 @@ public class Main {
 
 
     static Logger logger = LogManager.getLogger(Main.class);
+    private static String distributedApplicationId;
 
 
     public static Logger getLogger(){
@@ -80,9 +81,15 @@ public class Main {
 
     // IDE run, resources as in maven project. This might exists if we raun the jar from another project
     static String relativeSourcePublicLoc = "src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public";
+    //static String relativeUserFolderLoc = "src"+File.separator+"main"+File.separator+"resources"+File.separator+ "public";
+
+    public static String getPublicFolderLocation() {
+        return publicFolderLocation;
+    }
 
     //if  on sourcepath of BlaBoO src/main/resources/public, otherwise jar mode -> /public
     final static String publicFolderLocation = Files.exists(Paths.get(sourcePublicLoc)) && System.getProperty("user.dir").endsWith("BlackBoxOptimizer")?relativeSourcePublicLoc: "public";
+    //final static String userFolderLocation = "user";//Files.exists(Paths.get(sourcePublicLoc)) && System.getProperty("user.dir").endsWith("BlackBoxOptimizer")?relativeSourcePublicLoc: "public";
 
     //static String s = new File("public").getAbsolutePath();
     //final static String publicFolderLocation = Files.exists(Paths.get(s))? "public":sourcePublicLoc;
@@ -103,6 +110,12 @@ public class Main {
     final static String experimentDir = publicFolderLocation+File.separator+experimentDirName;
     final static String backupDir = publicFolderLocation+File.separator+backupDirName;
     final static String uploadDir = publicFolderLocation+File.separator+uploadDirName;
+    /*final static String outputDir = userFolderLocation+File.separator+outputDirName;
+    final static String experimentDir = userFolderLocation+File.separator+experimentDirName;
+    final static String backupDir = userFolderLocation+File.separator+backupDirName;
+    final static String uploadDir = userFolderLocation+File.separator+uploadDirName;*/
+
+
 
     //commandline usage
     final static boolean  inmediateRun[] = new boolean[1];
@@ -231,6 +244,7 @@ public class Main {
                     config[0].setSavingFrequence(savingFrequence[0]);
                     config[0].setDistributedMode(Main.distributedRun[0]);
                     config[0].setCommunicationObject(Main.comObj[0]);
+                    config[0].setDistributedApplicationId(Main.distributedApplicationId);
 
                     String experimentName = Utils.getExperimentUniqueName(configFileName[0],experimentDir+locationModifier);
                     String resFileName = Utils.getExpCSVFileName(Utils.getExperimentName(experimentName),outputDir+locationModifier);
@@ -259,5 +273,13 @@ public class Main {
 
         }
 
+    }
+
+    public static String getDistributedApplicationId() {
+        return distributedApplicationId;
+    }
+
+    public static void setDistributedApplicationId(String distributedApplicationId) {
+        Main.distributedApplicationId = distributedApplicationId;
     }
 }

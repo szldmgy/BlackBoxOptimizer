@@ -517,8 +517,8 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,ot
             opt.setAttribute("value", name_param_id_map.get(p));
             opt.setAttribute("name", rangeid+"_select_other_name_"+ name_param_id_map.get(p));
             var name = document.createTextNode(p);
-            opt.appendChild(name)
-            selector.appendChild(opt)
+            opt.appendChild(name);
+            selector.appendChild(opt);
         }
 
     }
@@ -528,10 +528,10 @@ function addDependency(paramdivid, paramname, depenedencyid,deplower,depupper,ot
     }
     //$( "#selector option:selected" ).text();
 
-    var tn1 =  document.createTextNode(", if param ")
+    var tn1 =  document.createTextNode(", if param ");
     //document.getElementById(rangeid).appendChild(document.createTextNode(", if param "))
     //document.getElementById(rangeid).appendChild(selector)
-    var tn2 = document.createTextNode(" in [")
+    var tn2 = document.createTextNode(" in [");
     //document.getElementById(rangeid).appendChild(document.createTextNode(" in "))
     //
 

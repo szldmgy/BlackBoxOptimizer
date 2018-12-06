@@ -49,7 +49,8 @@ import javax.script.ScriptException;
  */
 public class Utils {
 
-
+    public static boolean isWindows = System.getProperty("os.name")
+            .toLowerCase().startsWith("windows");
     public static String platform_path_separator = File.separator.equals("/")?File.separator:File.separator+File.separator+File.separator+File.separator;
     /**
      * checks whether the to list are exchangeable, specifically for checking user defined optimizersetups
@@ -153,7 +154,10 @@ public class Utils {
     public static String getExperimentUniqueName(String saveFileName,String experimentDir) {
         String experimentName = getExperimentName( saveFileName);
         String experimentFileName=getExpJSONFileName(experimentName,experimentDir);
-        if(new File(experimentFileName).exists()) { //here can be a problem
+        // TODO: 2018. 11. 11. remove
+        Path userDir= Paths.get(System.getProperty("user.dir"));
+        String experimentFileName1 = userDir.resolve(experimentFileName).toString();
+        if(new File(experimentFileName1).exists()) { //here can be a problem
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
             experimentFileName = experimentFileName.replace(".json","_" + dateFormat.format(new Date())+".json");
         }
