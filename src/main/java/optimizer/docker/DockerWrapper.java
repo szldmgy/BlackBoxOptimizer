@@ -63,7 +63,11 @@ public class DockerWrapper {
         while (!done){;}
         String[] parts = command.trim().split(" ");
         String com = parts[0];
+        int execStartIdx = parts[1].lastIndexOf("/");
+        if(execStartIdx == -1)
+            execStartIdx = parts[1].lastIndexOf("\\");
         String executable = parts[1].substring(parts[1].lastIndexOf("/")+1,parts[1].length());
+        System.out.println("EXECUTABLE: "+executable);
         String leftover = "";
         for (int i = 2; i <parts.length ; i++) {
             leftover+=" "+parts[i];
