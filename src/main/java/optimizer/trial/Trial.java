@@ -118,7 +118,9 @@ public class Trial implements Callable<IterationResult> {
         String s1 = userDir.resolve(this.workingDir).toString();
         System.out.println("s1 -- "+s1);
 
-        builder.directory(new File(s1).getAbsoluteFile());
+        // TODO: 2018. 12. 10. hack, in real distribution pathes are messed up
+        if (!command.contains("docker"))
+            builder.directory(new File(s1).getAbsoluteFile());
         builder.redirectErrorStream(true);
         //builder.inheritIO();
         System.out.println("Executing1: "+builder.command());
