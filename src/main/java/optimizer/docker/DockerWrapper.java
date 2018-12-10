@@ -38,11 +38,12 @@ public class DockerWrapper {
     public boolean build() throws IOException, InterruptedException {
         String homeDirectory = System.getProperty("user.home");
         Process process;
-        if (Utils.isWindows) {
+        /*if (Utils.isWindows) {
             // TODO: 2018. 11. 09.
+            String command = String.format("cmd.exe build -t %s ./%s", homeDirectory)
             process = Runtime.getRuntime()
-                    .exec(String.format("cmd.exe /c dir %s", homeDirectory));
-        } else {
+                    .exec(command);
+        } else */{
             String command = String.format("docker build -t %s ./%s", this.name,this.location);
             process = Runtime.getRuntime()
                     .exec(command);
