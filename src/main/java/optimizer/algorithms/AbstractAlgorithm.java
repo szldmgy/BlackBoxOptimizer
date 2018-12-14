@@ -176,6 +176,9 @@ public abstract class AbstractAlgorithm {
                                 Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
                                 this.config.getCommunicationObject().publish(gson1.toJson(t, Trial.class),Main.getDistributedApplicationId());
                             }
+                            final Gson gson = new Gson(); 
+                            this.config.getCommunicationObject().distribute(toSend.stream().map(t-> gson.toJson(t,Trial.class)).collect(Collectors.toList()),Main.getDistributedApplicationId());
+
                             while(config.getLandscapeReference().size()<toSend.size()) {
                                 // TODO: 2018. 10. 05. hardcoded id
                                 config.getLandscapeReference().addAll(config.getCommunicationObject().receive(Main.getDistributedApplicationId()).stream().map(t -> IterationResult.deserializeIterationResults(t)).collect(Collectors.toList()));
@@ -183,6 +186,7 @@ public abstract class AbstractAlgorithm {
                                 Thread.sleep(500);
                                 this.config.setIterationCounter(config.getLandscapeReference().size());
                             }
+                            // TODO: 2018. 12. 14. should not shot down here 
                             this.config.getCommunicationObject().publish("STOP",Main.getDistributedApplicationId());
 
                         }
