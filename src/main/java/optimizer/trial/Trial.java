@@ -118,7 +118,7 @@ public class Trial implements Callable<IterationResult> {
         String s1 = userDir.resolve(this.workingDir).toString();
         System.out.println("s1 -- "+s1);
 
-        // TODO: 2018. 12. 10. hack, in real distribution pathes are messed up
+        // TODO: 2018. 12. 10. hack, in real distribution paths are messed up
         if (!command.contains("docker"))
             builder.directory(new File(s1).getAbsoluteFile());
         builder.redirectErrorStream(true);
@@ -153,10 +153,28 @@ public class Trial implements Callable<IterationResult> {
     public String getBaseCommand() {
         return baseCommand;
     }
+
+    public String getRunnableName() {
+        String fileToRun = getBaseCommand().trim();
+        fileToRun=       fileToRun.split(" ")[1];
+        return fileToRun.substring(fileToRun.lastIndexOf("/")+1,fileToRun.length());
+    }
+
+    /**
+     *
+     * @return the folder name within which the code to run and used files should be located.
+     */
     public String getCodeHome(){
         String fileToRun = getBaseCommand().trim();
-         fileToRun=       fileToRun.split(" ")[1];
+        fileToRun=       fileToRun.split(" ")[1];
+        //here we return the folder, where the runnable file resides assuming all the necessary files are within that
+        // remove the runnable
+        String diroffileToRun =fileToRun.substring(0,fileToRun.lastIndexOf("/"));
+        // removing path to containing folder
+        diroffileToRun = diroffileToRun.substring(diroffileToRun.lastIndexOf("/")+1,diroffileToRun.length());
         System.out.println("FTR: "+fileToRun);
-        return fileToRun.substring(0,fileToRun.lastIndexOf("/"));
+        System.out.println("DFTR: "+diroffileToRun);
+
+        return diroffileToRun;
     }
 }

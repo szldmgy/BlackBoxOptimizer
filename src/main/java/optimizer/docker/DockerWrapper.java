@@ -25,6 +25,9 @@ import java.io.InputStreamReader;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+/**
+ * This class is intended to handle docker container
+ */
 public class DockerWrapper {
 
     Boolean done = false;
@@ -69,7 +72,7 @@ public class DockerWrapper {
         String executable = parts[1].substring(parts[1].lastIndexOf("/")+1,parts[1].length());
         System.out.println("EXECUTABLE: "+executable);
         String leftover = "";
-        for (int i = 2; i <parts.length ; i++) {
+        for (int i = 2; i <parts.length ;  i++) {
             leftover+=" "+parts[i];
         }
 

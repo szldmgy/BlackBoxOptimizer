@@ -136,8 +136,9 @@ public class BBOSlave extends Node {
                             System.out.println("Codehome" + ch);
                             if(dw == null) {
                                 String dockerhome = com.getFile(ch, null, this.getName());
-                                String dockerFilePath = com.getSourceHome()+dockerhome +"/Dockerfile" ;
-                                String userdir = System.getProperty("user.dir");
+                                String dockerFilePath = /*com.getSourceHome()+*/dockerhome +"/Dockerfile" ;
+                                System.out.println("Dockerfilepath - "+dockerFilePath);
+                                //String userdir = System.getProperty("user.dir");
                                 /*String nodeSourceLOC = nodes.get(this.getProcessId()).getSourceHome();
                                 nodeSourceLOC= nodeSourceLOC.substring(0,nodeSourceLOC.lastIndexOf("!"));
                                 nodeSourceLOC = nodeSourceLOC.substring(nodeSourceLOC.indexOf(":")+1,nodeSourceLOC.length());
