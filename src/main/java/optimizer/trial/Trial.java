@@ -42,7 +42,7 @@ public class Trial implements Callable<IterationResult> {
         try {
             return gson.fromJson(s, Trial.class);
         }catch (Exception e){
-            throw new JSONReadException("Error during deserialization of JSON");
+            throw new JSONReadException("Error during deserialization of JSON - " +s);
         }
 
 
