@@ -48,26 +48,20 @@
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.exceptions.DockerException;
 import lib.Node;
 
 import optimizer.docker.DockerWrapper;
-import optimizer.exception.JSONReadException;
 import optimizer.main.Main;
-import optimizer.param.Param;
-import optimizer.param.ParamDeserializer;
+import optimizer.trial.DockerHandler;
 import optimizer.trial.IterationResult;
 import optimizer.trial.Trial;
 import optimizer.utils.Utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -76,6 +70,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class BBOSlave extends Node {
+    DockerHandler dockerHandler = null;
+    DockerHandler.Container container = null;
     boolean up = true;
     int threads = Runtime.getRuntime().availableProcessors();
     boolean docker = true;
@@ -128,8 +124,9 @@ public class BBOSlave extends Node {
                 if (!newmessages.isEmpty()) {
 
                     for (String s : newmessages) {
-                        //System.out.println("run " + s);
-                        Trial t = Trial.deserializeTrial(s);
+                        System.out.println("run " + s);
+                        Trial    t = Trial.deserializeTrial(s);
+
                         if(docker) {
                             String ch = t.getCodeHome();
 
@@ -147,10 +144,20 @@ public class BBOSlave extends Node {
                                 if (new File(dockerFilePath).exists()) {
                                     docker = true;
                                     dw = new DockerWrapper(dockerhome);
-                                    dw.build();
+                                    try {
+                                        dockerHandler = new DockerHandler();
+                                       this.container= dockerHandler.getContainer(dw.getLocation(),dw.getName()) ;
+                                       this.container.start();
+                                    } catch (DockerCertificateException e) {
+                                        e.printStackTrace();
+                                    } catch (DockerException e) {
+                                        e.printStackTrace();
+                                    }
+                                    //dw.build();
                                 }
                             }
-                            t.setBaseCommand(dw.getCommand(t.getBaseCommand()));
+                            t.setContainer(this.container);
+                            t.setBaseCommand(dw.getCommand1(t.getBaseCommand()));
                         }
 
                         set.add(pool.submit(t));
@@ -160,6 +167,12 @@ public class BBOSlave extends Node {
                         Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
 
                         com.publish(gson1.toJson(ir, IterationResult.class), this.getName());
+                    }
+                    try {
+                        this.container.stop();
+                        this.container.remove();
+                    } catch (DockerException e) {
+                        e.printStackTrace();
                     }
                     newmessages.clear();
 

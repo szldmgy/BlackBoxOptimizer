@@ -144,7 +144,7 @@ public class TestConfig {
     }
 
     public boolean getDistributedMode(){ return this.distribution;}
-    public Com getCommunicationObject(){return this.communicationObject;}
+    public Com<?,?> getCommunicationObject(){return this.communicationObject;}
 
     public String getAlgorithmName() {        return algorithmName;    }
     public String getBaseCommand() { return baseCommand; }

@@ -18,11 +18,13 @@ package optimizer.trial;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.spotify.docker.client.exceptions.DockerException;
 import optimizer.config.TestConfig;
 import optimizer.exception.JSONReadException;
 import optimizer.objective.ObjectiveContainer;
 import optimizer.param.Param;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,6 +49,18 @@ public class Trial implements Callable<IterationResult> {
 
 
     }
+
+    public DockerHandler.Container getContainer() {
+        return container;
+    }
+
+    public void setContainer(DockerHandler.Container container) {
+        this.container = container;
+    }
+
+    // TODO: 2019. 01. 07. probably put it elsewhere
+    private DockerHandler.Container container;
+
     /**
      * A member specifying whether the executed process writes its results into a file or on the standard output
      * Since using the same filename in parallel executed instances of the process can be problematic now it is set up to false all the times.
@@ -100,9 +114,23 @@ public class Trial implements Callable<IterationResult> {
      */
     @Override
     public IterationResult call() throws Exception {
-      return executeSequentially();
+      return executeSequentially1();
     }
 
+    public IterationResult executeSequentially1() throws InterruptedException, CloneNotSupportedException, IOException, DockerException {
+        if(this.container == null){
+            return executeSequentially();
+        }
+        BufferedReader outputReader, errorReader;
+
+        String command = TestConfig.getCommand(this.config,baseCommand);
+        String res = this.container.execute(command.split(" "),null);
+        outputReader= new BufferedReader(new StringReader(res));
+        System.out.println("RES = "+res);
+
+        return new IterationResult(this.config, ObjectiveContainer.readObjectives(outputReader,null,this.pattern),startTime,delta);
+
+    }
     /**
      * Plainsequential execution of the BBF with parameters specified in {@link #config}.
      * @return The result of the trial.

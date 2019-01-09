@@ -33,6 +33,15 @@ public class DockerWrapper {
     Boolean done = false;
     String location;
     String name;
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public DockerWrapper(String location){
         this.location = location;
         this.name = location.substring(location.lastIndexOf("/")+1,location.length()).toLowerCase();
@@ -47,9 +56,14 @@ public class DockerWrapper {
             process = Runtime.getRuntime()
                     .exec(command);
         } else */{
-            String command = String.format("docker build -t %s ./%s", this.name,this.location);
+            System.out.println("User.home: "+ homeDirectory);
+            System.out.println("User.dir: "+ System.getProperty("user.dir"));
+            String command = String.format("docker build -t %s %s", this.name,this.location);
+            String[] command1 = { "/bin/bash", "-c","docker","build","-t",this.name,this.location};
+            System.out.println(" to build docker : "+command);
+
             process = Runtime.getRuntime()
-                    .exec(command);
+                    .exec(command1);
         }
         StreamGobbler streamGobbler =
                 new StreamGobbler(process.getInputStream(), System.out::println);
@@ -69,16 +83,34 @@ public class DockerWrapper {
         int execStartIdx = parts[1].lastIndexOf("/");
         if(execStartIdx == -1)
             execStartIdx = parts[1].lastIndexOf("\\");
-        String executable = parts[1].substring(parts[1].lastIndexOf("/")+1,parts[1].length());
+        String executable =  parts[1].substring(parts[1].lastIndexOf("/")+1,parts[1].length());
         System.out.println("EXECUTABLE: "+executable);
         String leftover = "";
         for (int i = 2; i <parts.length ;  i++) {
             leftover+=" "+parts[i];
         }
+        String command2 = "/bin/bash -c docker run "+name+" "+ com + " "+executable+" "+leftover;
+        System.out.println("Running: "+command2);
 
+        return command2;
 
+    } public String getCommand1(String command){
+       // while (!done){;}
+        String[] parts = command.trim().split(" ");
+        String com = parts[0];
+        int execStartIdx = parts[1].lastIndexOf("/");
+        if(execStartIdx == -1)
+            execStartIdx = parts[1].lastIndexOf("\\");
+        String executable =  parts[1].substring(parts[1].lastIndexOf("/")+1,parts[1].length());
+        System.out.println("EXECUTABLE: "+executable);
+        String leftover = "";
+        for (int i = 2; i <parts.length ;  i++) {
+            leftover+=" "+parts[i];
+        }
+        String command2 = com + " "+executable+" "+leftover;
+        System.out.println("Running: "+command2);
 
-        return "docker run "+name+" "+ com + " "+executable+" "+leftover;
+        return command2;
 
     }
     private static class StreamGobbler implements Runnable {
