@@ -168,12 +168,6 @@ public class BBOSlave extends Node {
 
                         com.publish(gson1.toJson(ir, IterationResult.class), this.getName());
                     }
-                    try {
-                        this.container.stop();
-                        this.container.remove();
-                    } catch (DockerException e) {
-                        e.printStackTrace();
-                    }
                     newmessages.clear();
 
                 }
@@ -187,6 +181,17 @@ public class BBOSlave extends Node {
                 e.printStackTrace();
             }
             ;
+        }
+        if(container!=null){
+            try {
+                System.out.println("Shooting container down");
+                this.container.stop();
+                this.container.remove();
+            } catch (DockerException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         System.out.println("shot down slave");
 
