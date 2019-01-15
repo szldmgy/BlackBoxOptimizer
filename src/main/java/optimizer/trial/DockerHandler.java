@@ -252,9 +252,13 @@ public class DockerHandler {
         public void start() throws DockerException, InterruptedException {
             dockerClient.startContainer(this.containerId);
         }
-        public String execute(String[] command, OutputStream os) throws DockerException, InterruptedException {
+
+        // TODO: 2019. 01. 15. probably kills parallelism
+        public synchronized String execute(String[] command, OutputStream os) throws DockerException, InterruptedException {
             String execId = dockerClient.execCreate(this.containerId, command, DockerClient.ExecCreateParam.attachStdout(),
                     DockerClient.ExecCreateParam.attachStderr()).id();
+
+            //todo should be separated here
             try (final LogStream stream = dockerClient.execStart(execId)) {
                 return stream.readFully();
             }
