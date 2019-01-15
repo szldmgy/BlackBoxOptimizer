@@ -114,7 +114,7 @@ public class BBOSlave extends Node {
         List<String> newmessages;
         while (up) {
             try {
-                System.out.println("SLAVE READS");
+                System.out.println(this.getName()+" READS");
                 newmessages = this.com.receive(this.getName());
                 if (newmessages.contains("STOP")) {
                     up = false;
