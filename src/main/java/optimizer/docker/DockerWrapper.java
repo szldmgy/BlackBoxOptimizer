@@ -18,10 +18,7 @@ package optimizer.docker;
 
 import optimizer.utils.Utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -45,6 +42,8 @@ public class DockerWrapper {
     public DockerWrapper(String location){
         this.location = location;
         this.name = location.substring(location.lastIndexOf("/")+1,location.length()).toLowerCase();
+        //for win
+        this.name = this.name.substring(this.name.lastIndexOf(File.separator)+1,this.name.length()).toLowerCase();
 
     }
     public boolean build() throws IOException, InterruptedException {
